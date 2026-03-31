@@ -54,23 +54,47 @@ const navItems = [
 const publishedPosts = getPublishedPosts();
 const postCategories = Array.from(
   new Set(publishedPosts.flatMap((post) => post.tags)),
-).map((tag) => ({
-  label: formatLabel(tag),
-  href: `/posts?tag=${encodeURIComponent(tag)}`,
-}));
+)
+  .map((tag) => ({
+    tag,
+    label: formatLabel(tag),
+    href: `/posts?tag=${encodeURIComponent(tag)}`,
+    posts: publishedPosts.filter((post) => post.tags.includes(tag)),
+  }))
+  .sort((a, b) => b.posts.length - a.posts.length || a.label.localeCompare(b.label));
 
 const updateCategories = [
-  { label: "Build Logs", href: "/updates?category=build-logs" },
-  { label: "Notes", href: "/updates?category=notes" },
-  { label: "Experiments", href: "/updates?category=experiments" },
-  { label: "Changelog", href: "/updates?category=changelog" },
+  {
+    tag: "build-logs",
+    label: "Build Logs",
+    href: "/updates?category=build-logs",
+    items: ["March progress", "Admin console pass", "Publishing flow notes"],
+  },
+  {
+    tag: "notes",
+    label: "Notes",
+    href: "/updates?category=notes",
+    items: ["Small observations", "Interface tweaks", "Things worth revisiting"],
+  },
+  {
+    tag: "experiments",
+    label: "Experiments",
+    href: "/updates?category=experiments",
+    items: ["New nav directions", "Homepage variations", "Dark mode texture tests"],
+  },
+  {
+    tag: "changelog",
+    label: "Changelog",
+    href: "/updates?category=changelog",
+    items: ["Header refinements", "Mobile nav updates", "Content model cleanup"],
+  },
 ];
 
 const morePlaceholders = [
-  "Projects",
-  "Bookmarks",
-  "Colophon",
-  "Reading Notes",
+  { eyebrow: "Projects", title: "项目" },
+  { eyebrow: "Friends", title: "友链" },
+  { eyebrow: "Reviews", title: "品鉴" },
+  { eyebrow: "Bookmarks", title: "书签" },
 ];
 
 export function SiteHeader() {
@@ -80,6 +104,12 @@ export function SiteHeader() {
   const [highlightedHref, setHighlightedHref] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [expandedMobileHref, setExpandedMobileHref] = useState<string | null>(null);
+  const [hoveredPostCategoryTag, setHoveredPostCategoryTag] = useState<string | null>(
+    postCategories[0]?.tag ?? null,
+  );
+  const [hoveredUpdateCategoryTag, setHoveredUpdateCategoryTag] = useState<string | null>(
+    updateCategories[0]?.tag ?? null,
+  );
   const megaNavRef = useRef<HTMLDivElement | null>(null);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
@@ -148,6 +178,14 @@ export function SiteHeader() {
       closeTimerRef.current = null;
     }
 
+    if (href === "/posts" && postCategories.length > 0) {
+      setHoveredPostCategoryTag(postCategories[0].tag);
+    }
+
+    if (href === "/updates" && updateCategories.length > 0) {
+      setHoveredUpdateCategoryTag(updateCategories[0].tag);
+    }
+
     setIsMegaNavOpen(true);
     setHighlightedHref(href);
   };
@@ -162,6 +200,11 @@ export function SiteHeader() {
       setHighlightedHref(null);
       closeTimerRef.current = null;
     }, 120);
+  };
+
+  const handleMegaNavNavigate = () => {
+    setIsMegaNavOpen(false);
+    setHighlightedHref(null);
   };
 
   const activeItem =
@@ -211,9 +254,12 @@ export function SiteHeader() {
         <div
           ref={megaNavRef}
           className="relative hidden md:flex md:justify-center"
-          onMouseEnter={() => openMegaNav(activeItem.href)}
           onMouseLeave={closeMegaNav}
-          onFocusCapture={() => openMegaNav(activeItem.href)}
+          onFocusCapture={() => {
+            if (!highlightedHref) {
+              openMegaNav(activeItem.href);
+            }
+          }}
           onBlurCapture={(event) => {
             if (!megaNavRef.current?.contains(event.relatedTarget as Node | null)) {
               closeMegaNav();
@@ -289,27 +335,13 @@ export function SiteHeader() {
                   className="absolute left-1/2 top-[calc(100%+0.75rem)] z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2"
                 >
                   <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_20px_60px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.82)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.48)]">
-                    <div className="grid gap-3">
-                      <div className="flex items-center justify-between rounded-[1.2rem] border border-zinc-200 bg-zinc-50/80 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/75">
-                        <div>
-                          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                            Menu
-                          </p>
-                          <h2 className="mt-1 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-100">
-                            {featuredItem.label}
-                          </h2>
-                        </div>
-                        <Link
-                          href={featuredItem.href}
-                          className="inline-flex items-center gap-1.5 text-sm font-medium text-zinc-600 transition hover:text-primary dark:text-zinc-300 dark:hover:text-sky-300"
-                        >
-                          Open
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
-                      </div>
-
-                      {renderMegaNavContent(featuredItem.href)}
-                    </div>
+                    {renderMegaNavContent(featuredItem.href, {
+                      hoveredPostCategoryTag,
+                      onHoverPostCategory: setHoveredPostCategoryTag,
+                      hoveredUpdateCategoryTag,
+                      onHoverUpdateCategory: setHoveredUpdateCategoryTag,
+                      onNavigate: handleMegaNavNavigate,
+                    })}
                   </div>
                 </motion.div>
               </>
@@ -437,66 +469,105 @@ function isActivePath(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-function renderMegaNavContent(href: string) {
+function renderMegaNavContent(
+  href: string,
+  options: {
+    hoveredPostCategoryTag: string | null;
+    onHoverPostCategory: (tag: string) => void;
+    hoveredUpdateCategoryTag: string | null;
+    onHoverUpdateCategory: (tag: string) => void;
+    onNavigate: () => void;
+  },
+) {
   switch (href) {
     case "/":
       return (
-        <MegaNavSection eyebrow="Overview" badge="2">
+        <MegaNavSection eyebrow="Overview">
           <div className="grid gap-2 sm:grid-cols-2">
-            <MegaNavLinkCard href="/" title="此站点" eyebrow="Home" />
-            <MegaNavLinkCard href="/more" title="自述" eyebrow="About" />
+            <MegaNavLinkCard href="/" title="此站点" eyebrow="Home" onNavigate={options.onNavigate} />
+            <MegaNavLinkCard href="/more" title="自述" eyebrow="About" onNavigate={options.onNavigate} />
           </div>
         </MegaNavSection>
       );
     case "/posts":
       return (
-        <MegaNavSection eyebrow="Categories" badge={String(postCategories.length)}>
-          <div className="flex flex-wrap gap-2">
-            {postCategories.map((category) => (
-              <MegaNavChip key={category.href} href={category.href} label={category.label} />
-            ))}
-          </div>
+        <MegaNavSection eyebrow="Categories">
+          <PostMegaNavContent
+            hoveredPostCategoryTag={options.hoveredPostCategoryTag}
+            onHoverPostCategory={options.onHoverPostCategory}
+            onNavigate={options.onNavigate}
+          />
         </MegaNavSection>
       );
     case "/updates":
       return (
-        <MegaNavSection eyebrow="Categories" badge={String(updateCategories.length)}>
-          <div className="flex flex-wrap gap-2">
-            {updateCategories.map((category) => (
-              <MegaNavChip key={category.href} href={category.href} label={category.label} />
-            ))}
-          </div>
+        <MegaNavSection eyebrow="Categories">
+          <UpdateMegaNavContent
+            hoveredUpdateCategoryTag={options.hoveredUpdateCategoryTag}
+            onHoverUpdateCategory={options.onHoverUpdateCategory}
+            onNavigate={options.onNavigate}
+          />
         </MegaNavSection>
       );
     case "/archives":
       return (
-        <div className="grid gap-2.5">
-          <MegaNavSection eyebrow="Articles" badge="3">
-            <div className="grid gap-2">
-              {publishedPosts.slice(0, 3).map((post) => (
-                <MegaNavArticleLink
+        <div className="grid gap-5 px-1 py-1">
+          <div className="min-w-0">
+            <div className="mb-2.5 flex items-center justify-between gap-3">
+              <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                Articles
+              </p>
+              <Link
+                href="/archives"
+                onClick={options.onNavigate}
+                className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+              >
+                View archive
+              </Link>
+            </div>
+            <div className="grid gap-1">
+              {publishedPosts.slice(0, 4).map((post) => (
+                <MegaNavArchiveEntry
                   key={post.id}
                   href={`/posts/${post.slug}`}
                   title={post.title}
+                  meta={post.publishedAt ?? ""}
+                  onNavigate={options.onNavigate}
                 />
               ))}
             </div>
-          </MegaNavSection>
-          <MegaNavSection eyebrow="Update Archives" badge={String(updateCategories.length)}>
-            <div className="flex flex-wrap gap-2">
+          </div>
+
+          <div className="border-t border-zinc-200/70 pt-3 dark:border-zinc-800/80">
+            <p className="mb-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+              Updates
+            </p>
+            <div className="grid gap-1">
               {updateCategories.map((category) => (
-                <MegaNavChip key={category.href} href={category.href} label={category.label} />
+                <MegaNavArchiveEntry
+                  key={category.href}
+                  href={category.href}
+                  title={category.label}
+                  meta="Category"
+                  onNavigate={options.onNavigate}
+                />
               ))}
             </div>
-          </MegaNavSection>
+          </div>
         </div>
       );
     case "/more":
       return (
-        <MegaNavSection eyebrow="Placeholder Grid" badge={String(morePlaceholders.length)}>
+        <MegaNavSection eyebrow="More">
           <div className="grid gap-2 sm:grid-cols-2">
-            {morePlaceholders.map((label) => (
-              <MegaNavPlaceholderCard key={label} label={label} />
+            {morePlaceholders.map((item) => (
+              <MegaNavLinkCard
+                key={item.eyebrow}
+                href="/more"
+                title={item.title}
+                eyebrow={item.eyebrow}
+                onNavigate={options.onNavigate}
+              />
             ))}
           </div>
         </MegaNavSection>
@@ -557,12 +628,12 @@ function renderMobileNavContent(href: string, onNavigate: () => void) {
     case "/more":
       return (
         <div className="flex flex-wrap gap-2">
-          {morePlaceholders.map((label) => (
+          {morePlaceholders.map((item) => (
             <span
-              key={label}
+              key={item.eyebrow}
               className="rounded-full border border-dashed border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
             >
-              {label}
+              {item.title}
             </span>
           ))}
         </div>
@@ -576,15 +647,18 @@ function MegaNavLinkCard({
   href,
   title,
   eyebrow,
+  onNavigate,
 }: {
   href: string;
   title: string;
   eyebrow: string;
+  onNavigate: () => void;
 }) {
   return (
     <Link
       href={href}
-      className="group rounded-[1.15rem] border border-zinc-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.95),rgba(244,244,245,0.8))] px-3.5 py-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-zinc-800 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.98),rgba(17,17,19,0.9))] dark:hover:border-sky-300/15 dark:hover:bg-zinc-900"
+      onClick={onNavigate}
+      className="group rounded-[1rem] px-2 py-2.5 transition-colors duration-200 hover:bg-zinc-50/90 dark:hover:bg-zinc-900/70"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -595,7 +669,7 @@ function MegaNavLinkCard({
             {title}
           </span>
         </div>
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/80 text-zinc-400 transition group-hover:text-primary dark:bg-zinc-800/90 dark:text-zinc-500 dark:group-hover:text-sky-300">
+        <span className="inline-flex h-8 w-8 items-center justify-center text-zinc-400 transition group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-sky-300">
           <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
         </span>
       </div>
@@ -603,43 +677,164 @@ function MegaNavLinkCard({
   );
 }
 
-function MegaNavChip({
-  href,
-  label,
+function PostMegaNavContent({
+  hoveredPostCategoryTag,
+  onHoverPostCategory,
+  onNavigate,
 }: {
-  href: string;
-  label: string;
+  hoveredPostCategoryTag: string | null;
+  onHoverPostCategory: (tag: string) => void;
+  onNavigate: () => void;
 }) {
+  const activeCategory =
+    postCategories.find((category) => category.tag === hoveredPostCategoryTag) ??
+    postCategories[0];
+
+  if (!activeCategory) {
+    return null;
+  }
+
   return (
-    <Link
-      href={href}
-      className="group inline-flex items-center gap-2 rounded-full border border-zinc-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,244,245,0.85))] px-3 py-1.5 text-sm font-medium text-zinc-700 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/25 hover:text-primary hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)] dark:border-zinc-700 dark:bg-[linear-gradient(180deg,rgba(39,39,42,0.92),rgba(24,24,27,0.96))] dark:text-zinc-300 dark:hover:border-sky-300/20 dark:hover:text-sky-300"
-    >
-      <span className="h-1.5 w-1.5 rounded-full bg-zinc-300 transition group-hover:bg-primary dark:bg-zinc-600 dark:group-hover:bg-sky-300" />
-      {label}
-    </Link>
+    <div className="grid gap-5 md:grid-cols-[10rem_minmax(0,1fr)]">
+      <div className="grid gap-1">
+        {postCategories.map((category) => {
+          const active = category.tag === activeCategory.tag;
+
+          return (
+            <button
+              key={category.tag}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => onHoverPostCategory(category.tag)}
+              onFocus={() => onHoverPostCategory(category.tag)}
+              className={`flex items-center justify-between rounded-[0.9rem] px-2 py-2 text-left transition-colors ${
+                active
+                  ? "bg-zinc-50 text-zinc-950 dark:bg-zinc-900/80 dark:text-zinc-100"
+                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200"
+              }`}
+            >
+              <span className="text-sm font-medium">{category.label}</span>
+              <span className="text-[0.68rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+                {category.posts.length}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="min-w-0 border-l border-zinc-200/70 pl-4 dark:border-zinc-800/80">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+            {activeCategory.label}
+          </p>
+          <Link
+            href={activeCategory.href}
+            onClick={onNavigate}
+            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+          >
+            View all
+          </Link>
+        </div>
+        <div className="grid gap-1">
+          {activeCategory.posts.map((post) => (
+            <MegaNavArticleLink
+              key={post.id}
+              href={`/posts/${post.slug}`}
+              title={post.title}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function UpdateMegaNavContent({
+  hoveredUpdateCategoryTag,
+  onHoverUpdateCategory,
+  onNavigate,
+}: {
+  hoveredUpdateCategoryTag: string | null;
+  onHoverUpdateCategory: (tag: string) => void;
+  onNavigate: () => void;
+}) {
+  const activeCategory =
+    updateCategories.find((category) => category.tag === hoveredUpdateCategoryTag) ??
+    updateCategories[0];
+
+  if (!activeCategory) {
+    return null;
+  }
+
+  return (
+    <div className="grid gap-5 md:grid-cols-[10rem_minmax(0,1fr)]">
+      <div className="grid gap-1">
+        {updateCategories.map((category) => {
+          const active = category.tag === activeCategory.tag;
+
+          return (
+            <button
+              key={category.tag}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onMouseEnter={() => onHoverUpdateCategory(category.tag)}
+              onFocus={() => onHoverUpdateCategory(category.tag)}
+              className={`flex items-center justify-between rounded-[0.9rem] px-2 py-2 text-left transition-colors ${
+                active
+                  ? "bg-zinc-50 text-zinc-950 dark:bg-zinc-900/80 dark:text-zinc-100"
+                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200"
+              }`}
+            >
+              <span className="text-sm font-medium">{category.label}</span>
+              <span className="text-[0.68rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+                {category.items.length}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="min-w-0 border-l border-zinc-200/70 pl-4 dark:border-zinc-800/80">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+            {activeCategory.label}
+          </p>
+          <Link
+            href={activeCategory.href}
+            onClick={onNavigate}
+            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+          >
+            View all
+          </Link>
+        </div>
+        <div className="grid gap-1">
+          {activeCategory.items.map((item) => (
+            <MegaNavArticleLink
+              key={item}
+              href={activeCategory.href}
+              title={item}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
 function MegaNavSection({
   eyebrow,
-  badge,
   children,
 }: {
   eyebrow: string;
-  badge: string;
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[1.2rem] border border-zinc-200/90 bg-[linear-gradient(180deg,rgba(250,250,250,0.92),rgba(244,244,245,0.78))] px-3.5 py-3 dark:border-zinc-800 dark:bg-[linear-gradient(180deg,rgba(25,25,28,0.96),rgba(16,16,19,0.9))]">
-      <div className="mb-2.5 flex items-center justify-between gap-3">
-        <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-          {eyebrow}
-        </p>
-        <span className="rounded-full border border-zinc-200 bg-white px-2 py-0.5 text-[0.65rem] font-medium text-zinc-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-400">
-          {badge}
-        </span>
-      </div>
+    <section className="px-1 py-1">
+      <p className="mb-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+        {eyebrow}
+      </p>
       {children}
     </section>
   );
@@ -648,14 +843,17 @@ function MegaNavSection({
 function MegaNavArticleLink({
   href,
   title,
+  onNavigate,
 }: {
   href: string;
   title: string;
+  onNavigate: () => void;
 }) {
   return (
     <Link
       href={href}
-      className="group flex items-center justify-between gap-3 rounded-[1rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-primary/20 hover:text-primary hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-zinc-800 dark:bg-zinc-900/85 dark:hover:border-sky-300/15 dark:hover:text-sky-300"
+      onClick={onNavigate}
+      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 hover:text-primary dark:hover:bg-zinc-900/70 dark:hover:text-sky-300"
     >
       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</p>
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-sky-300" />
@@ -663,14 +861,31 @@ function MegaNavArticleLink({
   );
 }
 
-function MegaNavPlaceholderCard({ label }: { label: string }) {
+function MegaNavArchiveEntry({
+  href,
+  title,
+  meta,
+  onNavigate,
+}: {
+  href: string;
+  title: string;
+  meta: string;
+  onNavigate: () => void;
+}) {
   return (
-    <div className="rounded-[1.05rem] border border-dashed border-zinc-200 bg-[linear-gradient(180deg,rgba(250,250,250,0.9),rgba(244,244,245,0.72))] px-3.5 py-3 dark:border-zinc-700 dark:bg-[linear-gradient(180deg,rgba(32,32,36,0.82),rgba(22,22,26,0.78))]">
-      <div className="flex items-center gap-2">
-        <span className="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-600" />
-        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{label}</p>
-      </div>
-    </div>
+    <Link
+      href={href}
+      onClick={onNavigate}
+      className="group grid grid-cols-[5.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 dark:hover:bg-zinc-900/70"
+    >
+      <span className="text-xs font-medium tracking-[0.08em] text-zinc-400 dark:text-zinc-500">
+        {meta}
+      </span>
+      <span className="truncate text-sm font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100 dark:group-hover:text-sky-300">
+        {title}
+      </span>
+      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-sky-300" />
+    </Link>
   );
 }
 
