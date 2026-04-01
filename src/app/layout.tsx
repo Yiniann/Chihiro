@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site";
+import { getThemeModeInitScript } from "@/lib/theme-mode";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,7 +19,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang={siteConfig.locale} className="h-full antialiased">
-      <body className="min-h-full overflow-x-hidden">{children}</body>
+      <body className="min-h-full overflow-x-hidden">
+        <script dangerouslySetInnerHTML={{ __html: getThemeModeInitScript() }} />
+        {children}
+      </body>
     </html>
   );
 }

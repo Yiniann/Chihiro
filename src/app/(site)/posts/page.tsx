@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PostSearchDialog } from "@/components/post-search-dialog";
+import { PostTagsPanel } from "@/components/post-tags-panel";
 import { RelativeDate } from "@/components/relative-date";
 import { formatPostTerm, getPublishedPosts } from "@/lib/posts";
 
@@ -20,9 +21,6 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const activeSort = getSortValue(sort);
   const currentPage = getPageValue(page);
   const allPosts = getPublishedPosts();
-  const allTags = Array.from(new Set(allPosts.flatMap((post) => post.tags))).sort((a, b) =>
-    a.localeCompare(b),
-  );
 
   const filteredPosts = allPosts.filter((post) => {
     if (category && post.category !== category) {
@@ -64,13 +62,14 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
     publishedPosts.length === allPosts.length
       ? `${allPosts.length} posts total`
       : `${publishedPosts.length} of ${allPosts.length} posts total`;
+
   const buildPostsHref = ({
     nextCategory = category,
     nextTags = selectedTags,
     nextSort = activeSort,
     nextPage = 1,
   }: {
-    nextCategory?: string;
+    nextCategory?: string | null;
     nextTags?: string[];
     nextSort?: SortValue;
     nextPage?: number;
@@ -96,6 +95,17 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
     const query = params.toString();
     return query ? `/posts?${query}` : "/posts";
   };
+
+  function buildTagHref(tagSlug: string) {
+    const isActive = selectedTags.includes(tagSlug);
+    const nextSelectedTags = isActive
+      ? selectedTags.filter((item) => item !== tagSlug)
+      : [...selectedTags, tagSlug];
+
+    return buildPostsHref({ nextTags: nextSelectedTags });
+  }
+
+  const tagItems = getTagItems(allPosts, selectedTags, buildTagHref);
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-6xl px-6 py-16 sm:px-10">
@@ -188,52 +198,56 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
               No posts matched this filter yet.
             </div>
           )}
-          {publishedPosts.length > 0 && totalPages > 1 ? (
-            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
-              <Link
-                href={buildPostsHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
-                aria-disabled={safeCurrentPage === 1}
-                className={`transition ${
-                  safeCurrentPage === 1
-                    ? "pointer-events-none opacity-40"
-                    : "hover:text-zinc-900 dark:hover:text-zinc-200"
-                }`}
-              >
-                Previous
-              </Link>
-              <div className="flex flex-wrap items-center gap-3">
-                <span>
-                  Page {safeCurrentPage} of {totalPages}
-                </span>
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+          <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
+            <Link
+              href={buildPostsHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
+              aria-disabled={safeCurrentPage === 1}
+              className={`transition ${
+                safeCurrentPage === 1
+                  ? "pointer-events-none opacity-40"
+                  : "hover:text-zinc-900 dark:hover:text-zinc-200"
+              }`}
+            >
+              Previous
+            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <span>
+                Page {safeCurrentPage} of {totalPages}
+              </span>
+              <div className="flex items-center gap-2">
+                {getVisiblePageItems(safeCurrentPage, totalPages).map((item, index) =>
+                  item === "ellipsis" ? (
+                    <span key={`ellipsis-${index}`} aria-hidden="true" className="select-none">
+                      ...
+                    </span>
+                  ) : (
                     <Link
-                      key={pageNumber}
-                      href={buildPostsHref({ nextPage: pageNumber })}
+                      key={item}
+                      href={buildPostsHref({ nextPage: item })}
                       className={`transition ${
-                        pageNumber === safeCurrentPage
+                        item === safeCurrentPage
                           ? "text-primary dark:text-sky-300"
                           : "hover:text-zinc-900 dark:hover:text-zinc-200"
                       }`}
                     >
-                      {pageNumber}
+                      {item}
                     </Link>
-                  ))}
-                </div>
+                  ),
+                )}
               </div>
-              <Link
-                href={buildPostsHref({ nextPage: Math.min(totalPages, safeCurrentPage + 1) })}
-                aria-disabled={safeCurrentPage === totalPages}
-                className={`transition ${
-                  safeCurrentPage === totalPages
-                    ? "pointer-events-none opacity-40"
-                    : "hover:text-zinc-900 dark:hover:text-zinc-200"
-                }`}
-              >
-                Next
-              </Link>
             </div>
-          ) : null}
+            <Link
+              href={buildPostsHref({ nextPage: Math.min(totalPages, safeCurrentPage + 1) })}
+              aria-disabled={safeCurrentPage === totalPages}
+              className={`transition ${
+                safeCurrentPage === totalPages
+                  ? "pointer-events-none opacity-40"
+                  : "hover:text-zinc-900 dark:hover:text-zinc-200"
+              }`}
+            >
+              Next
+            </Link>
+          </div>
         </div>
 
         <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
@@ -255,43 +269,11 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
               />
             </div>
 
-            <div className="mt-6">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                  Tags
-                </p>
-                {selectedTags.length > 0 ? (
-                  <Link
-                    href={buildPostsHref({ nextTags: [] })}
-                    className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
-                  >
-                    Clear
-                  </Link>
-                ) : null}
-              </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {allTags.map((item) => {
-                  const isActive = selectedTags.includes(item);
-                  const nextSelectedTags = isActive
-                    ? selectedTags.filter((tagItem) => tagItem !== item)
-                    : [...selectedTags, item];
-
-                  return (
-                    <Link
-                      key={item}
-                      href={buildPostsHref({ nextTags: nextSelectedTags })}
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-                        isActive
-                          ? "bg-primary text-white dark:bg-sky-300 dark:text-zinc-950"
-                          : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                      }`}
-                    >
-                      {formatPostTerm(item)}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
+            <PostTagsPanel
+              tags={tagItems}
+              visibleCount={MAX_VISIBLE_TAGS}
+              clearHref={selectedTags.length > 0 ? buildPostsHref({ nextTags: [] }) : null}
+            />
           </div>
         </aside>
       </div>
@@ -305,6 +287,8 @@ const SORT_OPTIONS = [
   { value: "updated", label: "Recently updated" },
 ] as const;
 const POSTS_PER_PAGE = 10;
+const MAX_VISIBLE_PAGE_LINKS = 5;
+const MAX_VISIBLE_TAGS = 10;
 
 type SortValue = (typeof SORT_OPTIONS)[number]["value"];
 
@@ -349,4 +333,52 @@ function getPageValue(value?: string) {
   }
 
   return Math.floor(parsed);
+}
+
+function getVisiblePageItems(currentPage: number, totalPages: number) {
+  if (totalPages <= MAX_VISIBLE_PAGE_LINKS) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, 4, "ellipsis", totalPages] as const;
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, "ellipsis", totalPages - 3, totalPages - 2, totalPages - 1, totalPages] as const;
+  }
+
+  return [
+    1,
+    "ellipsis",
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+    "ellipsis",
+    totalPages,
+  ] as const;
+}
+
+function getTagItems(
+  posts: ReturnType<typeof getPublishedPosts>,
+  selectedTags: string[],
+  buildHref: (tagSlug: string) => string,
+) {
+  const tagCounts = new Map<string, number>();
+
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      tagCounts.set(tag, (tagCounts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(tagCounts.entries())
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
+    .map(([slug, count]) => ({
+      slug,
+      label: formatPostTerm(slug),
+      href: buildHref(slug),
+      count,
+      isActive: selectedTags.includes(slug),
+    }));
 }

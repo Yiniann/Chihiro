@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { createPortal } from "react-dom";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { RelativeDate } from "@/components/relative-date";
@@ -39,20 +40,12 @@ export function PostSearchDialog({ posts }: PostSearchDialogProps) {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-
-    document.body.style.overflow = "hidden";
-    if (scrollbarWidth > 0) {
-      document.body.style.paddingRight = `${scrollbarWidth}px`;
-    }
     window.setTimeout(() => {
       inputRef.current?.focus();
     }, 0);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = "";
-      document.body.style.paddingRight = "";
     };
   }, [isOpen]);
 
@@ -76,25 +69,36 @@ export function PostSearchDialog({ posts }: PostSearchDialogProps) {
         <Search className="h-4 w-4" />
       </button>
 
-      {isOpen ? (
+      {isOpen && typeof document !== "undefined"
+        ? createPortal(
         <div
-          className="fixed inset-0 z-[90] flex items-start justify-center bg-zinc-950/35 px-4 py-20 dark:bg-black/55"
+          className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/35 dark:bg-black/55"
           onClick={() => setIsOpen(false)}
         >
-          <div
-            className="w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white shadow-[0_30px_120px_rgba(15,23,42,0.18)] dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-[0_30px_120px_rgba(0,0,0,0.5)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-              <Search className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+          <div className="flex min-h-full items-start justify-center px-4 py-20">
+            <div
+              className="w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white shadow-[0_30px_120px_rgba(15,23,42,0.18)] dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-[0_30px_120px_rgba(0,0,0,0.5)]"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
+                <Search className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
               <input
                 ref={inputRef}
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search posts, tags, and notes"
-                className="h-10 min-w-0 flex-1 bg-transparent text-sm text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                className="search-dialog-input h-10 min-w-0 flex-1 bg-transparent text-sm text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
               />
+              {query ? (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="inline-flex h-9 items-center justify-center px-2 text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+                >
+                  Clear
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
@@ -103,46 +107,54 @@ export function PostSearchDialog({ posts }: PostSearchDialogProps) {
               >
                 <X className="h-4 w-4" />
               </button>
-            </div>
+              </div>
 
-            <div className="max-h-[28rem] overflow-y-auto px-3 py-3">
-              {normalizedQuery ? (
-                results.length > 0 ? (
-                  <div className="grid gap-1">
-                    {results.map(({ post }) => (
+              <div className="max-h-[28rem] overflow-y-auto px-3 py-3">
+                {normalizedQuery ? (
+                  results.length > 0 ? (
+                    <div className="grid gap-1">
+                      {results.map(({ post }) => (
                       <Link
                         key={post.slug}
                         href={`/posts/${post.slug}`}
                         onClick={() => setIsOpen(false)}
                         className="rounded-[1.1rem] px-3 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
                       >
-                        <div className="flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                        <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
                           <span>{post.category}</span>
-                          {post.publishedAt ? <RelativeDate value={post.publishedAt} /> : null}
+                          {post.publishedAt ? (
+                            <span className="shrink-0 normal-case tracking-normal">
+                              <RelativeDate value={post.publishedAt} />
+                            </span>
+                          ) : null}
                         </div>
-                        <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
-                          {highlightText(post.title, searchTerms)}
-                        </p>
-                        <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                          {highlightText(getSearchPreview(post, normalizedQuery, searchTerms), searchTerms)}
-                        </p>
-                      </Link>
-                    ))}
-                  </div>
+                          <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
+                            {highlightText(post.title, searchTerms)}
+                          </p>
+                          <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                            {highlightText(getSearchPreview(post, normalizedQuery, searchTerms), searchTerms)}
+                          </p>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-[1.1rem] px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+                      No matching posts found.
+                    </div>
+                  )
                 ) : (
                   <div className="rounded-[1.1rem] px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
-                    No matching posts found.
+                    Search by title, tag, category, or a line from the post.
                   </div>
-                )
-              ) : (
-                <div className="rounded-[1.1rem] px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
-                  Search by title, tag, category, or a line from the post.
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      ) : null}
+          ,
+          document.body,
+        )
+        : null}
     </>
   );
 }

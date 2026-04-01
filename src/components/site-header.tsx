@@ -16,6 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { RelativeDate } from "@/components/relative-date";
+import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { formatPostTerm, getPublishedPosts } from "@/lib/posts";
 import { siteConfig } from "@/lib/site";
 
@@ -233,10 +234,10 @@ export function SiteHeader() {
             setIsMobileNavOpen(true);
             setExpandedMobileHref(activeItem.href);
           }}
-          className={`inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-700 transition dark:text-zinc-200 md:hidden ${
+          className={`inline-flex shrink-0 items-center justify-center px-3 py-1.5 text-zinc-700 transition dark:text-zinc-200 md:hidden ${
             isScrolled
-              ? "border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-              : "border border-transparent bg-transparent"
+              ? "rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+              : "bg-transparent"
           }`}
         >
           {isMobileNavOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
@@ -350,7 +351,10 @@ export function SiteHeader() {
           </AnimatePresence>
         </div>
 
-        <div className="shrink-0 md:justify-self-end">
+        <div className="flex shrink-0 items-center gap-2 md:justify-self-end">
+          <div className="hidden md:block">
+            <ThemeModeToggle isScrolled={isScrolled} />
+          </div>
           <Link
             href="/admin"
             aria-label="Sign in"
@@ -454,6 +458,9 @@ export function SiteHeader() {
                   );
                 })}
               </nav>
+              <div className="mt-3">
+                <ThemeModeToggle inline />
+              </div>
             </div>
           </motion.div>
         ) : null}
@@ -484,9 +491,15 @@ function renderMegaNavContent(
     case "/":
       return (
         <MegaNavSection eyebrow="Overview">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             <MegaNavLinkCard href="/" title="此站点" eyebrow="Home" onNavigate={options.onNavigate} />
             <MegaNavLinkCard href="/more" title="自述" eyebrow="About" onNavigate={options.onNavigate} />
+            <MegaNavLinkCard
+              href="/message"
+              title="留言"
+              eyebrow="Message"
+              onNavigate={options.onNavigate}
+            />
           </div>
         </MegaNavSection>
       );
@@ -586,6 +599,7 @@ function renderMobileNavContent(href: string, onNavigate: () => void) {
         <div className="grid gap-2">
           <MobileNavSubLink href="/" label="此站点" onNavigate={onNavigate} />
           <MobileNavSubLink href="/more" label="自述" onNavigate={onNavigate} />
+          <MobileNavSubLink href="/message" label="留言" onNavigate={onNavigate} />
         </div>
       );
     case "/posts":

@@ -6,8 +6,11 @@ export const siteConfig = {
   url: process.env.NEXT_PUBLIC_SITE_URL?.trim() || defaultSiteUrl,
   author: "Yinian",
   locale: "zh-CN",
+  motto: "It is the time you have wasted for your rose makes your rose so important.",
   summary:
     "This is where I share projects, experiments, and reflections on building, learning, and the things that keep me curious.",
+  email:"i@xiamii.com",
+  github: "https://github.com/Yiniann",
 };
 
 export function absoluteUrl(path = "/") {
