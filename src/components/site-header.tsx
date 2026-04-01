@@ -15,7 +15,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { getPublishedPosts } from "@/lib/posts";
+import { RelativeDate } from "@/components/relative-date";
+import { formatPostTerm, getPublishedPosts } from "@/lib/posts";
 import { siteConfig } from "@/lib/site";
 
 const navItems = [
@@ -53,13 +54,13 @@ const navItems = [
 
 const publishedPosts = getPublishedPosts();
 const postCategories = Array.from(
-  new Set(publishedPosts.flatMap((post) => post.tags)),
+  new Set(publishedPosts.map((post) => post.category)),
 )
-  .map((tag) => ({
-    tag,
-    label: formatLabel(tag),
-    href: `/posts?tag=${encodeURIComponent(tag)}`,
-    posts: publishedPosts.filter((post) => post.tags.includes(tag)),
+  .map((category) => ({
+    slug: category,
+    label: formatPostTerm(category),
+    href: `/posts?category=${encodeURIComponent(category)}`,
+    posts: publishedPosts.filter((post) => post.category === category),
   }))
   .sort((a, b) => b.posts.length - a.posts.length || a.label.localeCompare(b.label));
 
@@ -104,8 +105,8 @@ export function SiteHeader() {
   const [highlightedHref, setHighlightedHref] = useState<string | null>(null);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [expandedMobileHref, setExpandedMobileHref] = useState<string | null>(null);
-  const [hoveredPostCategoryTag, setHoveredPostCategoryTag] = useState<string | null>(
-    postCategories[0]?.tag ?? null,
+  const [hoveredPostCategorySlug, setHoveredPostCategorySlug] = useState<string | null>(
+    postCategories[0]?.slug ?? null,
   );
   const [hoveredUpdateCategoryTag, setHoveredUpdateCategoryTag] = useState<string | null>(
     updateCategories[0]?.tag ?? null,
@@ -179,7 +180,7 @@ export function SiteHeader() {
     }
 
     if (href === "/posts" && postCategories.length > 0) {
-      setHoveredPostCategoryTag(postCategories[0].tag);
+      setHoveredPostCategorySlug(postCategories[0].slug);
     }
 
     if (href === "/updates" && updateCategories.length > 0) {
@@ -336,8 +337,8 @@ export function SiteHeader() {
                 >
                   <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_20px_60px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.82)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.48)]">
                     {renderMegaNavContent(featuredItem.href, {
-                      hoveredPostCategoryTag,
-                      onHoverPostCategory: setHoveredPostCategoryTag,
+                      hoveredPostCategorySlug,
+                      onHoverPostCategory: setHoveredPostCategorySlug,
                       hoveredUpdateCategoryTag,
                       onHoverUpdateCategory: setHoveredUpdateCategoryTag,
                       onNavigate: handleMegaNavNavigate,
@@ -472,8 +473,8 @@ function isActivePath(pathname: string, href: string) {
 function renderMegaNavContent(
   href: string,
   options: {
-    hoveredPostCategoryTag: string | null;
-    onHoverPostCategory: (tag: string) => void;
+    hoveredPostCategorySlug: string | null;
+    onHoverPostCategory: (slug: string) => void;
     hoveredUpdateCategoryTag: string | null;
     onHoverUpdateCategory: (tag: string) => void;
     onNavigate: () => void;
@@ -493,7 +494,7 @@ function renderMegaNavContent(
       return (
         <MegaNavSection eyebrow="Categories">
           <PostMegaNavContent
-            hoveredPostCategoryTag={options.hoveredPostCategoryTag}
+            hoveredPostCategorySlug={options.hoveredPostCategorySlug}
             onHoverPostCategory={options.onHoverPostCategory}
             onNavigate={options.onNavigate}
           />
@@ -532,6 +533,7 @@ function renderMegaNavContent(
                   href={`/posts/${post.slug}`}
                   title={post.title}
                   meta={post.publishedAt ?? ""}
+                  dateValue={post.publishedAt}
                   onNavigate={options.onNavigate}
                 />
               ))}
@@ -678,16 +680,16 @@ function MegaNavLinkCard({
 }
 
 function PostMegaNavContent({
-  hoveredPostCategoryTag,
+  hoveredPostCategorySlug,
   onHoverPostCategory,
   onNavigate,
 }: {
-  hoveredPostCategoryTag: string | null;
-  onHoverPostCategory: (tag: string) => void;
+  hoveredPostCategorySlug: string | null;
+  onHoverPostCategory: (slug: string) => void;
   onNavigate: () => void;
 }) {
   const activeCategory =
-    postCategories.find((category) => category.tag === hoveredPostCategoryTag) ??
+    postCategories.find((category) => category.slug === hoveredPostCategorySlug) ??
     postCategories[0];
 
   if (!activeCategory) {
@@ -698,15 +700,16 @@ function PostMegaNavContent({
     <div className="grid gap-5 md:grid-cols-[10rem_minmax(0,1fr)]">
       <div className="grid gap-1">
         {postCategories.map((category) => {
-          const active = category.tag === activeCategory.tag;
+          const active = category.slug === activeCategory.slug;
 
           return (
-            <button
-              key={category.tag}
-              type="button"
+            <Link
+              key={category.slug}
+              href={category.href}
+              onClick={onNavigate}
               onMouseDown={(event) => event.preventDefault()}
-              onMouseEnter={() => onHoverPostCategory(category.tag)}
-              onFocus={() => onHoverPostCategory(category.tag)}
+              onMouseEnter={() => onHoverPostCategory(category.slug)}
+              onFocus={() => onHoverPostCategory(category.slug)}
               className={`flex items-center justify-between rounded-[0.9rem] px-2 py-2 text-left transition-colors ${
                 active
                   ? "bg-zinc-50 text-zinc-950 dark:bg-zinc-900/80 dark:text-zinc-100"
@@ -717,7 +720,7 @@ function PostMegaNavContent({
               <span className="text-[0.68rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
                 {category.posts.length}
               </span>
-            </button>
+            </Link>
           );
         })}
       </div>
@@ -865,11 +868,13 @@ function MegaNavArchiveEntry({
   href,
   title,
   meta,
+  dateValue,
   onNavigate,
 }: {
   href: string;
   title: string;
   meta: string;
+  dateValue?: string | null;
   onNavigate: () => void;
 }) {
   return (
@@ -879,7 +884,7 @@ function MegaNavArchiveEntry({
       className="group grid grid-cols-[5.25rem_minmax(0,1fr)_auto] items-center gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 dark:hover:bg-zinc-900/70"
     >
       <span className="text-xs font-medium tracking-[0.08em] text-zinc-400 dark:text-zinc-500">
-        {meta}
+        {dateValue ? <RelativeDate value={dateValue} /> : meta}
       </span>
       <span className="truncate text-sm font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100 dark:group-hover:text-sky-300">
         {title}
@@ -928,11 +933,4 @@ function MobileNavChip({
       {label}
     </Link>
   );
-}
-
-function formatLabel(value: string) {
-  return value
-    .split(/[-_]/)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
 }

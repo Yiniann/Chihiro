@@ -8,6 +8,7 @@ export type PostMeta = {
   status: PostStatus;
   publishedAt: string | null;
   updatedAt?: string | null;
+  category: string;
   tags: string[];
   authorName: string;
 };
@@ -25,6 +26,7 @@ export const posts: Post[] = [
     status: "published",
     publishedAt: "2026-03-30",
     updatedAt: "2026-03-30",
+    category: "product-notes",
     tags: ["intro", "nextjs"],
     authorName: "Yinian",
     content: [
@@ -41,6 +43,7 @@ export const posts: Post[] = [
     status: "published",
     publishedAt: "2026-03-29",
     updatedAt: "2026-03-29",
+    category: "engineering",
     tags: ["architecture"],
     authorName: "Yinian",
     content: [
@@ -68,4 +71,11 @@ export function getPostBySlug(slug: string) {
 
 export function getAllPostSlugs() {
   return getPublishedPosts().map((post) => post.slug);
+}
+
+export function formatPostTerm(value: string) {
+  return value
+    .split(/[-_]/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 }

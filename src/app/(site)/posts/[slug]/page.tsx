@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAllPostSlugs, getPostBySlug } from "@/lib/posts";
+import { RelativeDate } from "@/components/relative-date";
+import { formatPostTerm, getAllPostSlugs, getPostBySlug } from "@/lib/posts";
 
 type PostPageProps = {
   params: Promise<{
@@ -48,8 +50,29 @@ export default async function PostPage({ params }: PostPageProps) {
           {post.title}
         </h1>
         <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-          <span>{post.publishedAt}</span>
-          {post.updatedAt ? <span>Updated {post.updatedAt}</span> : null}
+          <RelativeDate value={post.publishedAt} />
+          {post.updatedAt ? (
+            <span>
+              Updated <RelativeDate value={post.updatedAt} />
+            </span>
+          ) : null}
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link
+            href={`/posts?category=${encodeURIComponent(post.category)}`}
+            className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary dark:bg-sky-400/10 dark:text-sky-300"
+          >
+            {formatPostTerm(post.category)}
+          </Link>
+          {post.tags.map((tag) => (
+            <Link
+              key={tag}
+              href={`/posts?tag=${encodeURIComponent(tag)}`}
+              className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+            >
+              {formatPostTerm(tag)}
+            </Link>
+          ))}
         </div>
         <p className="mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
           {post.description}

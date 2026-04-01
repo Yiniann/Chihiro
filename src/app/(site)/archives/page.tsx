@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RelativeDate } from "@/components/relative-date";
 import { getPublishedPosts } from "@/lib/posts";
 
 export default function ArchivesPage() {
@@ -17,7 +18,9 @@ export default function ArchivesPage() {
             className="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/80 sm:flex-row sm:items-center sm:justify-between"
           >
             <div>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">{post.publishedAt}</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                <RelativeDate value={post.publishedAt} />
+              </p>
               <Link
                 href={`/posts/${post.slug}`}
                 className="mt-1 block text-lg font-semibold text-zinc-950 dark:text-zinc-50"
