@@ -1,6 +1,6 @@
 export default function UpdatesPage() {
   return (
-    <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
+    <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">Updates</p>
       <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
         动态

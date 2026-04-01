@@ -18,7 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang={siteConfig.locale} className="h-full antialiased">
+    <html
+      lang={siteConfig.locale}
+      className="h-full antialiased"
+      suppressHydrationWarning
+    >
       <body className="min-h-full overflow-x-hidden">
         <script dangerouslySetInnerHTML={{ __html: getThemeModeInitScript() }} />
         {children}

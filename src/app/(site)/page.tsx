@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { siteConfig } from "@/lib/site";
 
 export default function HomePage() {
@@ -10,10 +11,15 @@ export default function HomePage() {
 
       <section className="relative z-10 grid w-full items-center gap-10 lg:grid-cols-[minmax(420px,46vw)_minmax(0,1fr)] lg:gap-20">
         <div className="flex justify-center lg:justify-start">
-          <div className="hero-orb flex h-[20rem] w-[20rem] items-center justify-center rounded-full border border-zinc-200 bg-white text-8xl font-semibold tracking-tight text-primary shadow-[0_24px_80px_rgba(24,24,27,0.08)] dark:border-zinc-800 dark:bg-zinc-900/90 dark:shadow-[0_20px_60px_rgba(0,0,0,0.36)] sm:h-[24rem] sm:w-[24rem] sm:text-[9rem] lg:h-[30rem] lg:w-[30rem] lg:text-[11rem]">
-            <span className="relative z-10 dark:text-zinc-100">
-              {siteConfig.author.slice(0, 1)}
-            </span>
+          <div className="hero-orb relative h-[20rem] w-[20rem] overflow-hidden rounded-full border border-zinc-200 bg-white shadow-[0_24px_80px_rgba(24,24,27,0.08)] dark:border-zinc-800 dark:bg-zinc-900/90 dark:shadow-[0_20px_60px_rgba(0,0,0,0.36)] sm:h-[24rem] sm:w-[24rem] lg:h-[30rem] lg:w-[30rem]">
+            <Image
+              src={siteConfig.avatar}
+              alt={`${siteConfig.author} avatar`}
+              fill
+              priority
+              sizes="(min-width: 1024px) 30rem, (min-width: 640px) 24rem, 20rem"
+              className="object-cover"
+            />
           </div>
         </div>
 

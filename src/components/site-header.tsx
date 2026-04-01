@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useDeferredValue, useEffect, useRef, useState, type ReactNode } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
@@ -116,6 +116,7 @@ export function SiteHeader() {
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const deferredIsScrolled = useDeferredValue(isScrolled);
 
   useEffect(() => {
     const getScrollTop = () =>
@@ -215,9 +216,9 @@ export function SiteHeader() {
     navItems.find((item) => item.href === highlightedHref) ?? activeItem;
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-3 py-3 sm:px-6">
+    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 py-3 sm:px-6">
       <div
-        className="relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 transition-all duration-300 md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal sm:px-6"
+        className="pointer-events-none relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 transition-all duration-300 md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal sm:px-6"
       >
         <button
           ref={mobileMenuButtonRef}
@@ -234,7 +235,7 @@ export function SiteHeader() {
             setIsMobileNavOpen(true);
             setExpandedMobileHref(activeItem.href);
           }}
-          className={`inline-flex shrink-0 items-center justify-center px-3 py-1.5 text-zinc-700 transition dark:text-zinc-200 md:hidden ${
+          className={`pointer-events-auto inline-flex shrink-0 items-center justify-center px-3 py-1.5 text-zinc-700 transition dark:text-zinc-200 md:hidden ${
             isScrolled
               ? "rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
               : "bg-transparent"
@@ -244,7 +245,7 @@ export function SiteHeader() {
         </button>
         <Link
           href="/"
-          className={`absolute left-1/2 -translate-x-1/2 rounded-2xl px-3 py-1.5 text-lg font-semibold tracking-tight text-primary transition md:static md:translate-x-0 md:justify-self-start ${
+          className={`pointer-events-auto absolute left-1/2 -translate-x-1/2 rounded-2xl px-3 py-1.5 text-lg font-semibold tracking-tight text-primary transition md:static md:translate-x-0 md:justify-self-start ${
             isScrolled
               ? "border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
               : "border border-transparent bg-transparent"
@@ -255,7 +256,7 @@ export function SiteHeader() {
 
         <div
           ref={megaNavRef}
-          className="relative hidden md:flex md:justify-center"
+          className="pointer-events-auto relative hidden md:flex md:justify-center"
           onMouseLeave={closeMegaNav}
           onFocusCapture={() => {
             if (!highlightedHref) {
@@ -291,7 +292,7 @@ export function SiteHeader() {
                       : "text-zinc-600 hover:text-primary dark:text-zinc-300"
                   }`}
                 >
-                  {active && isScrolled ? (
+                  {active && deferredIsScrolled ? (
                     <motion.span
                       layoutId="nav-indicator"
                       className="absolute inset-0 rounded-full border border-primary/25 bg-primary/10 shadow-sm dark:border-sky-300/15 dark:bg-sky-400/10 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.05),0_12px_28px_rgba(2,6,23,0.42)]"
@@ -351,7 +352,7 @@ export function SiteHeader() {
           </AnimatePresence>
         </div>
 
-        <div className="flex shrink-0 items-center gap-2 md:justify-self-end">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2 md:justify-self-end">
           <div className="hidden md:block">
             <ThemeModeToggle isScrolled={isScrolled} />
           </div>
@@ -377,7 +378,7 @@ export function SiteHeader() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
+            className="pointer-events-auto mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
           >
             <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_18px_50px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.44)]">
               <nav className="grid gap-2">
@@ -574,7 +575,7 @@ function renderMegaNavContent(
     case "/more":
       return (
         <MegaNavSection eyebrow="More">
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             {morePlaceholders.map((item) => (
               <MegaNavLinkCard
                 key={item.eyebrow}

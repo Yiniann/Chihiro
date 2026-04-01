@@ -21,10 +21,8 @@ export function ThemeModeToggle({
   isScrolled = false,
   inline = false,
 }: ThemeModeToggleProps) {
-  const [mode, setMode] = useState<ThemeMode>(readStoredThemeMode);
-  const [preference, setPreference] = useState<ThemeModePreference>(
-    readStoredThemeModePreference,
-  );
+  const [mode, setMode] = useState<ThemeMode>("light");
+  const [preference, setPreference] = useState<ThemeModePreference>("system");
   const [isHintOpen, setIsHintOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -41,6 +39,8 @@ export function ThemeModeToggle({
       setPreference(readStoredThemeModePreference());
       setMode(readStoredThemeMode());
     };
+
+    syncMode();
 
     window.addEventListener(THEME_MODE_EVENT, syncMode as EventListener);
     window.addEventListener("storage", syncMode);

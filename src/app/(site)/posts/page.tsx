@@ -108,7 +108,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const tagItems = getTagItems(allPosts, selectedTags, buildTagHref);
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-6xl px-6 py-16 sm:px-10">
+    <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <header>
         <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
           Writing

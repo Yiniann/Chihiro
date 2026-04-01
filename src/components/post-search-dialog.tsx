@@ -72,7 +72,7 @@ export function PostSearchDialog({ posts }: PostSearchDialogProps) {
       {isOpen && typeof document !== "undefined"
         ? createPortal(
         <div
-          className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/35 dark:bg-black/55"
+          className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/30 backdrop-blur-[2px] dark:bg-black/50"
           onClick={() => setIsOpen(false)}
         >
           <div className="flex min-h-full items-start justify-center px-4 py-20">
