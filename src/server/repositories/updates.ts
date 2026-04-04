@@ -402,6 +402,15 @@ export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
   return mapUpdateRecord(update);
 }
 
+export async function deleteUpdateById(id: number): Promise<UpdateItem> {
+  const update = await prisma.update.delete({
+    where: { id },
+    include: updateInclude,
+  });
+
+  return mapUpdateRecord(update);
+}
+
 export async function discardUpdateRevisionById(id: number): Promise<UpdateItem> {
   const current = await prisma.update.findUnique({
     where: { id },
@@ -577,39 +586,6 @@ function createTemporarySlug() {
   return `update-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function buildPublishedSnapshot(record: UpdateRecord, publishedAt: Date): PublishedUpdateSnapshot {
-  return {
-    title: record.title,
-    slug: record.slug,
-    summary: record.summary,
-    content: record.content,
-    contentHtml: record.contentHtml,
-    publishedAt: publishedAt.toISOString(),
-    category: record.category
-      ? {
-          id: record.category.id,
-          name: record.category.name,
-          slug: record.category.slug,
-        }
-      : null,
-    coverAsset: record.coverAsset
-      ? {
-          id: record.coverAsset.id,
-          url: record.coverAsset.url,
-          alt: record.coverAsset.alt,
-          mimeType: record.coverAsset.mimeType,
-          width: record.coverAsset.width,
-          height: record.coverAsset.height,
-        }
-      : null,
-    tags: record.tags.map(({ tag }) => ({
-      id: tag.id,
-      name: tag.name,
-      slug: tag.slug,
-    })),
-  };
-}
-
 function buildDraftSnapshot(input: {
   title: string;
   slug: string;
@@ -635,14 +611,6 @@ function buildDraftSnapshot(input: {
     coverAsset: input.coverAsset,
     tags: input.tags,
   };
-}
-
-function parsePublishedSnapshot(value: Prisma.JsonValue | null): PublishedUpdateSnapshot | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  return value as PublishedUpdateSnapshot;
 }
 
 function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftUpdateSnapshot | null {

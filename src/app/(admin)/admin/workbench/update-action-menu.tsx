@@ -1,9 +1,11 @@
 "use client";
 
 import {
+  deleteUpdateAction,
   publishUpdateAction,
   unpublishUpdateAction,
 } from "@/app/(admin)/admin/actions";
+import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -86,6 +88,16 @@ export function UpdateActionMenu({ updateId, isPublished }: UpdateActionMenuProp
               </button>
             </form>
           )}
+          <ConfirmActionDialog
+            triggerLabel="删除动态"
+            triggerClassName="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            title="删除这条动态？"
+            description="删除后无法撤销，动态和相关数据会被移除。"
+            confirmLabel="删除动态"
+            action={deleteUpdateAction}
+            fields={[{ name: "id", value: updateId }]}
+            confirmTone="danger"
+          />
         </div>
       ) : null}
     </div>

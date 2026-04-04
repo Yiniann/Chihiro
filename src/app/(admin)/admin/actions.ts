@@ -10,6 +10,7 @@ import {
   unpublishPostById,
 } from "@/server/repositories/posts";
 import {
+  deleteUpdateById,
   publishUpdateById,
   unpublishUpdateById,
 } from "@/server/repositories/updates";
@@ -54,6 +55,15 @@ export async function unpublishUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
   const update = await unpublishUpdateById(id);
+
+  revalidateUpdateSurface(update.slug);
+  redirect("/admin/workbench?tab=updates");
+}
+
+export async function deleteUpdateAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const update = await deleteUpdateById(id);
 
   revalidateUpdateSurface(update.slug);
   redirect("/admin/workbench?tab=updates");
