@@ -3,21 +3,19 @@ import { prisma } from "@/server/db/client";
 
 export type CategoryOption = {
   id: number;
-  kind: CategoryKind;
   name: string;
   slug: string;
   description: string | null;
   contentCount: number;
 };
 
-export async function listCategoriesByKind(kind: CategoryKind): Promise<CategoryOption[]> {
+export async function listPostCategories(): Promise<CategoryOption[]> {
   const categories = await prisma.category.findMany({
-    where: { kind },
+    where: { kind: CategoryKind.POST },
     include: {
       _count: {
         select: {
           posts: true,
-          updates: true,
         },
       },
     },
@@ -26,11 +24,10 @@ export async function listCategoriesByKind(kind: CategoryKind): Promise<Category
 
   return categories.map((category) => ({
     id: category.id,
-    kind: category.kind,
     name: category.name,
     slug: category.slug,
     description: category.description,
-    contentCount: kind === CategoryKind.POST ? category._count.posts : category._count.updates,
+    contentCount: category._count.posts,
   }));
 }
 
@@ -41,7 +38,6 @@ export async function getCategoryByIdForAdmin(id: number): Promise<CategoryOptio
       _count: {
         select: {
           posts: true,
-          updates: true,
         },
       },
     },
@@ -53,12 +49,10 @@ export async function getCategoryByIdForAdmin(id: number): Promise<CategoryOptio
 
   return {
     id: category.id,
-    kind: category.kind,
     name: category.name,
     slug: category.slug,
     description: category.description,
-    contentCount:
-      category.kind === CategoryKind.POST ? category._count.posts : category._count.updates,
+    contentCount: category._count.posts,
   };
 }
 
@@ -79,7 +73,6 @@ export async function updateCategoryById(input: {
       _count: {
         select: {
           posts: true,
-          updates: true,
         },
       },
     },
@@ -87,24 +80,21 @@ export async function updateCategoryById(input: {
 
   return {
     id: category.id,
-    kind: category.kind,
     name: category.name,
     slug: category.slug,
     description: category.description,
-    contentCount:
-      category.kind === CategoryKind.POST ? category._count.posts : category._count.updates,
+    contentCount: category._count.posts,
   };
 }
 
 export async function createCategory(input: {
-  kind: CategoryKind;
   name: string;
   slug: string;
   description: string | null;
 }): Promise<CategoryOption> {
   const category = await prisma.category.create({
     data: {
-      kind: input.kind,
+      kind: CategoryKind.POST,
       name: input.name,
       slug: input.slug,
       description: input.description,
@@ -113,7 +103,6 @@ export async function createCategory(input: {
       _count: {
         select: {
           posts: true,
-          updates: true,
         },
       },
     },
@@ -121,12 +110,10 @@ export async function createCategory(input: {
 
   return {
     id: category.id,
-    kind: category.kind,
     name: category.name,
     slug: category.slug,
     description: category.description,
-    contentCount:
-      category.kind === CategoryKind.POST ? category._count.posts : category._count.updates,
+    contentCount: category._count.posts,
   };
 }
 
@@ -138,7 +125,6 @@ export async function deleteCategoryById(id: number): Promise<CategoryOption> {
         _count: {
           select: {
             posts: true,
-            updates: true,
           },
         },
       },
@@ -149,11 +135,6 @@ export async function deleteCategoryById(id: number): Promise<CategoryOption> {
     }
 
     await tx.post.updateMany({
-      where: { categoryId: id },
-      data: { categoryId: null },
-    });
-
-    await tx.update.updateMany({
       where: { categoryId: id },
       data: { categoryId: null },
     });
@@ -201,12 +182,10 @@ export async function deleteCategoryById(id: number): Promise<CategoryOption> {
 
   return {
     id: category.id,
-    kind: category.kind,
     name: category.name,
     slug: category.slug,
     description: category.description,
-    contentCount:
-      category.kind === CategoryKind.POST ? category._count.posts : category._count.updates,
+    contentCount: category._count.posts,
   };
 }
 

@@ -45,27 +45,27 @@ export async function deletePostAction(formData: FormData) {
 export async function publishUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
-  const update = await publishUpdateById(id);
+  await publishUpdateById(id);
 
-  revalidateUpdateSurface(update.slug);
+  revalidateUpdateSurface();
   redirect("/admin/workbench?tab=updates");
 }
 
 export async function unpublishUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
-  const update = await unpublishUpdateById(id);
+  await unpublishUpdateById(id);
 
-  revalidateUpdateSurface(update.slug);
+  revalidateUpdateSurface();
   redirect("/admin/workbench?tab=updates");
 }
 
 export async function deleteUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
-  const update = await deleteUpdateById(id);
+  await deleteUpdateById(id);
 
-  revalidateUpdateSurface(update.slug);
+  revalidateUpdateSurface();
   redirect("/admin/workbench?tab=updates");
 }
 
@@ -73,7 +73,7 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/admin");
   revalidatePath("/admin/workbench");
   revalidatePath("/");
-  revalidatePath("/archives");
+  revalidatePath("/timeline");
   revalidatePath("/posts");
   revalidatePath(getPostPath({ slug, categorySlug }));
   revalidatePath(`/posts/${slug}`);
@@ -81,13 +81,12 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/sitemap.xml");
 }
 
-function revalidateUpdateSurface(slug: string) {
+function revalidateUpdateSurface() {
   revalidatePath("/admin");
   revalidatePath("/admin/workbench");
   revalidatePath("/");
-  revalidatePath("/archives");
+  revalidatePath("/timeline");
   revalidatePath("/updates");
-  revalidatePath(`/updates/${slug}`);
   revalidatePath("/rss.xml");
   revalidatePath("/sitemap.xml");
 }

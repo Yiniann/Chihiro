@@ -56,8 +56,7 @@ model Post {
 model Update {
   id            Int           @id @default(autoincrement())
   title         String
-  slug          String        @unique
-  summary       String?
+  authorName    String?
   status        ContentStatus @default(DRAFT)
   content       Json?
   contentHtml   String?
@@ -65,14 +64,8 @@ model Update {
   draftSnapshot Json?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  categoryId    Int?
-  coverAssetId  String?
-  category      Category?     @relation("UpdateCategory", fields: [categoryId], references: [id], onDelete: SetNull)
-  coverAsset    Asset?        @relation("UpdateCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
-  tags          UpdateTag[]
 
   @@index([status, publishedAt])
-  @@index([categoryId])
 }
 
 model Asset {
@@ -91,7 +84,6 @@ model Asset {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   postCovers   Post[]        @relation("PostCoverAsset")
-  updateCovers Update[]      @relation("UpdateCoverAsset")
 }
 
 model Category {
@@ -103,7 +95,6 @@ model Category {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   posts       Post[]       @relation("PostCategory")
-  updates     Update[]     @relation("UpdateCategory")
 
   @@unique([kind, slug])
   @@index([kind, name])
@@ -116,7 +107,6 @@ model Tag {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   posts     PostTag[]
-  updates   UpdateTag[]
 }
 
 model PostTag {
@@ -127,17 +117,6 @@ model PostTag {
   tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@id([postId, tagId])
-  @@index([tagId])
-}
-
-model UpdateTag {
-  updateId   Int
-  tagId      String
-  assignedAt DateTime @default(now())
-  update     Update   @relation(fields: [updateId], references: [id], onDelete: Cascade)
-  tag        Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@id([updateId, tagId])
   @@index([tagId])
 }
 

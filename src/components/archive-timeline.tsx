@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 type ArchiveItem = {
   id: string | number;
-  href: string;
+  href?: string;
   title: string;
   publishedAt: string | null;
   categoryLabel: string;
@@ -118,28 +118,15 @@ export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
                   <div className="space-y-4">
                     {monthGroup.items.map((item) => (
                       <article key={`${item.kindLabel}-${item.id}`} className="relative pl-2">
-                        <Link href={item.href} className="group block py-1.5 transition">
-                          <div className="flex flex-wrap items-center justify-between gap-3">
-                            <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
-                              <span>{formatTimelineDate(item.publishedAt)}</span>
-                              <span>/</span>
-                              <span>{item.categoryLabel}</span>
-                            </div>
-                            <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary dark:bg-sky-300/12 dark:text-sky-300">
-                              {item.kindLabel}
-                            </span>
+                        {item.href ? (
+                          <Link href={item.href} className="group block py-1.5 transition">
+                            <ArchiveCardContent item={item} />
+                          </Link>
+                        ) : (
+                          <div className="group block py-1.5">
+                            <ArchiveCardContent item={item} />
                           </div>
-
-                          <h3 className="mt-2 text-lg font-semibold text-zinc-950 transition group-hover:text-primary dark:text-zinc-50 dark:group-hover:text-sky-300">
-                            {item.title}
-                          </h3>
-
-                          {item.meta ? (
-                            <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">
-                              {item.meta}
-                            </div>
-                          ) : null}
-                        </Link>
+                        )}
                       </article>
                     ))}
                   </div>
@@ -150,6 +137,36 @@ export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+function ArchiveCardContent({ item }: { item: ArchiveItem }) {
+  return (
+    <>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+          <span>{formatTimelineDate(item.publishedAt)}</span>
+          <span>/</span>
+          <span>{item.categoryLabel}</span>
+        </div>
+        <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary dark:bg-sky-300/12 dark:text-sky-300">
+          {item.kindLabel}
+        </span>
+      </div>
+
+      <h3
+        className={[
+          "mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50",
+          item.href
+            ? "transition group-hover:text-primary dark:group-hover:text-sky-300"
+            : "",
+        ].join(" ")}
+      >
+        {item.title}
+      </h3>
+
+      {item.meta ? <div className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">{item.meta}</div> : null}
+    </>
   );
 }
 

@@ -1,27 +1,15 @@
 import { ContentStatus, Prisma } from "@prisma/client";
+import { siteConfig } from "@/lib/site";
 import { prisma } from "@/server/db/client";
 
-const updateInclude = {
-  category: true,
-  coverAsset: true,
-  tags: {
-    include: {
-      tag: true,
-    },
-  },
-} satisfies Prisma.UpdateInclude;
-
-type UpdateRecord = Prisma.UpdateGetPayload<{
-  include: typeof updateInclude;
-}>;
+type UpdateRecord = NonNullable<Awaited<ReturnType<typeof prisma.update.findUnique>>>;
 
 export type UpdateListSort = "latest" | "earliest" | "updated";
 
 export type UpdateItem = {
   id: number;
   title: string;
-  slug: string;
-  summary: string | null;
+  authorName: string;
   status: ContentStatus;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
@@ -29,13 +17,6 @@ export type UpdateItem = {
   createdAt: string;
   updatedAt: string;
   draftSnapshot: DraftUpdateSnapshot | null;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-  } | null;
-  coverAsset: AssetSummary | null;
-  tags: TagSummary[];
 };
 
 export type UpdateListResult = {
@@ -46,35 +27,12 @@ export type UpdateListResult = {
   totalPages: number;
 };
 
-type AssetSummary = {
-  id: string;
-  url: string;
-  alt: string | null;
-  mimeType: string | null;
-  width: number | null;
-  height: number | null;
-};
-
-type TagSummary = {
-  id: string;
-  name: string;
-  slug: string;
-};
-
 type PublishedUpdateSnapshot = {
   title: string;
-  slug: string;
-  summary: string | null;
+  authorName: string | null;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
   publishedAt: string | null;
-  category: {
-    id: number;
-    name: string;
-    slug: string;
-  } | null;
-  coverAsset: AssetSummary | null;
-  tags: TagSummary[];
 };
 
 type DraftUpdateSnapshot = PublishedUpdateSnapshot & {
@@ -85,25 +43,23 @@ export type ListPublishedUpdatesOptions = {
   page?: number;
   pageSize?: number;
   sort?: UpdateListSort;
-  categorySlug?: string;
-  tagSlugs?: string[];
   query?: string;
 };
 
 export async function listUpdatesForAdmin(): Promise<UpdateItem[]> {
-  const items = await prisma.update.findMany({
-    include: updateInclude,
-    orderBy: [{ updatedAt: Prisma.SortOrder.desc }, { createdAt: Prisma.SortOrder.desc }],
-  });
+  const items = await fetchUpdateRows(
+    `
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      FROM "Update"
+      ORDER BY "updatedAt" DESC, "createdAt" DESC
+    `,
+  );
 
   return items.map(mapUpdateRecord);
 }
 
 export async function getUpdateByIdForAdmin(id: number): Promise<UpdateItem | null> {
-  const update = await prisma.update.findUnique({
-    where: { id },
-    include: updateInclude,
-  });
+  const update = await fetchUpdateRowById(id);
 
   return update ? mapUpdateRecord(update) : null;
 }
@@ -115,13 +71,7 @@ export async function listPublishedUpdates(
   const page = getSafePage(options.page);
   const where = buildPublishedUpdateWhere(options);
   const [items, totalCount] = await Promise.all([
-    prisma.update.findMany({
-      where,
-      include: updateInclude,
-      orderBy: getUpdateOrderBy(options.sort),
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
+    fetchPublishedUpdateRows(options.sort, pageSize, page, where),
     prisma.update.count({ where }),
   ]);
 
@@ -137,76 +87,36 @@ export async function listPublishedUpdates(
 export async function listAllPublishedUpdates(
   options: Omit<ListPublishedUpdatesOptions, "page" | "pageSize"> = {},
 ): Promise<UpdateItem[]> {
-  const items = await prisma.update.findMany({
-    where: buildPublishedUpdateWhere(options),
-    include: updateInclude,
-    orderBy: getUpdateOrderBy(options.sort),
-  });
+  const items = await fetchPublishedUpdateRows(options.sort);
 
   return items.map(mapUpdateRecord);
 }
 
-export async function getPublishedUpdateBySlug(slug: string): Promise<UpdateItem | null> {
-  const update = await prisma.update.findFirst({
-    where: {
-      slug,
-      status: ContentStatus.PUBLISHED,
-    },
-    include: updateInclude,
-  });
-
-  return update ? mapUpdateRecord(update) : null;
-}
-
 export type SaveUpdateInput = {
   id?: number;
-  title: string;
-  slug: string | null;
-  summary: string | null;
   content: string | null;
   contentHtml: string | null;
+  authorName: string | null;
   status: ContentStatus;
-  categoryId: number | null;
   publishedAt: Date | null;
-  tagIds: string[];
 };
 
 export async function saveUpdate(input: SaveUpdateInput): Promise<UpdateItem> {
-  const tagIds = Array.from(new Set(input.tagIds.filter(Boolean)));
-  const resolvedSlug = input.slug ?? (typeof input.id === "number" ? String(input.id) : null);
   const current =
     typeof input.id === "number"
-      ? await prisma.update.findUnique({
-          where: { id: input.id },
-          include: updateInclude,
-        })
+      ? await fetchUpdateRowById(input.id)
       : null;
 
   if (current && (current.status === ContentStatus.PUBLISHED || current.draftSnapshot)) {
-    const category = input.categoryId
-      ? await prisma.category.findUnique({
-          where: { id: input.categoryId },
-          select: { id: true, name: true, slug: true },
-        })
-      : null;
-    const tags =
-      tagIds.length > 0
-        ? await prisma.tag.findMany({
-            where: { id: { in: tagIds } },
-            select: { id: true, name: true, slug: true },
-          })
-        : [];
+    const resolvedTitle = resolveUpdateTitle(current.title, input.content);
+    const resolvedAuthorName = input.authorName ?? current.authorName;
 
     const draftSnapshot = buildDraftSnapshot({
-      title: input.title,
-      slug: resolvedSlug ?? current.slug,
-      summary: input.summary,
+      title: resolvedTitle,
+      authorName: resolvedAuthorName,
       content: input.content,
       contentHtml: input.contentHtml,
       publishedAt: input.publishedAt,
-      category,
-      coverAsset: current.coverAsset,
-      tags,
     });
 
     const update = await prisma.update.update({
@@ -214,94 +124,49 @@ export async function saveUpdate(input: SaveUpdateInput): Promise<UpdateItem> {
       data: {
         draftSnapshot,
       },
-      include: updateInclude,
     });
 
-    return mapUpdateRecord(update);
+    await persistUpdateAuthorName(update.id, resolvedAuthorName);
+
+    const refreshed = await fetchUpdateRowById(update.id);
+
+    return mapUpdateRecord(refreshed ?? update);
   }
 
+  const resolvedTitle = resolveUpdateTitle(current?.title ?? null, input.content);
   const baseData = {
-    title: input.title,
-    summary: input.summary,
+    title: resolvedTitle,
     content: input.content ?? Prisma.DbNull,
     contentHtml: input.contentHtml,
     publishedAt: input.publishedAt,
     status: input.status,
   };
-  const nextTags =
-    tagIds.length > 0
-      ? {
-          create: tagIds.map((tagId) => ({
-            tag: {
-              connect: { id: tagId },
-            },
-          })),
-        }
-      : {};
   const updateData = {
     ...baseData,
-    slug: resolvedSlug ?? undefined,
-    category: input.categoryId
-      ? {
-          connect: { id: input.categoryId },
-        }
-      : {
-          disconnect: true,
-        },
-    tags: {
-      deleteMany: {},
-      ...nextTags,
-    },
     draftSnapshot: Prisma.DbNull,
   } satisfies Prisma.UpdateUpdateInput;
   const createData = {
     ...baseData,
-    slug: resolvedSlug ?? createTemporarySlug(),
-    ...(input.categoryId
-      ? {
-          category: {
-            connect: { id: input.categoryId },
-          },
-        }
-      : {}),
-    ...(tagIds.length > 0
-      ? {
-          tags: nextTags,
-        }
-      : {}),
   } satisfies Prisma.UpdateCreateInput;
 
   const update = current
     ? await prisma.update.update({
         where: { id: input.id },
         data: updateData,
-        include: updateInclude,
       })
     : await prisma.update.create({
         data: createData,
-        include: updateInclude,
       });
 
-  if (typeof input.id !== "number" && !input.slug && update.slug !== String(update.id)) {
-    const updatedUpdate = await prisma.update.update({
-      where: { id: update.id },
-      data: {
-        slug: String(update.id),
-      },
-      include: updateInclude,
-    });
+  await persistUpdateAuthorName(update.id, input.authorName);
 
-    return mapUpdateRecord(updatedUpdate);
-  }
+  const refreshed = await fetchUpdateRowById(update.id);
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(refreshed ?? update);
 }
 
 export async function publishUpdateById(id: number): Promise<UpdateItem> {
-  const current = await prisma.update.findUnique({
-    where: { id },
-    include: updateInclude,
-  });
+  const current = await fetchUpdateRowById(id);
 
   if (!current) {
     throw new Error(`Update not found: ${id}`);
@@ -310,70 +175,19 @@ export async function publishUpdateById(id: number): Promise<UpdateItem> {
   const draftSnapshot = parseDraftSnapshot(current.draftSnapshot);
   const publishedAt = current.publishedAt ?? new Date();
   const resolvedPublishedAt = draftSnapshot?.publishedAt ? new Date(draftSnapshot.publishedAt) : publishedAt;
+  const resolvedAuthorName = draftSnapshot?.authorName ?? current.authorName;
   const updateData = draftSnapshot
     ? {
         title: draftSnapshot.title,
-        slug: draftSnapshot.slug,
-        summary: draftSnapshot.summary,
         content: draftSnapshot.content ?? Prisma.DbNull,
         contentHtml: draftSnapshot.contentHtml,
         publishedAt: resolvedPublishedAt,
-        category: draftSnapshot.category
-          ? {
-              connect: { id: draftSnapshot.category.id },
-            }
-          : {
-              disconnect: true,
-            },
-        coverAsset: draftSnapshot.coverAsset
-          ? {
-              connect: { id: draftSnapshot.coverAsset.id },
-            }
-          : {
-              disconnect: true,
-            },
-        tags: {
-          deleteMany: {},
-          ...(draftSnapshot.tags.length > 0
-            ? {
-                create: draftSnapshot.tags.map((tag) => ({
-                  tag: {
-                    connect: { id: tag.id },
-                  },
-                })),
-              }
-            : {}),
-        },
       }
     : {
         title: current.title,
-        slug: current.slug,
-        summary: current.summary,
         content: current.content ?? Prisma.DbNull,
         contentHtml: current.contentHtml,
         publishedAt,
-        category: current.category
-          ? {
-              connect: { id: current.category.id },
-            }
-          : {
-              disconnect: true,
-            },
-        coverAsset: current.coverAsset
-          ? {
-              connect: { id: current.coverAsset.id },
-            }
-          : {
-              disconnect: true,
-            },
-        tags: {
-          deleteMany: {},
-          create: current.tags.map(({ tag }) => ({
-            tag: {
-              connect: { id: tag.id },
-            },
-          })),
-        },
       };
   const update = await prisma.update.update({
     where: { id },
@@ -383,10 +197,13 @@ export async function publishUpdateById(id: number): Promise<UpdateItem> {
       publishedAt: resolvedPublishedAt,
       draftSnapshot: Prisma.DbNull,
     },
-    include: updateInclude,
   });
 
-  return mapUpdateRecord(update);
+  await persistUpdateAuthorName(update.id, resolvedAuthorName);
+
+  const refreshed = await fetchUpdateRowById(update.id);
+
+  return mapUpdateRecord(refreshed ?? update);
 }
 
 export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
@@ -396,7 +213,6 @@ export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
       status: ContentStatus.DRAFT,
       publishedAt: null,
     },
-    include: updateInclude,
   });
 
   return mapUpdateRecord(update);
@@ -405,17 +221,13 @@ export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
 export async function deleteUpdateById(id: number): Promise<UpdateItem> {
   const update = await prisma.update.delete({
     where: { id },
-    include: updateInclude,
   });
 
   return mapUpdateRecord(update);
 }
 
 export async function discardUpdateRevisionById(id: number): Promise<UpdateItem> {
-  const current = await prisma.update.findUnique({
-    where: { id },
-    include: updateInclude,
-  });
+  const current = await fetchUpdateRowById(id);
 
   if (!current) {
     throw new Error(`Update not found: ${id}`);
@@ -435,41 +247,18 @@ export async function discardUpdateRevisionById(id: number): Promise<UpdateItem>
         draftSnapshot?.publishedAt ? new Date(draftSnapshot.publishedAt) : current.publishedAt ?? new Date(),
       draftSnapshot: Prisma.DbNull,
     },
-    include: updateInclude,
   });
 
   return mapUpdateRecord(update);
 }
 
-export async function getPublishedUpdateSlugs(): Promise<string[]> {
-  const updates = await prisma.update.findMany({
-    where: {
-      status: ContentStatus.PUBLISHED,
-    },
-    select: {
-      slug: true,
-    },
-    orderBy: getUpdateOrderBy("latest"),
-  });
-
-  return updates.map((update) => update.slug);
-}
-
 function buildPublishedUpdateWhere(
   options: ListPublishedUpdatesOptions,
 ): Prisma.UpdateWhereInput {
-  const tagSlugs = Array.from(new Set((options.tagSlugs ?? []).filter(Boolean)));
   const query = options.query?.trim();
 
   return {
     status: ContentStatus.PUBLISHED,
-    ...(options.categorySlug
-      ? {
-          category: {
-            slug: options.categorySlug,
-          },
-        }
-      : {}),
     ...(query
       ? {
           OR: [
@@ -480,7 +269,7 @@ function buildPublishedUpdateWhere(
               },
             },
             {
-              summary: {
+              authorName: {
                 contains: query,
                 mode: "insensitive",
               },
@@ -494,42 +283,14 @@ function buildPublishedUpdateWhere(
           ],
         }
       : {}),
-    ...(tagSlugs.length > 0
-      ? {
-          AND: tagSlugs.map((slug) => ({
-            tags: {
-              some: {
-                tag: {
-                  slug,
-                },
-              },
-            },
-          })),
-        }
-      : {}),
   };
-}
-
-function getUpdateOrderBy(
-  sort: UpdateListSort = "latest",
-): Prisma.UpdateOrderByWithRelationInput[] {
-  if (sort === "earliest") {
-    return [{ publishedAt: Prisma.SortOrder.asc }, { createdAt: Prisma.SortOrder.asc }];
-  }
-
-  if (sort === "updated") {
-    return [{ updatedAt: Prisma.SortOrder.desc }];
-  }
-
-  return [{ publishedAt: Prisma.SortOrder.desc }, { createdAt: Prisma.SortOrder.desc }];
 }
 
 function mapUpdateRecord(record: UpdateRecord): UpdateItem {
   return {
     id: record.id,
     title: record.title,
-    slug: record.slug,
-    summary: record.summary,
+    authorName: record.authorName ?? siteConfig.author,
     status: record.status,
     content: record.content,
     contentHtml: record.contentHtml,
@@ -537,29 +298,97 @@ function mapUpdateRecord(record: UpdateRecord): UpdateItem {
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
-    category: record.category
-      ? {
-          id: record.category.id,
-          name: record.category.name,
-          slug: record.category.slug,
-        }
-      : null,
-    coverAsset: record.coverAsset
-      ? {
-          id: record.coverAsset.id,
-          url: record.coverAsset.url,
-          alt: record.coverAsset.alt,
-          mimeType: record.coverAsset.mimeType,
-          width: record.coverAsset.width,
-          height: record.coverAsset.height,
-        }
-      : null,
-    tags: record.tags.map(({ tag }) => ({
-      id: tag.id,
-      name: tag.name,
-      slug: tag.slug,
-    })),
   };
+}
+
+async function fetchUpdateRows(sql: string) {
+  return prisma.$queryRaw<Array<{
+    id: number;
+    title: string;
+    authorName: string | null;
+    status: ContentStatus;
+    content: Prisma.JsonValue | null;
+    contentHtml: string | null;
+    publishedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    draftSnapshot: Prisma.JsonValue | null;
+  }>>(Prisma.sql([sql]));
+}
+
+async function fetchUpdateRowById(id: number) {
+  const rows = await prisma.$queryRaw<Array<{
+    id: number;
+    title: string;
+    authorName: string | null;
+    status: ContentStatus;
+    content: Prisma.JsonValue | null;
+    contentHtml: string | null;
+    publishedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    draftSnapshot: Prisma.JsonValue | null;
+  }>>(
+    Prisma.sql`
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      FROM "Update"
+      WHERE id = ${id}
+      LIMIT 1
+    `,
+  );
+
+  return rows[0] ?? null;
+}
+
+async function fetchPublishedUpdateRows(
+  sort?: UpdateListSort,
+  pageSize?: number,
+  page?: number,
+  where?: Prisma.UpdateWhereInput,
+) {
+  const orderBySql =
+    sort === "earliest"
+      ? Prisma.sql`ORDER BY "publishedAt" ASC, "createdAt" ASC`
+      : sort === "updated"
+        ? Prisma.sql`ORDER BY "updatedAt" DESC`
+        : Prisma.sql`ORDER BY "publishedAt" DESC, "createdAt" DESC`;
+
+  const whereSql = buildPublishedUpdateWhereSql(where);
+  const limitSql = typeof pageSize === "number" ? Prisma.sql`LIMIT ${pageSize}` : Prisma.empty;
+  const offsetSql =
+    typeof pageSize === "number" && typeof page === "number"
+      ? Prisma.sql`OFFSET ${(page - 1) * pageSize}`
+      : Prisma.empty;
+
+  return prisma.$queryRaw<Array<{
+    id: number;
+    title: string;
+    authorName: string | null;
+    status: ContentStatus;
+    content: Prisma.JsonValue | null;
+    contentHtml: string | null;
+    publishedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    draftSnapshot: Prisma.JsonValue | null;
+  }>>(
+    Prisma.sql`
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      FROM "Update"
+      ${whereSql}
+      ${orderBySql}
+      ${limitSql}
+      ${offsetSql}
+    `,
+  );
+}
+
+function buildPublishedUpdateWhereSql(where?: Prisma.UpdateWhereInput) {
+  if (!where) {
+    return Prisma.sql`WHERE status = ${ContentStatus.PUBLISHED}`;
+  }
+
+  return Prisma.sql`WHERE status = ${ContentStatus.PUBLISHED}`;
 }
 
 function getSafePage(value?: number) {
@@ -582,34 +411,22 @@ function toIsoString(value: Date | null) {
   return value ? value.toISOString() : null;
 }
 
-function createTemporarySlug() {
-  return `update-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function buildDraftSnapshot(input: {
   title: string;
-  slug: string;
-  summary: string | null;
+  authorName: string | null;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
   publishedAt: Date | null;
-  category: { id: number; name: string; slug: string } | null;
-  coverAsset: AssetSummary | null;
-  tags: Array<{ id: string; name: string; slug: string }>;
 }): DraftUpdateSnapshot {
   const savedAt = new Date().toISOString();
 
   return {
     title: input.title,
-    slug: input.slug,
-    summary: input.summary,
+    authorName: input.authorName,
     content: input.content,
     contentHtml: input.contentHtml,
     publishedAt: toIsoString(input.publishedAt),
     savedAt,
-    category: input.category,
-    coverAsset: input.coverAsset,
-    tags: input.tags,
   };
 }
 
@@ -639,14 +456,65 @@ function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftUpdateSnapshot
 
   return {
     title: snapshot.title ?? "",
-    slug: snapshot.slug ?? "",
-    summary: snapshot.summary ?? null,
+    authorName: typeof snapshot.authorName === "string" ? snapshot.authorName : null,
     content: snapshot.content ?? null,
     contentHtml: snapshot.contentHtml ?? null,
     publishedAt: snapshot.publishedAt ?? null,
     savedAt,
-    category: snapshot.category ?? null,
-    coverAsset: snapshot.coverAsset ?? null,
-    tags: snapshot.tags ?? [],
   };
+}
+
+function resolveUpdateTitle(
+  currentTitle: string | null,
+  content: string | null,
+) {
+  const contentTitle = deriveTitleFromContent(content);
+  if (contentTitle) {
+    return contentTitle;
+  }
+
+  if (currentTitle) {
+    return currentTitle;
+  }
+
+  return "未命名动态";
+}
+
+function deriveTitleFromContent(content: string | null) {
+  if (!content) {
+    return null;
+  }
+
+  const firstLine = content
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .find(Boolean);
+
+  if (!firstLine) {
+    return null;
+  }
+
+  return truncateTitle(firstLine);
+}
+
+function truncateTitle(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+
+  if (normalized.length <= 24) {
+    return normalized;
+  }
+
+  return `${normalized.slice(0, 24)}…`;
+}
+
+async function persistUpdateAuthorName(updateId: number, authorName: string | null) {
+  if (!authorName) {
+    return;
+  }
+
+  await prisma.$executeRaw`
+    UPDATE "Update"
+    SET "authorName" = ${authorName}
+    WHERE id = ${updateId}
+  `;
 }

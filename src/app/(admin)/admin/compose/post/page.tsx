@@ -1,11 +1,10 @@
-import { CategoryKind } from "@prisma/client";
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { PostEditorForm } from "@/app/(admin)/admin/compose/post/post-editor-form";
 import { siteConfig } from "@/lib/site";
-import { listCategoriesByKind } from "@/server/repositories/categories";
+import { listPostCategories } from "@/server/repositories/categories";
 import { getPostByIdForAdmin } from "@/server/repositories/posts";
 import { getSiteSettings } from "@/server/repositories/site";
-import { listPostTags } from "@/server/repositories/tags";
+import { listTags } from "@/server/repositories/tags";
 
 type AdminComposePostPageProps = {
   searchParams: Promise<{
@@ -21,8 +20,8 @@ export default async function AdminComposePostPage({
   const postId = getPostId(id);
   const [post, categories, tags, siteSettings] = await Promise.all([
     postId ? getPostByIdForAdmin(postId) : Promise.resolve(null),
-    listCategoriesByKind(CategoryKind.POST),
-    listPostTags(),
+    listPostCategories(),
+    listTags(),
     getSiteSettings(),
   ]);
   const siteUrlBase = (siteSettings?.siteUrl ?? siteConfig.url).replace(/\/+$/, "");

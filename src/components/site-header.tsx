@@ -30,31 +30,31 @@ import { siteConfig } from "@/lib/site";
 const navItems = [
   {
     href: "/",
-    label: "首页",
+    label: "起点",
     icon: Compass,
     description: "Start with a quick introduction and the overall tone of the site.",
   },
   {
     href: "/posts",
-    label: "文章",
+    label: "篇章",
     icon: BookOpenText,
     description: "Longer writing on products, technology, and personal expression.",
   },
   {
     href: "/updates",
-    label: "动态",
+    label: "足迹",
     icon: Sparkles,
     description: "Short updates, experiments, and notes from ongoing work.",
   },
   {
-    href: "/archives",
-    label: "归档",
+    href: "/timeline",
+    label: "拾光",
     icon: FileArchive,
     description: "Browse everything by time and revisit older pieces in one place.",
   },
   {
     href: "/more",
-    label: "更多",
+    label: "远方",
     icon: GalleryVerticalEnd,
     description: "A softer space for side pages, collections, and future ideas.",
   },
@@ -70,13 +70,6 @@ export type SiteHeaderPostCategory = {
     title: string;
     href: string;
   }>;
-};
-
-export type SiteHeaderUpdateCategory = {
-  tag: string;
-  label: string;
-  href: string;
-  items: string[];
 };
 
 export type SiteHeaderRecentArchiveItem = {
@@ -101,7 +94,6 @@ type SiteHeaderProps = {
   adminDisplayName: string;
   adminAvatarUrl?: string | null;
   postCategories: SiteHeaderPostCategory[];
-  updateCategories: SiteHeaderUpdateCategory[];
   recentArchiveItems: SiteHeaderRecentArchiveItem[];
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
 };
@@ -112,7 +104,6 @@ export function SiteHeader({
   adminDisplayName,
   adminAvatarUrl,
   postCategories,
-  updateCategories,
   recentArchiveItems,
   recentUpdateItems,
 }: SiteHeaderProps) {
@@ -367,7 +358,6 @@ export function SiteHeader({
                   <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_20px_60px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.82)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.48)]">
                     {renderMegaNavContent(featuredItem.href, {
                       postCategories,
-                      updateCategories,
                       recentArchiveItems,
                       recentUpdateItems,
                       hoveredPostCategorySlug,
@@ -487,6 +477,7 @@ export function SiteHeader({
                   const active = isActivePath(pathname, item.href);
                   const Icon = item.icon;
                   const expanded = expandedMobileHref === item.href;
+                  const canExpand = item.href === "/" || item.href === "/posts" || item.href === "/more";
 
                   return (
                     <div
@@ -509,38 +500,40 @@ export function SiteHeader({
                             setExpandedMobileHref(null);
                           }}
                           className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] px-1.5 py-1 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
-                        >
+                          >
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             <Icon className="h-4 w-4" />
                           </div>
                           <p className="text-sm font-medium">{item.label}</p>
                         </Link>
-                        <button
-                          type="button"
-                          aria-label={expanded ? `Collapse ${item.label}` : `Expand ${item.label}`}
-                          onClick={() =>
-                            setExpandedMobileHref((current) =>
-                              current === item.href ? null : item.href,
-                            )
-                          }
-                          className={`inline-flex h-9 min-w-11 shrink-0 items-center justify-center rounded-2xl border px-2 transition ${
-                            active
-                              ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-400/12 dark:text-sky-300"
-                              : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/90 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-zinc-200"
-                          }`}
-                        >
-                          <span className="inline-flex">
-                            {expanded ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
-                          </span>
-                        </button>
+                        {canExpand ? (
+                          <button
+                            type="button"
+                            aria-label={expanded ? `Collapse ${item.label}` : `Expand ${item.label}`}
+                            onClick={() =>
+                              setExpandedMobileHref((current) =>
+                                current === item.href ? null : item.href,
+                              )
+                            }
+                            className={`inline-flex h-9 min-w-11 shrink-0 items-center justify-center rounded-2xl border px-2 transition ${
+                              active
+                                ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-400/12 dark:text-sky-300"
+                                : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/90 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-zinc-200"
+                            }`}
+                          >
+                            <span className="inline-flex">
+                              {expanded ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
+                            </span>
+                          </button>
+                        ) : null}
                       </div>
 
                       <AnimatePresence initial={false}>
-                        {expanded ? (
+                        {canExpand && expanded ? (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
@@ -553,7 +546,6 @@ export function SiteHeader({
                                 item.href,
                                 {
                                   postCategories,
-                                  updateCategories,
                                   recentArchiveItems,
                                 },
                                 () => setIsMobileNavOpen(false),
@@ -623,7 +615,6 @@ function renderMegaNavContent(
   href: string,
   options: {
     postCategories: SiteHeaderPostCategory[];
-    updateCategories: SiteHeaderUpdateCategory[];
     recentArchiveItems: SiteHeaderRecentArchiveItem[];
     recentUpdateItems: SiteHeaderRecentArchiveItem[];
     hoveredPostCategorySlug: string | null;
@@ -634,9 +625,9 @@ function renderMegaNavContent(
   switch (href) {
     case "/":
       return (
-        <MegaNavSection eyebrow="Overview">
+        <MegaNavSection eyebrow="Home">
           <div className="grid gap-2 sm:grid-cols-3">
-            <MegaNavLinkCard href="/" title="此站点" eyebrow="Home" onNavigate={options.onNavigate} />
+            <MegaNavLinkCard href="/" title="起点" eyebrow="Home" onNavigate={options.onNavigate} />
             <MegaNavLinkCard href="/more" title="自述" eyebrow="About" onNavigate={options.onNavigate} />
             <MegaNavLinkCard
               href="/message"
@@ -649,7 +640,7 @@ function renderMegaNavContent(
       );
     case "/posts":
       return (
-        <MegaNavSection eyebrow="Categories">
+        <MegaNavSection eyebrow="Posts">
           <PostMegaNavContent
             postCategories={options.postCategories}
             hoveredPostCategorySlug={options.hoveredPostCategorySlug}
@@ -660,21 +651,17 @@ function renderMegaNavContent(
       );
     case "/updates":
       return (
-        <MegaNavSection eyebrow="Categories">
-          <UpdateMegaNavContent
-            updateCategories={options.updateCategories}
-            recentUpdateItems={options.recentUpdateItems}
-            onNavigate={options.onNavigate}
-          />
+        <MegaNavSection eyebrow="Updates">
+          <UpdateMegaNavContent recentUpdateItems={options.recentUpdateItems} onNavigate={options.onNavigate} />
         </MegaNavSection>
       );
-    case "/archives":
+    case "/timeline":
       return (
         <div className="grid gap-5 px-1 py-1">
           <div className="min-w-0">
             <div className="mb-2.5 flex items-center justify-between gap-3">
               <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                Latest
+                timeline
               </p>
             </div>
             <div className="grid gap-1">
@@ -694,14 +681,14 @@ function renderMegaNavContent(
 
           <div className="grid gap-2 border-t border-zinc-200/70 pt-3 sm:grid-cols-2 dark:border-zinc-800/80">
             <MegaNavLinkCard
-              href="/archives?type=posts"
-              title="文章归档"
+              href="/timeline?type=posts"
+              title="篇章"
               eyebrow="Posts"
               onNavigate={options.onNavigate}
             />
             <MegaNavLinkCard
-              href="/archives?type=updates"
-              title="动态归档"
+              href="/timeline?type=updates"
+              title="足迹"
               eyebrow="Updates"
               onNavigate={options.onNavigate}
             />
@@ -733,7 +720,6 @@ function renderMobileNavContent(
   href: string,
   navigationData: {
     postCategories: SiteHeaderPostCategory[];
-    updateCategories: SiteHeaderUpdateCategory[];
     recentArchiveItems: SiteHeaderRecentArchiveItem[];
   },
   onNavigate: () => void,
@@ -742,7 +728,7 @@ function renderMobileNavContent(
     case "/":
       return (
         <div className="flex flex-wrap gap-2">
-          <MobileNavChip href="/" label="此站点" onNavigate={onNavigate} />
+          <MobileNavChip href="/" label="起点" onNavigate={onNavigate} />
           <MobileNavChip href="/more" label="自述" onNavigate={onNavigate} />
           <MobileNavChip href="/message" label="留言" onNavigate={onNavigate} />
         </div>
@@ -761,19 +747,8 @@ function renderMobileNavContent(
         </div>
       );
     case "/updates":
-      return (
-        <div className="flex flex-wrap gap-2">
-          {navigationData.updateCategories.map((category) => (
-            <MobileNavChip
-              key={category.href}
-              href={category.href}
-              label={category.label}
-              onNavigate={onNavigate}
-            />
-          ))}
-        </div>
-      );
-    case "/archives":
+      return <MobileNavSubLink href="/updates" label="最新动态" onNavigate={onNavigate} />;
+    case "/timeline":
       return (
         <div className="grid gap-2">
           {navigationData.recentArchiveItems.slice(0, 3).map((item) => (
@@ -929,64 +904,30 @@ function PostMegaNavContent({
 }
 
 function UpdateMegaNavContent({
-  updateCategories,
   recentUpdateItems,
   onNavigate,
 }: {
-  updateCategories: SiteHeaderUpdateCategory[];
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
   onNavigate: () => void;
 }) {
   return (
-    <motion.div layout className="grid items-start gap-5 md:grid-cols-[9rem_minmax(0,1fr)]">
-      <div className="grid items-start gap-1">
-        {updateCategories.map((category) => {
-          return (
-            <Link
-              key={category.tag}
-              href={category.href}
-              onClick={onNavigate}
-              className="flex items-center justify-between rounded-[0.8rem] px-2 py-1.5 text-left text-[0.78rem] text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200"
-            >
-              <span className="font-medium">{category.label}</span>
-              <span className="text-[0.64rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
-                {category.items.length}
-              </span>
-            </Link>
-          );
-        })}
+    <motion.div layout className="min-w-0 self-start">
+      <div className="grid gap-1">
+        {recentUpdateItems.length > 0 ? (
+          recentUpdateItems.map((item) => (
+            <MegaNavRecentEntry
+              key={`${item.kind}-${item.id}`}
+              href={item.href}
+              title={item.title}
+              dateValue={item.publishedAt}
+              compact
+              onNavigate={onNavigate}
+            />
+          ))
+        ) : (
+          <MegaNavEmptyState text="No updates yet." />
+        )}
       </div>
-
-      <motion.div layout className="min-w-0 self-start border-l border-zinc-200/70 pl-4 dark:border-zinc-800/80">
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-            Latest
-          </p>
-          <Link
-            href="/updates"
-            onClick={onNavigate}
-            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
-          >
-            View all
-          </Link>
-        </div>
-        <div className="grid gap-1">
-          {recentUpdateItems.length > 0 ? (
-            recentUpdateItems.map((item) => (
-              <MegaNavRecentEntry
-                key={`${item.kind}-${item.id}`}
-                href={item.href}
-                title={item.title}
-                dateValue={item.publishedAt}
-                compact
-                onNavigate={onNavigate}
-              />
-            ))
-          ) : (
-            <MegaNavEmptyState text="No updates yet." />
-          )}
-        </div>
-      </motion.div>
     </motion.div>
   );
 }

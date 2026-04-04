@@ -123,10 +123,16 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <header>
         <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-          Writing
+          posts
         </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          文章
+        <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <span>篇章</span>
+          <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+            ·
+          </span>
+          <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+            所有文章
+          </span>
         </h1>
         {activeFilters.length > 0 ? (
           <div className="mt-5 flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">

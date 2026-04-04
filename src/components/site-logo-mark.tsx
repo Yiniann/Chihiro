@@ -12,7 +12,7 @@ export function SiteLogoMark({ caption }: SiteLogoMarkProps) {
           {siteConfig.name}
         </p>
         <p className="text-xs uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-          Archive Log
+          Timeline
         </p>
       </div>
       {caption ? (

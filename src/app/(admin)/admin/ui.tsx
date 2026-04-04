@@ -221,7 +221,8 @@ export function DraftListPanel({
                 <StatusBadge status={item.status} />
               </div>
               <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">
-                {item.slug} · Updated {formatAdminDate(item.updatedAt)}
+                {"slug" in item ? `${item.slug} · ` : ""}
+                Updated {formatAdminDate(item.updatedAt)}
               </p>
             </div>
           ))}

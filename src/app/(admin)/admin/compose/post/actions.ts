@@ -261,7 +261,7 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/admin");
   revalidatePath("/admin/workbench");
   revalidatePath("/");
-  revalidatePath("/archives");
+  revalidatePath("/timeline");
   revalidatePath("/posts");
   revalidatePath(getPostPath({ slug, categorySlug }));
   revalidatePath(`/posts/${slug}`);

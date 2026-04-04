@@ -2,10 +2,9 @@ import type { MetadataRoute } from "next";
 import { getPostPath } from "@/lib/routes";
 import { absoluteUrl } from "@/lib/site";
 import { listAllPublishedPosts } from "@/server/repositories/posts";
-import { listAllPublishedUpdates } from "@/server/repositories/updates";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [posts, updates] = await Promise.all([listAllPublishedPosts(), listAllPublishedUpdates()]);
+  const posts = await listAllPublishedPosts();
   const staticRoutes: MetadataRoute.Sitemap = [
     {
       url: absoluteUrl("/"),
@@ -20,7 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
     },
     {
-      url: absoluteUrl("/archives"),
+      url: absoluteUrl("/timeline"),
       lastModified: new Date(),
     },
     {
@@ -34,10 +33,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: new Date(post.updatedAt ?? post.publishedAt ?? Date.now()),
   }));
 
-  const updateRoutes: MetadataRoute.Sitemap = updates.map((update) => ({
-    url: absoluteUrl(`/updates/${update.slug}`),
-    lastModified: new Date(update.updatedAt ?? update.publishedAt ?? Date.now()),
-  }));
-
-  return [...staticRoutes, ...postRoutes, ...updateRoutes];
+  return [...staticRoutes, ...postRoutes];
 }

@@ -1,14 +1,15 @@
 "use client";
 
 import { ContentStatus } from "@prisma/client";
+import { Check } from "lucide-react";
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Check } from "lucide-react";
 import {
   discardPostRevisionAction,
   savePostDraftAction,
   type SavePostEditorState,
 } from "@/app/(admin)/admin/compose/post/actions";
+import { ContentEditorShell } from "@/app/(admin)/admin/compose/content-editor-shell";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { PublishedAtField } from "@/app/(admin)/admin/compose/post/published-at-field";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
@@ -51,12 +52,17 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase }: PostEdit
   const postUrlPrefix = `${siteUrlBase}/posts/${selectedCategorySlug}/`;
 
   return (
-    <form action={formAction} className="grid gap-6">
-      <input type="hidden" name="postId" value={post?.id ?? ""} />
-      <input type="hidden" name="currentStatus" value={post?.status ?? "DRAFT"} />
-
-      <section className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-14">
-        <div className="grid gap-8">
+    <ContentEditorShell
+      formAction={formAction}
+      hiddenFields={
+        <>
+          <input type="hidden" name="postId" value={post?.id ?? ""} />
+          <input type="hidden" name="currentStatus" value={post?.status ?? ContentStatus.DRAFT} />
+        </>
+      }
+      stateError={state.error}
+      main={
+        <>
           <div className="grid gap-2">
             <input
               id="title"
@@ -103,9 +109,10 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase }: PostEdit
               className="min-h-[26rem] border-none bg-transparent px-0 py-1 text-lg leading-9 text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
             />
           </label>
-        </div>
-
-        <aside className="grid gap-8 lg:sticky lg:top-28">
+        </>
+      }
+      sidebar={
+        <>
           <label className="grid gap-2 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
             <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
               发布日期
@@ -185,26 +192,21 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase }: PostEdit
               <p className="text-sm text-zinc-500 dark:text-zinc-400">还没有可用标签。</p>
             )}
           </fieldset>
-        </aside>
-      </section>
-
-      {state.error ? (
-        <p className="border-l-2 border-rose-300 pl-4 text-sm text-rose-700 dark:border-rose-400/40 dark:text-rose-200">
-          {state.error}
-        </p>
-      ) : null}
-
-      <div className="sticky bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
-        <div className="flex min-w-0 items-center gap-3">
+        </>
+      }
+      footerLeft={
+        <>
           <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>
           {hasSavedRevision ? <DiscardRevisionButton postId={post?.id ?? 0} /> : null}
-        </div>
-        <div className="flex items-center gap-2">
+        </>
+      }
+      footerRight={
+        <>
           <SaveButton hasExistingPost={Boolean(post)} />
           <PublishButton hasExistingPost={Boolean(post)} />
-        </div>
-      </div>
-    </form>
+        </>
+      }
+    />
   );
 }
 
@@ -252,11 +254,7 @@ function getDraftSavedAt(post: PostItem | null) {
   return post.draftSnapshot.savedAt ?? null;
 }
 
-function SaveButton({
-  hasExistingPost,
-}: {
-  hasExistingPost: boolean;
-}) {
+function SaveButton({ hasExistingPost }: { hasExistingPost: boolean }) {
   const { pending } = useFormStatus();
 
   return (
@@ -279,16 +277,14 @@ function PublishButton({ hasExistingPost }: { hasExistingPost: boolean }) {
       name="intent"
       value="publish"
       disabled={pending}
-      className="inline-flex h-10 items-center justify-center border border-transparent bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
+      className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-3 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
     >
-      {hasExistingPost ? "更新并发布" : "发布文章"}
+      {pending ? "发布中..." : hasExistingPost ? "更新并发布" : "发布文章"}
     </button>
   );
 }
 
 function DiscardRevisionButton({ postId }: { postId: number }) {
-  const { pending } = useFormStatus();
-
   return (
     <ConfirmActionDialog
       triggerLabel="删除修订"
@@ -299,7 +295,6 @@ function DiscardRevisionButton({ postId }: { postId: number }) {
       action={discardPostRevisionAction}
       fields={[{ name: "postId", value: postId }]}
       confirmTone="danger"
-      disabled={pending}
     />
   );
 }

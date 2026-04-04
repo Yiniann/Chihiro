@@ -1,11 +1,6 @@
-import { CategoryKind } from "@prisma/client";
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { UpdateEditorForm } from "@/app/(admin)/admin/compose/update/update-editor-form";
-import { siteConfig } from "@/lib/site";
-import { listCategoriesByKind } from "@/server/repositories/categories";
 import { getUpdateByIdForAdmin } from "@/server/repositories/updates";
-import { getSiteSettings } from "@/server/repositories/site";
-import { listTags } from "@/server/repositories/tags";
 
 type AdminComposeUpdatePageProps = {
   searchParams: Promise<{
@@ -18,13 +13,7 @@ export default async function AdminComposeUpdatePage({
 }: AdminComposeUpdatePageProps) {
   const { id } = await searchParams;
   const updateId = getUpdateId(id);
-  const [update, categories, tags, siteSettings] = await Promise.all([
-    updateId ? getUpdateByIdForAdmin(updateId) : Promise.resolve(null),
-    listCategoriesByKind(CategoryKind.UPDATE),
-    listTags(),
-    getSiteSettings(),
-  ]);
-  const siteUrlBase = (siteSettings?.siteUrl ?? siteConfig.url).replace(/\/+$/, "");
+  const update = updateId ? await getUpdateByIdForAdmin(updateId) : null;
 
   return (
     <div className="grid gap-8">
@@ -33,9 +22,6 @@ export default async function AdminComposeUpdatePage({
       <UpdateEditorForm
         key={update ? `${update.id}:${update.draftSnapshot?.savedAt ?? update.updatedAt}` : "new-update"}
         update={update}
-        categories={categories}
-        tags={tags}
-        siteUrlBase={siteUrlBase}
       />
     </div>
   );

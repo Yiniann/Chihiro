@@ -1,14 +1,16 @@
 import Link from "next/link";
-import { CategoryKind, ContentStatus } from "@prisma/client";
-import { ContentListPanel, EmptyPanel } from "@/app/(admin)/admin/ui";
-import { listCategoriesByKind } from "@/server/repositories/categories";
+import { ContentStatus } from "@prisma/client";
+import { ContentListPanel, StatusBadge } from "@/app/(admin)/admin/ui";
+import { listPostCategories } from "@/server/repositories/categories";
 import { listPostsForAdmin } from "@/server/repositories/posts";
 import { listTags } from "@/server/repositories/tags";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 import { WorkbenchCategoryPanel } from "@/app/(admin)/admin/workbench/workbench-category-panel";
+import { TagCloudPanel } from "@/app/(admin)/admin/workbench/tag-cloud-panel";
 import { WorkbenchContentSwitcher } from "@/app/(admin)/admin/workbench/workbench-content-switcher";
 import { PostActionMenu } from "@/app/(admin)/admin/workbench/post-action-menu";
 import { UpdateActionMenu } from "@/app/(admin)/admin/workbench/update-action-menu";
+import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import { ChevronRight } from "lucide-react";
 
 type WorkbenchSearchParams = Promise<{
@@ -21,16 +23,16 @@ export default async function AdminWorkbenchPage({
 }: {
   searchParams: WorkbenchSearchParams;
 }) {
-  const { sort, tab } = await searchParams;
-  const [posts, updates, postCategories, updateCategories, tags] = await Promise.all([
+  const { sort } = await searchParams;
+  const [posts, updates, postCategories, tags] = await Promise.all([
     listPostsForAdmin(),
     listUpdatesForAdmin(),
-    listCategoriesByKind(CategoryKind.POST),
-    listCategoriesByKind(CategoryKind.UPDATE),
+    listPostCategories(),
     listTags(),
   ]);
   const sortedPosts = sortWorkbenchPosts(posts, getWorkbenchSortValue(sort));
   const sortedUpdates = sortWorkbenchUpdates(updates, getWorkbenchSortValue(sort));
+  const tagCloudItems = getTagCloudItems(tags, posts);
 
   return (
     <div className="grid gap-10">
@@ -107,57 +109,11 @@ export default async function AdminWorkbenchPage({
             )}
           />
         }
-        updatesPanel={
-          <ContentListPanel
-            title="动态"
-            eyebrow="Updates"
-            items={sortedUpdates}
-            emptyText="还没有动态内容。"
-            showHeader={false}
-            renderMeta={(item) => (
-              <>
-                <span>分类 {item.category?.name ?? "未分类"}</span>
-                <span>·</span>
-                <span className="flex flex-wrap items-center gap-1">
-                  <span>标签</span>
-                  {item.tags.length > 0 ? (
-                    item.tags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="border border-zinc-200/80 bg-zinc-50/80 px-2 py-0.5 text-[0.72rem] font-medium text-zinc-500 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400"
-                      >
-                        #{tag.name}
-                      </span>
-                    ))
-                  ) : (
-                    <span>无</span>
-                  )}
-                </span>
-              </>
-            )}
-            renderActions={(item) => (
-              <div className="flex flex-col items-end gap-2">
-                <Link
-                  href={`/admin/compose/update?id=${encodeURIComponent(item.id)}`}
-                  className="inline-flex items-center gap-1.5 border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
-                >
-                  编辑动态
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Link>
-                <UpdateActionMenu isPublished={item.status === ContentStatus.PUBLISHED} updateId={item.id} />
-              </div>
-            )}
-          />
-        }
+        updatesPanel={<UpdateListPanel items={sortedUpdates} />}
         categoriesPanel={
-          <WorkbenchCategoryPanel
-            postCategories={postCategories}
-            updateCategories={updateCategories}
-          />
+          <WorkbenchCategoryPanel postCategories={postCategories} />
         }
-        tagsPanel={
-          <TagCloudPanel items={tags} />
-        }
+        tagsPanel={<TagCloudPanel items={tagCloudItems} />}
       />
     </div>
   );
@@ -214,6 +170,86 @@ function compareDates(left?: string | null, right?: string | null) {
   return leftTime - rightTime;
 }
 
+function UpdateListPanel({
+  items,
+}: {
+  items: Awaited<ReturnType<typeof listUpdatesForAdmin>>;
+}) {
+  return (
+    <section className="border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+      <div>
+        {items.length > 0 ? (
+          <div className="grid gap-4">
+            {items.map((item) => (
+              <article
+                key={item.id}
+                className="border-b border-zinc-200/80 pb-5 last:border-b-0 dark:border-zinc-800/80"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="whitespace-pre-wrap break-words text-[0.95rem] leading-7 text-zinc-700 dark:text-zinc-200">
+                      {getUpdatePreviewText(item)}
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+                      <StatusBadge status={item.status} />
+                      <p>时间 {formatUpdateTime(item)}</p>
+                      <p>{item.authorName ?? "未署名"}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-2">
+                    <Link
+                      href={`/admin/compose/update?id=${encodeURIComponent(item.id)}`}
+                      className="inline-flex items-center gap-1.5 border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+                    >
+                      编辑动态
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    </Link>
+                    <UpdateActionMenu
+                      isPublished={item.status === ContentStatus.PUBLISHED}
+                      updateId={item.id}
+                    />
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-dashed border-zinc-200/80 px-5 py-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+            还没有动态内容。
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function getUpdatePreviewText(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
+  if (typeof item.content === "string") {
+    return item.content.trim() || "空内容";
+  }
+
+  if (Array.isArray(item.content)) {
+    const text = item.content
+      .filter((part): part is string => typeof part === "string")
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join("\n");
+
+    return text || "空内容";
+  }
+
+  if (item.content && typeof item.content === "object") {
+    return JSON.stringify(item.content);
+  }
+
+  return item.contentHtml?.trim() || "空内容";
+}
+
+function formatUpdateTime(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
+  return formatAdminDateTime(item.publishedAt ?? item.updatedAt);
+}
+
 function WriteEntry({
   href,
   eyebrow,
@@ -240,48 +276,46 @@ function WriteEntry({
   );
 }
 
-function TagCloudPanel({
-  items,
-}: {
-  items: Array<{ id: string; name: string; slug: string }>;
-}) {
-  return (
-    <section className="border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80">
-      <div className="mb-5 flex items-end justify-between">
-        <div>
-          <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-            Tags
-          </p>
-          <h3 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            标签
-          </h3>
-        </div>
-      </div>
-      {items.length > 0 ? (
-        <div className="flex flex-wrap gap-2.5">
-          {items.map((item, index) => (
-            <span
-              key={item.id}
-              className={[
-                "inline-flex items-center rounded-md border px-3 py-1.5 text-sm font-medium transition",
-                index % 5 === 0
-                  ? "border-zinc-300/80 bg-zinc-50 text-zinc-900 dark:border-zinc-700/80 dark:bg-zinc-900/60 dark:text-zinc-50"
-                  : index % 5 === 1
-                    ? "border-zinc-200/80 bg-white text-zinc-700 dark:border-zinc-800/80 dark:bg-zinc-950/50 dark:text-zinc-300"
-                    : index % 5 === 2
-                      ? "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 dark:border-zinc-800/80 dark:bg-zinc-900/50 dark:text-zinc-400"
-                      : index % 5 === 3
-                        ? "border-zinc-300/70 bg-zinc-100/70 text-zinc-800 dark:border-zinc-700/70 dark:bg-zinc-800/50 dark:text-zinc-200"
-                        : "border-zinc-200/80 bg-white/90 text-zinc-600 dark:border-zinc-800/80 dark:bg-zinc-950/60 dark:text-zinc-400",
-              ].join(" ")}
-            >
-              {item.name}
-            </span>
-          ))}
-        </div>
-      ) : (
-        <EmptyPanel text="还没有标签。" />
-      )}
-    </section>
-  );
+function getTagCloudItems(
+  tags: Awaited<ReturnType<typeof listTags>>,
+  posts: Awaited<ReturnType<typeof listPostsForAdmin>>,
+) {
+  const items = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      slug: string;
+      postCount: number;
+      contentCount: number;
+    }
+  >();
+
+  for (const tag of tags) {
+    items.set(tag.id, {
+      id: tag.id,
+      name: tag.name,
+      slug: tag.slug,
+      postCount: 0,
+      contentCount: 0,
+    });
+  }
+
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      const current = items.get(tag.id) ?? {
+        id: tag.id,
+        name: tag.name,
+        slug: tag.slug,
+        postCount: 0,
+        contentCount: 0,
+      };
+
+      current.postCount += 1;
+      current.contentCount += 1;
+      items.set(tag.id, current);
+    }
+  }
+
+  return Array.from(items.values()).sort((left, right) => left.name.localeCompare(right.name));
 }

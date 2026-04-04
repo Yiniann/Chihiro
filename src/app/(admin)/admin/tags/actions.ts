@@ -4,36 +4,79 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import {
-  createCategory,
-  deleteCategoryById,
-  updateCategoryById,
-} from "@/server/repositories/categories";
+  createTag,
+  deleteTagById,
+  getTagByIdForAdmin,
+  updateTagById,
+} from "@/server/repositories/tags";
 import { requireAdminSession } from "@/server/auth";
 
-export type SaveCategoryEditorState = {
+export type SaveTagEditorState = {
   error: string | null;
   redirectTo: string | null;
 };
 
-export async function saveCategoryAction(
-  _previousState: SaveCategoryEditorState,
+export async function createTagAction(
+  _previousState: SaveTagEditorState,
   formData: FormData,
-): Promise<SaveCategoryEditorState> {
+): Promise<SaveTagEditorState> {
   await requireAdminSession();
-  const id = getRequiredId(formData, "id");
   const name = getRequiredString(formData, "name");
   const slug = normalizeSlug(getRequiredString(formData, "slug"));
-  const description = getOptionalString(formData, "description");
 
   try {
-    const category = await updateCategoryById({
+    const tag = await createTag({
+      name,
+      slug,
+    });
+
+    revalidateTagSurfaces(tag.id, tag.slug);
+  } catch (error) {
+    if (isUniqueSlugError(error)) {
+      return {
+        error: "这个 slug 已经被占用了，请换一个。",
+        redirectTo: null,
+      };
+    }
+
+    return {
+      error: error instanceof Error ? error.message : "创建标签时出错了。",
+      redirectTo: null,
+    };
+  }
+
+  return {
+    error: null,
+    redirectTo: "/admin/workbench?tab=tags",
+  };
+}
+
+export async function saveTagAction(
+  _previousState: SaveTagEditorState,
+  formData: FormData,
+): Promise<SaveTagEditorState> {
+  await requireAdminSession();
+  const id = getRequiredString(formData, "id");
+  const name = getRequiredString(formData, "name");
+  const slug = normalizeSlug(getRequiredString(formData, "slug"));
+
+  try {
+    const currentTag = await getTagByIdForAdmin(id);
+    if (!currentTag) {
+      return {
+        error: "标签不存在。",
+        redirectTo: null,
+      };
+    }
+
+    const tag = await updateTagById({
       id,
       name,
       slug,
-      description,
     });
 
-    revalidateCategorySurfaces(category.id, category.slug);
+    revalidateTagSurfaces(currentTag.id, currentTag.slug);
+    revalidateTagSurfaces(tag.id, tag.slug);
   } catch (error) {
     if (isUniqueSlugError(error)) {
       return {
@@ -43,73 +86,44 @@ export async function saveCategoryAction(
     }
 
     return {
-      error: error instanceof Error ? error.message : "保存分类时出错了。",
+      error: error instanceof Error ? error.message : "保存标签时出错了。",
       redirectTo: null,
     };
   }
 
   return {
     error: null,
-    redirectTo: "/admin/workbench?tab=categories",
+    redirectTo: "/admin/workbench?tab=tags",
   };
 }
 
-export async function createCategoryAction(
-  _previousState: SaveCategoryEditorState,
-  formData: FormData,
-): Promise<SaveCategoryEditorState> {
+export async function deleteTagAction(formData: FormData) {
   await requireAdminSession();
-  const name = getRequiredString(formData, "name");
-  const slug = normalizeSlug(getRequiredString(formData, "slug"));
-  const description = getOptionalString(formData, "description");
+  const id = getRequiredString(formData, "id");
+  const currentTag = await getTagByIdForAdmin(id);
 
-  try {
-    const category = await createCategory({
-      name,
-      slug,
-      description,
-    });
-
-    revalidateCategorySurfaces(category.id, category.slug);
-  } catch (error) {
-    if (isUniqueSlugError(error)) {
-      return {
-        error: "这个 slug 已经被占用了，请换一个。",
-        redirectTo: null,
-      };
-    }
-
-    return {
-      error: error instanceof Error ? error.message : "创建分类时出错了。",
-      redirectTo: null,
-    };
+  if (!currentTag) {
+    throw new Error("标签不存在。");
   }
 
-  return {
-    error: null,
-    redirectTo: "/admin/workbench?tab=categories",
-  };
+  const tag = await deleteTagById(id);
+
+  revalidateTagSurfaces(currentTag.id, currentTag.slug);
+  revalidateTagSurfaces(tag.id, tag.slug);
+  redirect("/admin/workbench?tab=tags");
 }
 
-export async function deleteCategoryAction(formData: FormData) {
-  await requireAdminSession();
-  const id = getRequiredId(formData, "id");
-  const category = await deleteCategoryById(id);
-
-  revalidateCategorySurfaces(category.id, category.slug);
-  redirect(`/admin/workbench?tab=categories&deletedCategory=${encodeURIComponent(category.id)}`);
-}
-
-function revalidateCategorySurfaces(id: number, slug: string) {
+function revalidateTagSurfaces(id: string, slug: string) {
   revalidatePath("/admin");
   revalidatePath("/admin/workbench");
-  revalidatePath(`/admin/categories/${id}`);
+  revalidatePath(`/admin/tags/${id}`);
   revalidatePath("/");
   revalidatePath("/posts");
+  revalidatePath("/updates");
   revalidatePath("/timeline");
   revalidatePath("/rss.xml");
   revalidatePath("/sitemap.xml");
-  revalidatePath(`/posts?category=${encodeURIComponent(slug)}`);
+  revalidatePath(`/posts?tag=${encodeURIComponent(slug)}`);
 }
 
 function getRequiredString(formData: FormData, key: string) {
@@ -120,27 +134,6 @@ function getRequiredString(formData: FormData, key: string) {
   }
 
   return value.trim();
-}
-
-function getRequiredId(formData: FormData, key: string) {
-  const value = getRequiredString(formData, key);
-
-  if (!/^\d+$/.test(value)) {
-    throw new Error(`请填写有效的编号。`);
-  }
-
-  return Number(value);
-}
-
-function getOptionalString(formData: FormData, key: string) {
-  const value = formData.get(key);
-
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim();
-  return normalized ? normalized : null;
 }
 
 function normalizeSlug(value: string) {

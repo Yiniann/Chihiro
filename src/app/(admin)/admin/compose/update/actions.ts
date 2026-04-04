@@ -10,6 +10,8 @@ import {
   getUpdateByIdForAdmin,
   saveUpdate,
 } from "@/server/repositories/updates";
+import { getSiteSettings } from "@/server/repositories/site";
+import { siteConfig } from "@/lib/site";
 
 export type SaveUpdateEditorState = {
   error: string | null;
@@ -24,40 +26,27 @@ export async function saveUpdateAction(
   const intent = getOptionalString(formData, "intent") ?? "save";
   const currentStatus = getContentStatus(formData, "currentStatus");
 
-  const title = getRequiredString(formData, "title");
-  const slugInput = getOptionalString(formData, "slug");
-  const slug = slugInput ? normalizeSlug(slugInput) : null;
-  const summary = getOptionalString(formData, "summary");
   const content = getOptionalString(formData, "content");
-  const categoryId = getOptionalNumber(formData, "categoryId");
   const publishedAtInput = getOptionalString(formData, "publishedAt");
   const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
-  const tagIds = formData
-    .getAll("tagIds")
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.trim())
-    .filter(Boolean);
   const updateId = getOptionalUpdateId(formData, "updateId");
+  const siteSettings = await getSiteSettings();
+  const fallbackAuthorName = siteSettings?.authorName ?? siteConfig.author;
 
   try {
     const update = await saveUpdate({
       id: updateId ?? undefined,
-      title,
-      slug,
-      summary,
       content,
       contentHtml: renderContentHtml(content),
+      authorName: fallbackAuthorName,
       status: currentStatus,
-      categoryId,
       publishedAt,
-      tagIds,
     });
 
     if (intent === "publish") {
-      const publishedUpdate = await publishUpdateById(update.id);
+      await publishUpdateById(update.id);
 
-      revalidateUpdateSurface(update.slug);
-      revalidateUpdateSurface(publishedUpdate.slug);
+      revalidateUpdateSurface();
     }
 
     revalidatePath("/admin/workbench");
@@ -70,9 +59,9 @@ export async function saveUpdateAction(
       };
     }
   } catch (error) {
-    if (isUniqueSlugError(error)) {
+    if (isUniqueConstraintError(error)) {
       return {
-        error: "这个 slug 已经被占用了，请换一个。",
+        error: "保存动态时遇到了重复值，请稍后再试。",
         redirectTo: null,
       };
     }
@@ -108,22 +97,11 @@ export async function discardUpdateRevisionAction(formData: FormData) {
 
   const restoredUpdate = await discardUpdateRevisionById(updateId);
 
-  revalidateUpdateSurface(currentUpdate.slug);
-  revalidateUpdateSurface(restoredUpdate.slug);
+  revalidateUpdateSurface();
   revalidatePath("/admin/workbench");
   revalidatePath("/admin/compose/update");
 
   redirect(`/admin/compose/update?id=${encodeURIComponent(restoredUpdate.id)}`);
-}
-
-function getRequiredString(formData: FormData, key: string) {
-  const value = getOptionalString(formData, key);
-
-  if (!value) {
-    throw new Error(`请填写 ${key}。`);
-  }
-
-  return value;
 }
 
 function getOptionalString(formData: FormData, key: string) {
@@ -161,39 +139,10 @@ function getRequiredUpdateId(formData: FormData, key: string) {
   return value;
 }
 
-function getOptionalNumber(formData: FormData, key: string) {
-  const value = getOptionalString(formData, key);
-
-  if (!value) {
-    return null;
-  }
-
-  if (!/^\d+$/.test(value)) {
-    throw new Error(`请填写有效的 ${key}。`);
-  }
-
-  return Number(value);
-}
-
 function getContentStatus(formData: FormData, key: string): ContentStatus {
   const value = getOptionalString(formData, key);
 
   return value === ContentStatus.PUBLISHED ? ContentStatus.PUBLISHED : ContentStatus.DRAFT;
-}
-
-function normalizeSlug(value: string) {
-  const slug = value
-    .toLowerCase()
-    .trim()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-
-  if (!slug) {
-    throw new Error("请填写有效的 slug。");
-  }
-
-  return slug;
 }
 
 function parsePublishedAtInput(value: string) {
@@ -255,20 +204,19 @@ function escapeHtml(value: string) {
     .replace(/'/g, "&#39;");
 }
 
-function isUniqueSlugError(error: unknown) {
+function isUniqueConstraintError(error: unknown) {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
     error.code === "P2002"
   );
 }
 
-function revalidateUpdateSurface(slug: string) {
+function revalidateUpdateSurface() {
   revalidatePath("/admin");
   revalidatePath("/admin/workbench");
   revalidatePath("/");
-  revalidatePath("/archives");
+  revalidatePath("/timeline");
   revalidatePath("/updates");
-  revalidatePath(`/updates/${slug}`);
   revalidatePath("/rss.xml");
   revalidatePath("/sitemap.xml");
 }

@@ -14,6 +14,7 @@ export type SearchDialogItem = {
   overline: string;
   preview: string;
   searchText: string;
+  searchableTitle?: boolean;
 };
 
 type SearchDialogProps = {
@@ -22,6 +23,7 @@ type SearchDialogProps = {
   emptyState: string;
   idleState: string;
   items: SearchDialogItem[];
+  showResultTitle?: boolean;
 };
 
 export function SearchDialog({
@@ -30,6 +32,7 @@ export function SearchDialog({
   emptyState,
   idleState,
   items,
+  showResultTitle = true,
 }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -123,9 +126,9 @@ export function SearchDialog({
                     {normalizedQuery ? (
                       results.length > 0 ? (
                         <div className="grid gap-1">
-                          {results.map(({ item }) => (
+                          {results.map(({ item }, index) => (
                             <Link
-                              key={item.href}
+                              key={`${item.id}-${item.href}-${index}`}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
                               className="rounded-[1.1rem] px-3 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
@@ -138,9 +141,11 @@ export function SearchDialog({
                                   </span>
                                 ) : null}
                               </div>
-                              <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
-                                {highlightText(item.title, searchTerms)}
-                              </p>
+                              {showResultTitle ? (
+                                <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
+                                  {highlightText(item.title, searchTerms)}
+                                </p>
+                              ) : null}
                               <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                                 {highlightText(
                                   getSearchPreview(item, normalizedQuery, searchTerms),
@@ -180,10 +185,11 @@ function getSearchScore(item: SearchDialogItem, query: string, searchTerms: stri
   const overline = item.overline.toLowerCase();
   const preview = item.preview.toLowerCase();
   const searchText = item.searchText.toLowerCase();
+  const searchableTitle = item.searchableTitle ?? true;
   let score = 0;
   let matchedTerms = 0;
 
-  if (title.includes(query)) {
+  if (searchableTitle && title.includes(query)) {
     score += title.startsWith(query) ? 18 : 12;
   }
 
@@ -203,7 +209,7 @@ function getSearchScore(item: SearchDialogItem, query: string, searchTerms: stri
     const termWeight = Math.max(1, Math.min(term.length, 6));
     let termScore = 0;
 
-    if (title.includes(term)) {
+    if (searchableTitle && title.includes(term)) {
       termScore += term.length === 1 ? 2 : 6 + termWeight;
     }
 

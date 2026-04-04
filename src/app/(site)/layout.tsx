@@ -2,14 +2,12 @@ import {
   SiteHeader,
   type SiteHeaderPostCategory,
   type SiteHeaderRecentArchiveItem,
-  type SiteHeaderUpdateCategory,
 } from "@/components/site-header";
-import { getPostPath } from "@/lib/routes";
+import { getPostPath, getUpdateAnchorPath } from "@/lib/routes";
 import { SiteFooter } from "@/components/site-footer";
 import { siteConfig } from "@/lib/site";
-import { CategoryKind } from "@prisma/client";
 import { hasAdminUsers, isAdminAuthenticated } from "@/server/auth";
-import { listCategoriesByKind } from "@/server/repositories/categories";
+import { listPostCategories } from "@/server/repositories/categories";
 import { listAllPublishedPosts } from "@/server/repositories/posts";
 import { getSiteSettings } from "@/server/repositories/site";
 import { listAllPublishedUpdates } from "@/server/repositories/updates";
@@ -23,7 +21,6 @@ export default async function SiteLayout({
     posts,
     updates,
     postCategoryRecords,
-    updateCategoryRecords,
     adminHasUsers,
     isAdminLoggedIn,
     siteSettings,
@@ -31,14 +28,12 @@ export default async function SiteLayout({
     await Promise.all([
     listAllPublishedPosts(),
     listAllPublishedUpdates(),
-    listCategoriesByKind(CategoryKind.POST),
-    listCategoriesByKind(CategoryKind.UPDATE),
+    listPostCategories(),
     hasAdminUsers(),
     isAdminAuthenticated(),
     getSiteSettings(),
   ]);
   const postCategories = getPostCategories(postCategoryRecords, posts);
-  const updateCategories = getUpdateCategories(updateCategoryRecords, updates);
   const recentArchiveItems = getRecentArchiveItems(posts, updates);
   const recentUpdateItems = getRecentUpdateItems(updates);
   const adminDisplayName = siteSettings?.authorName ?? siteConfig.author;
@@ -53,7 +48,6 @@ export default async function SiteLayout({
         adminDisplayName={adminDisplayName}
         adminAvatarUrl={adminAvatarUrl}
         postCategories={postCategories}
-        updateCategories={updateCategories}
         recentArchiveItems={recentArchiveItems}
         recentUpdateItems={recentUpdateItems}
       />
@@ -63,8 +57,10 @@ export default async function SiteLayout({
   );
 }
 
+const UPDATE_LIST_PAGE_SIZE = 10;
+
 function getPostCategories(
-  categories: Awaited<ReturnType<typeof listCategoriesByKind>>,
+  categories: Awaited<ReturnType<typeof listPostCategories>>,
   posts: Awaited<ReturnType<typeof listAllPublishedPosts>>,
 ): SiteHeaderPostCategory[] {
   const groups = new Map<string, SiteHeaderPostCategory["posts"]>();
@@ -114,47 +110,6 @@ function getPostCategories(
     .sort(compareSiteHeaderCategories);
 }
 
-function getUpdateCategories(
-  categories: Awaited<ReturnType<typeof listCategoriesByKind>>,
-  updates: Awaited<ReturnType<typeof listAllPublishedUpdates>>,
-): SiteHeaderUpdateCategory[] {
-  const groups = new Map<string, string[]>();
-  const uncategorizedItems: string[] = [];
-
-  for (const update of updates) {
-    if (!update.category) {
-      uncategorizedItems.push(update.title);
-      continue;
-    }
-
-    const current = groups.get(update.category.slug) ?? [];
-
-    current.push(update.title);
-    groups.set(update.category.slug, current);
-  }
-
-  return categories
-    .map((category) => ({
-      tag: category.slug,
-      label: category.name,
-      href: `/updates?category=${encodeURIComponent(category.slug)}`,
-      items: groups.get(category.slug) ?? [],
-    }))
-    .concat(
-      uncategorizedItems.length > 0
-        ? [
-            {
-              tag: "uncategorized",
-              label: "Uncategorized",
-              href: "/updates?category=uncategorized",
-              items: uncategorizedItems,
-            },
-          ]
-        : [],
-    )
-    .sort(compareSiteHeaderUpdateCategories);
-}
-
 function compareSiteHeaderCategories(
   left: SiteHeaderPostCategory,
   right: SiteHeaderPostCategory,
@@ -167,20 +122,6 @@ function compareSiteHeaderCategories(
   }
 
   return right.posts.length - left.posts.length || left.label.localeCompare(right.label);
-}
-
-function compareSiteHeaderUpdateCategories(
-  left: SiteHeaderUpdateCategory,
-  right: SiteHeaderUpdateCategory,
-) {
-  const leftUncategorized = left.tag === "uncategorized";
-  const rightUncategorized = right.tag === "uncategorized";
-
-  if (leftUncategorized !== rightUncategorized) {
-    return leftUncategorized ? 1 : -1;
-  }
-
-  return right.items.length - left.items.length || left.label.localeCompare(right.label);
 }
 
 function getRecentArchiveItems(
@@ -196,11 +137,14 @@ function getRecentArchiveItems(
       publishedAt: post.publishedAt,
       kind: "文章" as const,
     })),
-    ...updates.map((item) => ({
+    ...updates.map((item, index) => ({
       id: item.id,
-      href: `/updates/${item.slug}`,
+      href: getUpdateAnchorPath({
+        updateId: item.id,
+        page: Math.floor(index / UPDATE_LIST_PAGE_SIZE) + 1,
+      }),
       title: item.title,
-      categoryLabel: item.category?.name ?? "Uncategorized",
+      categoryLabel: "动态",
       publishedAt: item.publishedAt,
       kind: "动态" as const,
     })),
@@ -217,11 +161,14 @@ function getRecentUpdateItems(
   updates: Awaited<ReturnType<typeof listAllPublishedUpdates>>,
 ): SiteHeaderRecentArchiveItem[] {
   return updates
-    .map((item) => ({
+    .map((item, index) => ({
       id: item.id,
-      href: `/updates/${item.slug}`,
+      href: getUpdateAnchorPath({
+        updateId: item.id,
+        page: Math.floor(index / UPDATE_LIST_PAGE_SIZE) + 1,
+      }),
       title: item.title,
-      categoryLabel: item.category?.name ?? "Uncategorized",
+      categoryLabel: "动态",
       publishedAt: item.publishedAt,
       kind: "动态" as const,
     }))
