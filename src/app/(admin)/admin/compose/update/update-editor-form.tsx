@@ -16,7 +16,7 @@ import { PublishedAtField } from "@/app/(admin)/admin/compose/post/published-at-
 import { PostRichTextEditor } from "@/app/(admin)/admin/compose/post/post-rich-text-editor";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import { getRenderedContentHtml } from "@/lib/content";
-import { createSlateContentValue, slateContentToText } from "@/lib/slate-content";
+import { getRichTextPreviewTitle, parseStoredRichTextContent } from "@/lib/rich-text-content";
 import type { UpdateItem } from "@/server/repositories/updates";
 
 const initialState: SaveUpdateEditorState = {
@@ -71,7 +71,11 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
               动态只需要填写内容，标题会自动从内容生成。
             </p>
 
-            <PostRichTextEditor initialValue={createSlateContentValue(editableUpdate?.content)} />
+            <PostRichTextEditor
+              initialContent={editableUpdate?.content}
+              initialContentHtml={editableUpdate?.contentHtml}
+              placeholder="开始写这条动态。支持标题、引用、链接和图片。"
+            />
           </div>
         }
         sidebar={
@@ -165,10 +169,11 @@ function buildUpdatePreviewState(form: HTMLFormElement | null, authorName: strin
   }
 
   const formData = new FormData(form);
-  const content = parseSlateContent(formData);
+  const content = parseStoredRichTextContent(getFormValue(formData, "content"));
+  const contentHtml = getFormValue(formData, "contentHtml") || null;
   const publishedAt = getFormValue(formData, "publishedAt");
-  const title = getPreviewTitle(content);
-  const body = getRenderedContentHtml(null, content) ?? "<p>暂无内容。</p>";
+  const title = getRichTextPreviewTitle(contentHtml, content, "未命名动态");
+  const body = contentHtml ?? getRenderedContentHtml(null, content) ?? "<p>暂无内容。</p>";
   const formattedPublishedAt = publishedAt ? formatAdminDateTime(publishedAt) : null;
 
   return {
@@ -183,29 +188,6 @@ function buildUpdatePreviewState(form: HTMLFormElement | null, authorName: strin
       </div>
     `,
   };
-}
-
-function getPreviewTitle(content: unknown) {
-  const firstLine = slateContentToText(createSlateContentValue(content))
-    .split(/\n+/)
-    .map((line) => line.trim())
-    .find(Boolean);
-
-  return firstLine ? firstLine.slice(0, 32) : "未命名动态";
-}
-
-function parseSlateContent(formData: FormData) {
-  const raw = getFormValue(formData, "content");
-
-  if (!raw) {
-    return createSlateContentValue(null);
-  }
-
-  try {
-    return createSlateContentValue(JSON.parse(raw));
-  } catch {
-    return createSlateContentValue(raw);
-  }
 }
 
 function getFormValue(formData: FormData, key: string) {

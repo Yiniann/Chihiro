@@ -84,7 +84,7 @@ export default async function AdminWorkbenchPage({
                     item.tags.map((tag) => (
                       <span
                         key={tag.id}
-                        className="border border-zinc-200/80 bg-zinc-50/80 px-2 py-0.5 text-[0.72rem] font-medium text-zinc-500 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-400"
+                        className="text-[0.72rem] font-medium text-zinc-500 dark:text-zinc-400"
                       >
                         #{tag.name}
                       </span>

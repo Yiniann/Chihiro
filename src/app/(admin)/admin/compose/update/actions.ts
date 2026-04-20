@@ -3,7 +3,7 @@
 import { ContentStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { renderSlateContentHtml, createSlateContentValue } from "@/lib/slate-content";
+import { parseStoredRichTextContent } from "@/lib/rich-text-content";
 import { requireAdminSession } from "@/server/auth";
 import {
   discardUpdateRevisionById,
@@ -32,13 +32,14 @@ export async function saveUpdateAction(
   const updateId = getOptionalUpdateId(formData, "updateId");
   const siteSettings = await getSiteSettings();
   const fallbackAuthorName = siteSettings?.authorName ?? siteConfig.author;
-  const content = parseSlateContent(formData);
+  const content = parseRichTextContent(formData);
+  const contentHtml = getOptionalString(formData, "contentHtml");
 
   try {
     const update = await saveUpdate({
       id: updateId ?? undefined,
       content: content as unknown as Prisma.JsonValue,
-      contentHtml: renderSlateContentHtml(content),
+      contentHtml,
       authorName: fallbackAuthorName,
       status: currentStatus,
       publishedAt,
@@ -146,18 +147,14 @@ function getContentStatus(formData: FormData, key: string): ContentStatus {
   return value === ContentStatus.PUBLISHED ? ContentStatus.PUBLISHED : ContentStatus.DRAFT;
 }
 
-function parseSlateContent(formData: FormData) {
+function parseRichTextContent(formData: FormData) {
   const raw = getOptionalString(formData, "content");
 
   if (!raw) {
-    return createSlateContentValue(null);
+    return null;
   }
 
-  try {
-    return createSlateContentValue(JSON.parse(raw));
-  } catch {
-    return createSlateContentValue(raw);
-  }
+  return parseStoredRichTextContent(raw);
 }
 
 function parsePublishedAtInput(value: string) {

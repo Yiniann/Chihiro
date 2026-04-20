@@ -3,8 +3,8 @@
 import { ContentStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { renderSlateContentHtml, createSlateContentValue } from "@/lib/slate-content";
 import { getPostPath } from "@/lib/routes";
+import { parseStoredRichTextContent } from "@/lib/rich-text-content";
 import { requireAdminSession } from "@/server/auth";
 import {
   discardPostRevisionById,
@@ -31,7 +31,8 @@ export async function savePostDraftAction(
   const slugInput = getOptionalString(formData, "slug");
   const slug = slugInput ? normalizeSlug(slugInput) : null;
   const summary = getOptionalString(formData, "summary");
-  const content = parseSlateContent(formData);
+  const content = parseRichTextContent(formData);
+  const contentHtml = getOptionalString(formData, "contentHtml");
   const categoryId = getOptionalNumber(formData, "categoryId");
   const publishedAtInput = getOptionalString(formData, "publishedAt");
   const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
@@ -51,7 +52,7 @@ export async function savePostDraftAction(
       slug,
       summary,
       content: content as unknown as Prisma.JsonValue,
-      contentHtml: renderSlateContentHtml(content),
+      contentHtml,
       status: currentStatus,
       categoryId,
       publishedAt,
@@ -171,18 +172,20 @@ function getOptionalNumber(formData: FormData, key: string) {
   return Number(value);
 }
 
-function parseSlateContent(formData: FormData) {
+function parseRichTextContent(formData: FormData) {
   const raw = getOptionalString(formData, "content");
 
   if (!raw) {
-    return createSlateContentValue(null);
+    return null;
   }
 
-  try {
-    return createSlateContentValue(JSON.parse(raw));
-  } catch {
+  const parsed = parseStoredRichTextContent(raw);
+
+  if (parsed === raw) {
     throw new Error("请填写有效的正文内容。");
   }
+
+  return parsed;
 }
 
 function getContentStatus(formData: FormData, key: string): ContentStatus {

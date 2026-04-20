@@ -165,9 +165,6 @@ export function AdminHeader() {
         )}
 
         <div className="pointer-events-auto flex shrink-0 items-center gap-2 md:justify-self-end">
-          <div className="hidden md:block">
-            <ThemeModeToggle isScrolled={isScrolled} />
-          </div>
           <Link
             href="/"
             aria-label="View site"
@@ -179,6 +176,9 @@ export function AdminHeader() {
           >
             <House className="h-4.5 w-4.5" />
           </Link>
+          <div className="hidden md:block">
+            <ThemeModeToggle isScrolled={isScrolled} />
+          </div>
           {!isLoginPage ? (
             <form action={logoutAction}>
               <button

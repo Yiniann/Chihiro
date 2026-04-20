@@ -1,0 +1,326 @@
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap");
+
+body {
+  --tt-toolbar-height: 44px;
+  --tt-theme-text: var(--tt-gray-light-900);
+
+  .dark & {
+    --tt-theme-text: var(--tt-gray-dark-900);
+  }
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  color: var(--tt-theme-text);
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+  padding: 0;
+  overscroll-behavior-y: none;
+}
+
+html,
+body {
+  overscroll-behavior-x: none;
+}
+
+html,
+body,
+#root,
+#app {
+  height: 100%;
+  background-color: var(--tt-bg-color);
+}
+
+::-webkit-scrollbar {
+  width: 0.25rem;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--tt-scrollbar-color) transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--tt-scrollbar-color);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tiptap.ProseMirror {
+  font-family: "DM Sans", sans-serif;
+}
+
+.simple-editor-wrapper {
+  width: 100%;
+  min-width: 0;
+  min-height: 32rem;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--tt-border-color) 88%, transparent);
+  border-radius: 1.75rem;
+  background: color-mix(in srgb, var(--tt-bg-color) 94%, white 6%);
+  box-shadow: 0 22px 90px rgb(15 23 42 / 0.08);
+}
+
+html[data-theme="dark"] .simple-editor-wrapper {
+  background: color-mix(in srgb, var(--tt-bg-color) 90%, white 10%);
+  box-shadow: 0 22px 90px rgb(0 0 0 / 0.34);
+}
+
+.simple-editor-content {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.simple-editor-content .tiptap.ProseMirror.simple-editor {
+  flex: 1;
+  width: 100%;
+  max-width: 100%;
+  padding: 2.5rem 2.75rem 12rem;
+  caret-color: var(--tt-cursor-color);
+  background: var(--tt-bg-color);
+  color: var(--tt-gray-light-900);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor {
+  background: var(--tt-gray-dark-50);
+  color: var(--tt-gray-dark-900);
+}
+
+.simple-editor-content .tiptap.ProseMirror.simple-editor h1,
+.simple-editor-content .tiptap.ProseMirror.simple-editor h2,
+.simple-editor-content .tiptap.ProseMirror.simple-editor h3,
+.simple-editor-content .tiptap.ProseMirror.simple-editor p,
+.simple-editor-content .tiptap.ProseMirror.simple-editor li,
+.simple-editor-content .tiptap.ProseMirror.simple-editor blockquote,
+.simple-editor-content .tiptap.ProseMirror.simple-editor code,
+.simple-editor-content .tiptap.ProseMirror.simple-editor a,
+.simple-editor-content .tiptap.ProseMirror.simple-editor hr {
+  color: inherit;
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor a {
+  color: var(--tt-brand-color-400);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor code {
+  background: rgb(24 24 27 / 0.95);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor blockquote {
+  border-left-color: rgb(39 39 42 / 0.9);
+  color: var(--tt-gray-dark-700);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor hr {
+  border-top-color: rgb(39 39 42 / 0.9);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor .ProseMirror-selectednode:not(img):not(pre):not(.react-renderer) {
+  background-color: rgb(56 189 248 / 0.12);
+}
+
+html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor p.is-editor-empty:first-child::before {
+  color: var(--tt-gray-dark-500);
+}
+
+.simple-editor-content .tiptap.ProseMirror.simple-editor::selection,
+.simple-editor-content .tiptap.ProseMirror.simple-editor *::selection {
+  background: color-mix(in srgb, var(--tt-selection-color) 100%, transparent);
+}
+
+.simple-editor-content .tiptap.ProseMirror.simple-editor .selection {
+  background: color-mix(in srgb, var(--tt-selection-color) 100%, transparent);
+}
+
+@media screen and (max-width: 480px) {
+  .simple-editor-content .tiptap.ProseMirror.simple-editor {
+    padding: 1rem 1.5rem 30vh;
+  }
+}
+
+.simple-editor-code-pane {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  background: var(--tt-bg-color);
+}
+
+html[data-theme="dark"] .simple-editor-code-pane {
+  background: var(--tt-gray-dark-50);
+}
+
+.simple-editor-code-input {
+  width: 100%;
+  min-height: 100%;
+  flex: 1;
+  resize: none;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--tt-gray-light-900);
+  padding: 1.5rem 1.5rem 2rem;
+  font-family: "SFMono-Regular", "Cascadia Code", "JetBrains Mono", "Fira Code", "Menlo", "Monaco", monospace;
+  font-size: 0.875rem;
+  line-height: 1.75;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  overflow: auto;
+}
+
+html[data-theme="dark"] .simple-editor-code-input {
+  color: var(--tt-gray-dark-900);
+  caret-color: var(--tt-brand-color-400);
+}
+
+.simple-editor-code-input::placeholder {
+  color: var(--tt-gray-light-a-400);
+}
+
+html[data-theme="dark"] .simple-editor-code-input::placeholder {
+  color: var(--tt-gray-dark-a-400);
+}
+
+.simple-editor-code-input::selection {
+  background: color-mix(in srgb, var(--tt-selection-color) 100%, transparent);
+}
+
+html[data-theme="dark"] .simple-editor-code-input::selection {
+  background: rgb(56 189 248 / 0.2);
+}
+
+.simple-editor-code-input:focus {
+  outline: none;
+}
+
+.simple-editor-toolbar-group {
+  gap: 0.375rem;
+}
+
+.simple-editor-secondary-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--tt-toolbar-border-color);
+  background: var(--tt-toolbar-bg-color);
+}
+
+html[data-theme="dark"] .simple-editor-secondary-toolbar {
+  background: var(--tt-toolbar-bg-color);
+  border-bottom-color: var(--tt-toolbar-border-color);
+}
+
+.simple-editor-mode-switch {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  gap: 0.25rem;
+}
+
+html[data-theme="dark"] .simple-editor-mode-switch {
+  background: transparent;
+}
+
+.simple-editor-mode-switch .simple-editor-mode-switch__button[data-style="primary"] {
+  --tt-button-default-bg-color: var(--primary);
+  --tt-button-hover-bg-color: color-mix(in srgb, var(--primary) 88%, black 12%);
+  --tt-button-active-bg-color: color-mix(in srgb, var(--primary) 80%, black 20%);
+  --tt-button-active-bg-color-emphasized: color-mix(
+    in srgb,
+    var(--primary) 80%,
+    black 20%
+  );
+  --tt-button-active-bg-color-subdued: color-mix(
+    in srgb,
+    var(--primary) 80%,
+    black 20%
+  );
+  --tt-button-active-hover-bg-color: color-mix(in srgb, var(--primary) 76%, black 24%);
+  --tt-button-active-hover-bg-color-emphasized: color-mix(
+    in srgb,
+    var(--primary) 76%,
+    black 24%
+  );
+  --tt-button-active-hover-bg-color-subdued: color-mix(
+    in srgb,
+    var(--primary) 76%,
+    black 24%
+  );
+  --tt-button-default-text-color: var(--white);
+  --tt-button-hover-text-color: var(--white);
+  --tt-button-active-text-color: var(--white);
+  --tt-button-active-text-color-emphasized: var(--white);
+  --tt-button-active-text-color-subdued: var(--white);
+  --tt-button-default-icon-color: var(--white);
+  --tt-button-hover-icon-color: var(--white);
+  --tt-button-active-icon-color: var(--white);
+  --tt-button-active-icon-color-emphasized: var(--white);
+  --tt-button-active-icon-color-subdued: var(--white);
+  --tt-button-default-icon-sub-color: rgb(255 255 255 / 0.82);
+  --tt-button-hover-icon-sub-color: rgb(255 255 255 / 0.92);
+  --tt-button-active-icon-sub-color: rgb(255 255 255 / 0.92);
+  --tt-button-active-icon-sub-color-emphasized: rgb(255 255 255 / 0.92);
+  --tt-button-active-icon-sub-color-subdued: rgb(255 255 255 / 0.92);
+  --tt-button-default-dropdown-arrows-color: var(--white);
+  --tt-button-hover-dropdown-arrows-color: var(--white);
+  --tt-button-active-dropdown-arrows-color: var(--white);
+  --tt-button-active-dropdown-arrows-color-emphasized: var(--white);
+  --tt-button-active-dropdown-arrows-color-subdued: var(--white);
+}
+
+html[data-theme="dark"] .simple-editor-mode-switch .simple-editor-mode-switch__button {
+  color: #fff;
+
+  .tiptap-button-icon,
+  .tiptap-button-icon-sub,
+  .tiptap-button-dropdown-arrows,
+  .tiptap-button-dropdown-small {
+    color: #fff;
+  }
+}
+
+html[data-theme="dark"] .simple-editor-mode-switch .simple-editor-mode-switch__button[data-style="primary"] {
+  --tt-button-default-text-color: #000;
+  --tt-button-hover-text-color: #000;
+  --tt-button-active-text-color: #000;
+  --tt-button-active-text-color-emphasized: #000;
+  --tt-button-active-text-color-subdued: #000;
+  --tt-button-default-icon-color: #000;
+  --tt-button-hover-icon-color: #000;
+  --tt-button-active-icon-color: #000;
+  --tt-button-active-icon-color-emphasized: #000;
+  --tt-button-active-icon-color-subdued: #000;
+  --tt-button-default-icon-sub-color: rgba(0, 0, 0, 0.72);
+  --tt-button-hover-icon-sub-color: rgba(0, 0, 0, 0.82);
+  --tt-button-active-icon-sub-color: rgba(0, 0, 0, 0.82);
+  --tt-button-active-icon-sub-color-emphasized: rgba(0, 0, 0, 0.82);
+  --tt-button-active-icon-sub-color-subdued: rgba(0, 0, 0, 0.82);
+  --tt-button-default-dropdown-arrows-color: #000;
+  --tt-button-hover-dropdown-arrows-color: #000;
+  --tt-button-active-dropdown-arrows-color: #000;
+  --tt-button-active-dropdown-arrows-color-emphasized: #000;
+  --tt-button-active-dropdown-arrows-color-subdued: #000;
+  color: #000;
+
+  .tiptap-button-icon,
+  .tiptap-button-icon-sub,
+  .tiptap-button-dropdown-arrows,
+  .tiptap-button-dropdown-small {
+    color: #000;
+  }
+}

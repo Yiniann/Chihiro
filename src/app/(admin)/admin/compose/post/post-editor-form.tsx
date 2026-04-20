@@ -19,7 +19,6 @@ import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import { escapeHtmlText, stripHtml } from "@/lib/content";
 import { createCategoryAction } from "@/app/(admin)/admin/categories/actions";
 import { createTagAction } from "@/app/(admin)/admin/tags/actions";
-import { createSlateContentValue } from "@/lib/slate-content";
 import type { CategoryOption } from "@/server/repositories/categories";
 import type { TagOption } from "@/server/repositories/tags";
 import type { PostItem } from "@/server/repositories/posts";
@@ -67,7 +66,6 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
     categoryItems.find((category) => String(category.id) === selectedCategoryId)?.slug ??
     "uncategorized";
   const postUrlPrefix = `${siteUrlBase}/posts/${selectedCategorySlug}/`;
-  const initialContentValue = createSlateContentValue(editablePost?.content);
 
   return (
     <>
@@ -120,7 +118,10 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
               />
             </label>
 
-            <PostRichTextEditor initialValue={initialContentValue} />
+            <PostRichTextEditor
+              initialContent={editablePost?.content}
+              initialContentHtml={editablePost?.contentHtml}
+            />
           </>
         }
         sidebar={
