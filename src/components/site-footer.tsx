@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { siteConfig } from "@/lib/site";
 
 const footerFeedLinks = [
   {
@@ -16,27 +15,38 @@ const footerFeedLinks = [
   },
 ] as const;
 
-const footerContactLinks = [
-  {
-    href: `mailto:${siteConfig.email}`,
-    label: "Email",
-    external: true,
-  },
-  {
-    href: siteConfig.github,
-    label: "GitHub",
-    external: true,
-  },
-  {
-    href: "/message",
-    label: "Message",
-    external: false,
-  },
-] as const;
-
-export function SiteFooter() {
+export function SiteFooter({
+  siteName,
+  authorName,
+  motto,
+  email,
+  githubUrl,
+}: {
+  siteName: string;
+  authorName: string;
+  motto: string;
+  email: string;
+  githubUrl: string;
+}) {
   const currentYear = new Date().getFullYear();
-  const mottoLines = splitFooterMotto(siteConfig.motto);
+  const mottoLines = splitFooterMotto(motto);
+  const footerContactLinks = [
+    {
+      href: `mailto:${email}`,
+      label: "Email",
+      external: true,
+    },
+    {
+      href: githubUrl,
+      label: "GitHub",
+      external: true,
+    },
+    {
+      href: "/message",
+      label: "Message",
+      external: false,
+    },
+  ] as const;
 
   return (
     <footer className="site-footer-surface relative z-10 mt-20">
@@ -50,7 +60,7 @@ export function SiteFooter() {
           <div className="col-span-2 lg:col-span-1">
             <div>
               <p className="text-sm font-semibold text-zinc-950 dark:text-zinc-100">
-                {siteConfig.author}
+                {authorName}
               </p>
             </div>
 
@@ -61,7 +71,7 @@ export function SiteFooter() {
                   <span className="lg:block">{mottoLines[1]}</span>
                 </>
               ) : (
-                siteConfig.motto
+                motto
               )}
             </p>
           </div>
@@ -112,7 +122,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-12 flex items-center justify-between gap-4 border-t border-zinc-200/70 pt-6 text-xs text-zinc-500 dark:border-zinc-800/70 dark:text-zinc-400">
-          <span className="whitespace-nowrap">© {currentYear} {siteConfig.author}</span>
+          <span className="whitespace-nowrap">© {currentYear} {authorName}</span>
           <div className="flex items-center gap-4">
             <a
               href="https://github.com/Yiniann/Chihiro"
@@ -120,7 +130,7 @@ export function SiteFooter() {
               rel="noreferrer"
               className="whitespace-nowrap transition hover:text-zinc-900 dark:hover:text-zinc-100"
             >
-              Powered by {siteConfig.name}
+              Powered by {siteName}
             </a>
           </div>
         </div>

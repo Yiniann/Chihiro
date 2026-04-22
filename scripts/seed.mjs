@@ -22,6 +22,8 @@ const siteSettings = {
   locale: "zh-CN",
   authorName: "Yinian",
   authorAvatarUrl: "/avatar.png",
+  heroIntro:
+    "Hi, I'm {author}, an interest-driven `<Developer />`\n**builder and writer** exploring products, technology, and personal expression.",
   summary:
     "This is where I share projects, experiments, and reflections on building, learning, and the things that keep me curious.",
   motto: "It is the time you have wasted for your rose makes your rose so important.",

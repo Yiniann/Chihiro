@@ -23,10 +23,8 @@ import {
 import { AdminLoginDialog } from "@/components/admin-login-dialog";
 import { logoutAction } from "@/app/(admin)/admin/login/actions";
 import { HeaderNav } from "@/components/header-nav";
-import { NavigationPendingIndicator } from "@/components/navigation-pending-indicator";
 import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
-import { siteConfig } from "@/lib/site";
 
 const navItems = [
   {
@@ -91,6 +89,7 @@ const morePlaceholders = [
 ];
 
 type SiteHeaderProps = {
+  siteName: string;
   isAdminLoggedIn: boolean;
   adminDisplayName: string;
   adminAvatarUrl?: string | null;
@@ -100,6 +99,7 @@ type SiteHeaderProps = {
 };
 
 export function SiteHeader({
+  siteName,
   isAdminLoggedIn,
   adminDisplayName,
   adminAvatarUrl,
@@ -343,7 +343,7 @@ export function SiteHeader({
               : "border border-transparent bg-transparent"
           }`}
         >
-          {siteConfig.name}
+          {siteName}
         </Link>
 
         <div
@@ -536,10 +536,7 @@ export function SiteHeader({
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             <Icon className="h-4 w-4" />
                           </div>
-                          <div className="flex min-w-0 items-center">
-                            <p className="text-sm font-medium">{item.label}</p>
-                            <NavigationPendingIndicator variant="inline" />
-                          </div>
+                          <p className="text-sm font-medium">{item.label}</p>
                         </Link>
                         {canExpand ? (
                           <button
@@ -1092,7 +1089,6 @@ function MobileNavSubLink({
       className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
     >
       <span>{label}</span>
-      <NavigationPendingIndicator variant="inline" />
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
     </Link>
   );
@@ -1114,7 +1110,6 @@ function MobileNavChip({
       className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
     >
       <span>{label}</span>
-      <NavigationPendingIndicator variant="inline" />
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
     </Link>
   );

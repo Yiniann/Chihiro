@@ -16,6 +16,10 @@ export function hasDatabaseUrl() {
 }
 
 function getPrismaClient() {
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma;
+  }
+
   const connectionString = getConnectionString();
 
   if (!connectionString) {
@@ -27,24 +31,14 @@ function getPrismaClient() {
     new Pool({
       connectionString,
     });
+  globalForPrisma.pool = pool;
 
   const adapter = new PrismaPg(pool);
-  const client =
-    process.env.NODE_ENV === "development"
-      ? new PrismaClient({
-          adapter,
-          log: ["warn", "error"],
-        })
-      : globalForPrisma.prisma ??
-        new PrismaClient({
-          adapter,
-          log: ["error"],
-        });
-
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.pool = pool;
-    globalForPrisma.prisma = client;
-  }
+  const client = new PrismaClient({
+    adapter,
+    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+  });
+  globalForPrisma.prisma = client;
 
   return client;
 }

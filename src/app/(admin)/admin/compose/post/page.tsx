@@ -1,6 +1,6 @@
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { PostEditorForm } from "@/app/(admin)/admin/compose/post/post-editor-form";
-import { siteConfig } from "@/lib/site";
+import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { listPostCategories } from "@/server/repositories/categories";
 import { getPostByIdForAdmin } from "@/server/repositories/posts";
 import { getSiteSettings } from "@/server/repositories/site";
@@ -24,7 +24,7 @@ export default async function AdminComposePostPage({
     listTags(),
     getSiteSettings(),
   ]);
-  const siteUrlBase = (siteSettings?.siteUrl ?? siteConfig.url).replace(/\/+$/, "");
+  const siteUrlBase = resolveCanonicalSiteUrl(siteSettings);
 
   return (
     <div className="grid gap-8">

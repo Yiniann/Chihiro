@@ -3,7 +3,6 @@
 import { AnimatePresence, motion, type MotionProps } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { NavigationPendingIndicator } from "@/components/navigation-pending-indicator";
 
 type HeaderNavItem = {
   href: string;
@@ -104,7 +103,6 @@ export function HeaderNav({
                 ) : null}
               </AnimatePresence>
               <span className="whitespace-nowrap">{item.label}</span>
-              <NavigationPendingIndicator />
             </span>
           </Link>
         );

@@ -1,6 +1,6 @@
 import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
-import { absoluteUrl, siteConfig } from "@/lib/site";
+import { canonicalUrl, siteConfig } from "@/lib/site";
 import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
@@ -38,12 +38,15 @@ export async function GET() {
     throw error;
   }
 
-  const feedUrl = absoluteUrl("/rss.xml");
-  const siteUrl = absoluteUrl("/");
+  const feedUrl = canonicalUrl("/rss.xml", siteSettings);
+  const siteUrl = canonicalUrl("/", siteSettings);
 
   const items = posts
     .map((post) => {
-      const postUrl = absoluteUrl(getPostPath({ slug: post.slug, categorySlug: post.category?.slug }));
+      const postUrl = canonicalUrl(
+        getPostPath({ slug: post.slug, categorySlug: post.category?.slug }),
+        siteSettings,
+      );
       const pubDate = new Date(post.publishedAt ?? Date.now()).toUTCString();
       const description = escapeXml(post.summary ?? "");
       const title = escapeXml(post.title);

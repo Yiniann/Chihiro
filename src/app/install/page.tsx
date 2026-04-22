@@ -66,6 +66,7 @@ export default async function InstallPage() {
               locale: siteSettings?.locale ?? siteConfig.locale,
               authorName: siteSettings?.authorName ?? siteConfig.author,
               authorAvatarUrl: siteSettings?.authorAvatarUrl ?? siteConfig.avatar,
+              heroIntro: siteSettings?.heroIntro ?? siteConfig.heroIntro,
               summary: siteSettings?.summary ?? siteConfig.summary,
               motto: siteSettings?.motto ?? siteConfig.motto,
               email: siteSettings?.email ?? siteConfig.email,

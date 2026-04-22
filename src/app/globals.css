@@ -360,7 +360,7 @@ html[data-theme="dark"] .reading-copy hr {
   width: 0;
   overflow: hidden;
   white-space: nowrap;
-  animation: hero-typewriter 1.35s steps(13, end) 0.95s forwards;
+  animation: hero-typewriter 1.35s steps(var(--hero-typewriter-steps, 13), end) 0.95s forwards;
 }
 
 .hero-copy-typewriter-angle {

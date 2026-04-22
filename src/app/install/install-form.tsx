@@ -15,6 +15,7 @@ type InstallFormProps = {
     locale: string;
     authorName: string;
     authorAvatarUrl: string;
+    heroIntro: string;
     summary: string;
     motto: string;
     email: string;
@@ -132,6 +133,7 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
             <Field label="站点简介" name="siteDescription" defaultValue={defaults.siteDescription} required />
           </div>
 
+          <FieldArea label="首页介绍" name="heroIntro" defaultValue={defaults.heroIntro} />
           <FieldArea label="首页摘要" name="summary" defaultValue={defaults.summary} />
           <FieldArea label="站点格言" name="motto" defaultValue={defaults.motto} />
         </section>

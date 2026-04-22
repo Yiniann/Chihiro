@@ -1,6 +1,7 @@
 import { getPostPath } from "@/lib/routes";
-import { absoluteUrl } from "@/lib/site";
+import { canonicalUrl } from "@/lib/site";
 import {
+  getPublicSiteSettings,
   isPublicSiteUnavailableError,
   isUninstalledSiteError,
   listPublicPosts,
@@ -8,9 +9,10 @@ import {
 
 export async function GET() {
   let posts;
+  let siteSettings;
 
   try {
-    posts = await listPublicPosts();
+    [posts, siteSettings] = await Promise.all([listPublicPosts(), getPublicSiteSettings()]);
   } catch (error) {
     if (isUninstalledSiteError(error)) {
       return new Response("404 · Not Found", {
@@ -35,16 +37,18 @@ export async function GET() {
     throw error;
   }
 
+  const toCanonical = (path: string) => canonicalUrl(path, siteSettings);
+
   const staticRoutes = [
-    absoluteUrl("/"),
-    absoluteUrl("/posts"),
-    absoluteUrl("/updates"),
-    absoluteUrl("/timeline"),
-    absoluteUrl("/more"),
+    toCanonical("/"),
+    toCanonical("/posts"),
+    toCanonical("/updates"),
+    toCanonical("/timeline"),
+    toCanonical("/more"),
   ];
 
   const postRoutes = posts.map((post) =>
-    absoluteUrl(getPostPath({ slug: post.slug, categorySlug: post.category?.slug })),
+    toCanonical(getPostPath({ slug: post.slug, categorySlug: post.category?.slug })),
   );
 
   const urls = [...staticRoutes, ...postRoutes];

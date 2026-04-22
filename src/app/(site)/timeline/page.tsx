@@ -9,7 +9,13 @@ import { ScrollToTopLink } from "@/components/scroll-to-top-link";
 import { SiteLogoMark } from "@/components/site-logo-mark";
 import { TimelinePageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerRevealItem } from "@/components/stagger-reveal";
-import { isPublicSiteUnavailableError, listPublicPosts, listPublicUpdates } from "@/server/public-content";
+import { siteConfig } from "@/lib/site";
+import {
+  getPublicSiteSettings,
+  isPublicSiteUnavailableError,
+  listPublicPosts,
+  listPublicUpdates,
+} from "@/server/public-content";
 
 type TimelinePageProps = {
   searchParams: Promise<{
@@ -68,9 +74,14 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
 async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }) {
   let posts;
   let updates;
+  let siteSettings;
 
   try {
-    [posts, updates] = await Promise.all([listPublicPosts(), listPublicUpdates()]);
+    [posts, updates, siteSettings] = await Promise.all([
+      listPublicPosts(),
+      listPublicUpdates(),
+      getPublicSiteSettings(),
+    ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
       return <PublicSiteUnavailableScreen />;
@@ -81,6 +92,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
 
   const items = getTimelineItems(archiveType, posts, updates);
   const groups = groupTimelineItemsByYearAndMonth(items);
+  const siteName = siteSettings.siteName ?? siteConfig.name;
 
   return (
     <>
@@ -135,7 +147,10 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
 
       <StaggerRevealItem className="mt-10 flex flex-col items-center gap-5" offset={22}>
         <div className="h-px w-20 bg-gradient-to-r from-transparent via-primary/45 to-transparent dark:via-sky-300/45" />
-        <SiteLogoMark caption="At the deepest point, time no longer moves forward. Here lies the very first, gently fallen stroke." />
+        <SiteLogoMark
+          siteName={siteName}
+          caption="At the deepest point, time no longer moves forward. Here lies the very first, gently fallen stroke."
+        />
         <ScrollToTopLink>Back to top</ScrollToTopLink>
       </StaggerRevealItem>
     </>

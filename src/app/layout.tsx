@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, JetBrains_Mono, Noto_Serif_SC } from "next/font/google";
 import { ThemeModeInit } from "@/components/theme-mode-init";
-import { siteConfig } from "@/lib/site";
+import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
+import { getSiteSettings } from "@/server/repositories/site";
 import "./globals.css";
 
 const uiSans = Geist({
@@ -23,14 +24,31 @@ const codeMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.url),
-  title: {
-    default: siteConfig.name,
-    template: `%s | ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  let siteName = siteConfig.name;
+  let siteDescription = siteConfig.description;
+  let siteSettings = null;
+
+  try {
+    siteSettings = await getSiteSettings();
+
+    if (siteSettings) {
+      siteName = siteSettings.siteName;
+      siteDescription = siteSettings.siteDescription;
+    }
+  } catch {
+    // Fall back to static config when settings are unavailable.
+  }
+
+  return {
+    metadataBase: new URL(resolveCanonicalSiteUrl(siteSettings)),
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    description: siteDescription,
+  };
+}
 
 export default function RootLayout({
   children,

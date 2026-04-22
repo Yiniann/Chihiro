@@ -51,5 +51,6 @@ pnpm db:generate
 ## 文档索引
 
 - [架构设计](./docs/architecture.md)
+- [站点配置说明](./docs/site-settings.md)
 - [开发路线](./docs/roadmap.md)
 - [RSS 与 SEO 实现规划](./docs/rss-seo-plan.md)

@@ -49,6 +49,7 @@ export async function initializeSiteAction(
   const locale = getOptionalString(formData, "locale") || siteConfig.locale;
   const authorName = getRequiredString(formData, "authorName");
   const authorAvatarUrl = getOptionalUrl(formData, "authorAvatarUrl");
+  const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
   const email = getOptionalString(formData, "email");
@@ -86,6 +87,7 @@ export async function initializeSiteAction(
       locale,
       authorName,
       authorAvatarUrl,
+      heroIntro,
       summary,
       motto,
       email,
