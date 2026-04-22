@@ -1,4 +1,4 @@
-import { ContentStatus, Prisma } from "@prisma/client";
+import { CategoryKind, ContentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db/client";
 
 const postInclude = {
@@ -46,6 +46,29 @@ export type PostListResult = {
   pageSize: number;
   totalCount: number;
   totalPages: number;
+};
+
+export type PostNavigationItem = {
+  id: number;
+  title: string;
+  slug: string;
+  publishedAt: string | null;
+  category: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
+};
+
+export type PostNavigationCategory = {
+  slug: string;
+  label: string;
+  contentCount: number;
+  posts: Array<{
+    id: number;
+    title: string;
+    slug: string;
+  }>;
 };
 
 type AssetSummary = {
@@ -287,6 +310,131 @@ export async function listAllPublishedPosts(
 
   const items = records.map(mapPublishedPostRecord);
   return filterPublishedPosts(items, options);
+}
+
+export async function listRecentPublishedPostsForNavigation(
+  limit = 5,
+): Promise<PostNavigationItem[]> {
+  const records = await prisma.post.findMany({
+    where: {
+      status: ContentStatus.PUBLISHED,
+    },
+    orderBy: [{ publishedAt: Prisma.SortOrder.desc }, { updatedAt: Prisma.SortOrder.desc }],
+    take: limit,
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      publishedAt: true,
+      category: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+        },
+      },
+    },
+  });
+
+  return records.map((record) => ({
+    id: record.id,
+    title: record.title,
+    slug: record.slug,
+    publishedAt: record.publishedAt?.toISOString() ?? null,
+    category: record.category,
+  }));
+}
+
+export async function listPublishedPostCategoriesForNavigation(
+  limitPerCategory = 5,
+): Promise<PostNavigationCategory[]> {
+  const [categories, categoryCounts, uncategorizedPosts, uncategorizedCount] = await Promise.all([
+    prisma.category.findMany({
+      where: {
+        kind: CategoryKind.POST,
+        posts: {
+          some: {
+            status: ContentStatus.PUBLISHED,
+          },
+        },
+      },
+      orderBy: [{ name: Prisma.SortOrder.asc }],
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        posts: {
+          where: {
+            status: ContentStatus.PUBLISHED,
+          },
+          orderBy: [{ publishedAt: Prisma.SortOrder.desc }, { updatedAt: Prisma.SortOrder.desc }],
+          take: limitPerCategory,
+          select: {
+            id: true,
+            title: true,
+            slug: true,
+          },
+        },
+      },
+    }),
+    prisma.post.groupBy({
+      by: ["categoryId"],
+      where: {
+        status: ContentStatus.PUBLISHED,
+        categoryId: {
+          not: null,
+        },
+      },
+      _count: {
+        _all: true,
+      },
+    }),
+    prisma.post.findMany({
+      where: {
+        status: ContentStatus.PUBLISHED,
+        categoryId: null,
+      },
+      orderBy: [{ publishedAt: Prisma.SortOrder.desc }, { updatedAt: Prisma.SortOrder.desc }],
+      take: limitPerCategory,
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+      },
+    }),
+    prisma.post.count({
+      where: {
+        status: ContentStatus.PUBLISHED,
+        categoryId: null,
+      },
+    }),
+  ]);
+
+  const categoryCountMap = new Map<number, number>();
+
+  for (const row of categoryCounts) {
+    if (typeof row.categoryId === "number") {
+      categoryCountMap.set(row.categoryId, row._count._all);
+    }
+  }
+
+  const items = categories.map((category) => ({
+    slug: category.slug,
+    label: category.name,
+    contentCount: categoryCountMap.get(category.id) ?? category.posts.length,
+    posts: category.posts,
+  }));
+
+  if (uncategorizedPosts.length > 0) {
+    items.push({
+      slug: "uncategorized",
+      label: "Uncategorized",
+      contentCount: uncategorizedCount,
+      posts: uncategorizedPosts,
+    });
+  }
+
+  return items;
 }
 
 export async function getPublishedPostBySlug(slug: string): Promise<PostItem | null> {

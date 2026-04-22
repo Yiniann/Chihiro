@@ -37,3 +37,36 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     githubUrl: settings.githubUrl,
   };
 }
+
+export async function upsertSiteSettings(input: SiteSettingsRecord) {
+  return prisma.siteSettings.upsert({
+    where: {
+      id: "default",
+    },
+    update: {
+      siteName: input.siteName,
+      siteDescription: input.siteDescription,
+      siteUrl: input.siteUrl,
+      locale: input.locale,
+      authorName: input.authorName,
+      authorAvatarUrl: input.authorAvatarUrl,
+      summary: input.summary,
+      motto: input.motto,
+      email: input.email,
+      githubUrl: input.githubUrl,
+    },
+    create: {
+      id: "default",
+      siteName: input.siteName,
+      siteDescription: input.siteDescription,
+      siteUrl: input.siteUrl,
+      locale: input.locale,
+      authorName: input.authorName,
+      authorAvatarUrl: input.authorAvatarUrl,
+      summary: input.summary,
+      motto: input.motto,
+      email: input.email,
+      githubUrl: input.githubUrl,
+    },
+  });
+}

@@ -3,6 +3,7 @@
 import { AnimatePresence, motion, type MotionProps } from "framer-motion";
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
+import { NavigationPendingIndicator } from "@/components/navigation-pending-indicator";
 
 type HeaderNavItem = {
   href: string;
@@ -17,6 +18,8 @@ type HeaderNavProps = {
   items: HeaderNavItem[];
   layoutId: string;
   className?: string;
+  preserveStickyOnNavigate?: boolean;
+  onNavigate?: () => void;
   onItemEnter?: (href: string) => void;
   onItemFocus?: (href: string) => void;
   isActivePath: (pathname: string, href: string) => boolean;
@@ -45,6 +48,8 @@ export function HeaderNav({
   items,
   layoutId,
   className,
+  preserveStickyOnNavigate = false,
+  onNavigate,
   onItemEnter,
   onItemFocus,
   isActivePath,
@@ -69,6 +74,8 @@ export function HeaderNav({
           <Link
             key={item.href}
             href={item.href}
+            scroll={!preserveStickyOnNavigate}
+            onClick={onNavigate}
             onMouseEnter={onItemEnter ? () => onItemEnter(item.href) : undefined}
             onFocus={onItemFocus ? () => onItemFocus(item.href) : undefined}
             className={`relative flex items-center gap-2 overflow-hidden rounded-none px-4 py-2 transition-colors first:rounded-l-full last:rounded-r-full ${
@@ -97,6 +104,7 @@ export function HeaderNav({
                 ) : null}
               </AnimatePresence>
               <span className="whitespace-nowrap">{item.label}</span>
+              <NavigationPendingIndicator />
             </span>
           </Link>
         );

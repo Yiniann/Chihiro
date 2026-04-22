@@ -28,6 +28,13 @@ export type UpdateListResult = {
   totalPages: number;
 };
 
+export type UpdateNavigationItem = {
+  id: number;
+  title: string;
+  authorName: string;
+  publishedAt: string | null;
+};
+
 type PublishedUpdateSnapshot = {
   title: string;
   authorName: string | null;
@@ -91,6 +98,19 @@ export async function listAllPublishedUpdates(
   const items = await fetchPublishedUpdateRows(options.sort);
 
   return items.map(mapUpdateRecord);
+}
+
+export async function listRecentPublishedUpdatesForNavigation(
+  limit = 5,
+): Promise<UpdateNavigationItem[]> {
+  const items = await fetchPublishedUpdateRows("latest", limit, 1);
+
+  return items.map((item) => ({
+    id: item.id,
+    title: item.title,
+    authorName: item.authorName ?? siteConfig.author,
+    publishedAt: item.publishedAt?.toISOString() ?? null,
+  }));
 }
 
 export type SaveUpdateInput = {

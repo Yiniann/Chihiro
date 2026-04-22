@@ -23,6 +23,7 @@ import {
 import { AdminLoginDialog } from "@/components/admin-login-dialog";
 import { logoutAction } from "@/app/(admin)/admin/login/actions";
 import { HeaderNav } from "@/components/header-nav";
+import { NavigationPendingIndicator } from "@/components/navigation-pending-indicator";
 import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { siteConfig } from "@/lib/site";
@@ -64,6 +65,7 @@ export type SiteHeaderPostCategory = {
   slug: string;
   label: string;
   href: string;
+  contentCount: number;
   posts: Array<{
     id: string | number;
     slug: string;
@@ -89,7 +91,6 @@ const morePlaceholders = [
 ];
 
 type SiteHeaderProps = {
-  adminHasUsers: boolean;
   isAdminLoggedIn: boolean;
   adminDisplayName: string;
   adminAvatarUrl?: string | null;
@@ -99,7 +100,6 @@ type SiteHeaderProps = {
 };
 
 export function SiteHeader({
-  adminHasUsers,
   isAdminLoggedIn,
   adminDisplayName,
   adminAvatarUrl,
@@ -125,8 +125,10 @@ export function SiteHeader({
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shouldRestoreStickyOffsetRef = useRef(false);
   const lastScrollTopRef = useRef(0);
   const deferredIsScrolled = useDeferredValue(isScrolled);
+  const STICKY_SCROLL_OFFSET = 24;
 
   useEffect(() => {
     const getScrollTop = () =>
@@ -171,6 +173,25 @@ export function SiteHeader({
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (!shouldRestoreStickyOffsetRef.current) {
+      return;
+    }
+
+    shouldRestoreStickyOffsetRef.current = false;
+
+    const frameId = window.requestAnimationFrame(() => {
+      window.scrollTo({
+        top: STICKY_SCROLL_OFFSET,
+        behavior: "auto",
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [pathname]);
 
   useEffect(() => {
     if (!isMobileNavOpen) {
@@ -274,6 +295,12 @@ export function SiteHeader({
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
   };
 
+  const preserveStickyOnNextNavigation = () => {
+    if (window.scrollY > STICKY_SCROLL_OFFSET) {
+      shouldRestoreStickyOffsetRef.current = true;
+    }
+  };
+
   return (
     <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 py-3 sm:px-6">
       <div
@@ -304,6 +331,8 @@ export function SiteHeader({
         </button>
         <Link
           href="/"
+          scroll={false}
+          onClick={preserveStickyOnNextNavigation}
           className={`absolute left-1/2 rounded-2xl px-3 py-1.5 text-lg font-semibold tracking-tight text-primary transition-[opacity,transform] duration-200 md:pointer-events-auto md:static md:translate-x-0 md:translate-y-0 md:justify-self-start md:opacity-100 ${
             isMobileBrandVisible
               ? "pointer-events-auto translate-x-[-50%] opacity-100"
@@ -339,6 +368,8 @@ export function SiteHeader({
             items={navItems}
             layoutId="nav-indicator"
             className="md:flex"
+            preserveStickyOnNavigate
+            onNavigate={preserveStickyOnNextNavigation}
             onItemEnter={openMegaNav}
             onItemFocus={openMegaNav}
             isActivePath={isActivePath}
@@ -494,7 +525,9 @@ export function SiteHeader({
                       >
                         <Link
                           href={item.href}
+                          scroll={false}
                           onClick={() => {
+                            preserveStickyOnNextNavigation();
                             setIsMobileNavOpen(false);
                             setExpandedMobileHref(null);
                           }}
@@ -503,7 +536,10 @@ export function SiteHeader({
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
                             <Icon className="h-4 w-4" />
                           </div>
-                          <p className="text-sm font-medium">{item.label}</p>
+                          <div className="flex min-w-0 items-center">
+                            <p className="text-sm font-medium">{item.label}</p>
+                            <NavigationPendingIndicator variant="inline" />
+                          </div>
                         </Link>
                         {canExpand ? (
                           <button
@@ -863,7 +899,7 @@ function PostMegaNavContent({
             >
               <span className="font-medium">{category.label}</span>
               <span className="text-[0.64rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
-                {category.posts.length}
+                {category.contentCount}
               </span>
             </Link>
           );
@@ -1056,6 +1092,7 @@ function MobileNavSubLink({
       className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
     >
       <span>{label}</span>
+      <NavigationPendingIndicator variant="inline" />
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
     </Link>
   );
@@ -1077,6 +1114,7 @@ function MobileNavChip({
       className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
     >
       <span>{label}</span>
+      <NavigationPendingIndicator variant="inline" />
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
     </Link>
   );

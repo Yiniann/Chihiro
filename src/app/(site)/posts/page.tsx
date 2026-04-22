@@ -1,10 +1,14 @@
+import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
+import { Suspense } from "react";
 import { formatContentTerm, getContentPreview, getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { SearchDialog } from "@/components/search-dialog";
 import { PostTagsPanel } from "@/components/post-tags-panel";
 import { RelativeDate } from "@/components/relative-date";
-import { listPublicPosts } from "@/server/public-content";
+import { PostsPageContentSkeleton } from "@/components/site-route-skeletons";
+import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
+import { isPublicSiteUnavailableError, listPublicPosts } from "@/server/public-content";
 
 type PostsPageProps = {
   searchParams: Promise<{
@@ -24,7 +28,58 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   );
   const activeSort = getSortValue(sort);
   const currentPage = getPageValue(page);
-  const allPosts = await listPublicPosts();
+
+  return (
+    <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
+      <header>
+        <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+          posts
+        </p>
+        <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <span>篇章</span>
+          <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+            ·
+          </span>
+          <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+            所有文章
+          </span>
+        </h1>
+      </header>
+
+      <Suspense fallback={<PostsPageContentSkeleton />}>
+        <PostsPageContent
+          category={category}
+          selectedTags={selectedTags}
+          activeSort={activeSort}
+          currentPage={currentPage}
+        />
+      </Suspense>
+    </main>
+  );
+}
+
+async function PostsPageContent({
+  category,
+  selectedTags,
+  activeSort,
+  currentPage,
+}: {
+  category?: string;
+  selectedTags: string[];
+  activeSort: SortValue;
+  currentPage: number;
+}) {
+  let allPosts;
+
+  try {
+    allPosts = await listPublicPosts();
+  } catch (error) {
+    if (isPublicSiteUnavailableError(error)) {
+      return <PublicSiteUnavailableScreen />;
+    }
+
+    throw error;
+  }
 
   const filteredPosts = allPosts.filter((post) => {
     if (category === "uncategorized") {
@@ -120,36 +175,22 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   const tagItems = getTagItems(allPosts, selectedTags, buildTagHref);
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
-      <header>
-        <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-          posts
-        </p>
-        <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          <span>篇章</span>
-          <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
-            ·
-          </span>
-          <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
-            所有文章
-          </span>
-        </h1>
-        {activeFilters.length > 0 ? (
-          <div className="mt-5 flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-            <span>{activeFilters.join(" · ")}</span>
-            <Link
-              href="/posts"
-              className="font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
-            >
-              Clear
-            </Link>
-          </div>
-        ) : null}
-      </header>
+    <>
+      {activeFilters.length > 0 ? (
+        <StaggerRevealItem className="mt-5 flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <span>{activeFilters.join(" · ")}</span>
+          <Link
+            href="/posts"
+            className="font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
+          >
+            Clear
+          </Link>
+        </StaggerRevealItem>
+      ) : null}
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
-        <div className="order-2 grid gap-5 lg:order-1">
-          <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <StaggerReveal className="order-2 grid gap-5 lg:order-1" delayChildren={0.04}>
+          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
             <p>{postsCountLabel}</p>
             <div className="flex flex-wrap items-center gap-3">
               {SORT_OPTIONS.map((option) => {
@@ -170,57 +211,56 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
                 );
               })}
             </div>
-          </div>
+          </StaggerRevealItem>
           {publishedPosts.length > 0 ? (
             paginatedPosts.map((post) => (
-              <article
-                key={post.id}
-                className="border-b border-zinc-200/80 pb-6 last:border-b-0 dark:border-zinc-800/80"
-              >
-                <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                  <Link href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}>
-                    {post.title}
-                  </Link>
-                </h2>
-                <p className="reading-copy mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-                  {post.summary ?? "No summary yet."}
-                </p>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap gap-2">
-                    {post.category ? (
-                      <Link
-                        href={buildPostsHref({ nextCategory: post.category.slug })}
-                        className="text-xs font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
-                      >
-                        / {post.category.name}
-                      </Link>
-                    ) : null}
-                    {post.tags.map((item) => (
-                      <Link
-                        key={item.id}
-                        href={buildPostsHref({
-                          nextTags: Array.from(new Set([...selectedTags, item.slug])),
-                        })}
-                        className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
-                      >
-                        #{item.name}
-                      </Link>
-                    ))}
+              <StaggerRevealItem key={post.id}>
+                <article className="border-b border-zinc-200/80 pb-6 last:border-b-0 dark:border-zinc-800/80">
+                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                    <Link href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}>
+                      {post.title}
+                    </Link>
+                  </h2>
+                  <p className="reading-copy mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                    {post.summary ?? "No summary yet."}
+                  </p>
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap gap-2">
+                      {post.category ? (
+                        <Link
+                          href={buildPostsHref({ nextCategory: post.category.slug })}
+                          className="text-xs font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
+                        >
+                          / {post.category.name}
+                        </Link>
+                      ) : null}
+                      {post.tags.map((item) => (
+                        <Link
+                          key={item.id}
+                          href={buildPostsHref({
+                            nextTags: Array.from(new Set([...selectedTags, item.slug])),
+                          })}
+                          className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+                        >
+                          #{item.name}
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+                      <RelativeDate value={post.publishedAt} />
+                      <span>·</span>
+                      <span>{post.authorName ?? "Unknown author"}</span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                    <RelativeDate value={post.publishedAt} />
-                    <span>·</span>
-                    <span>{post.authorName ?? "Unknown author"}</span>
-                  </div>
-                </div>
-              </article>
+                </article>
+              </StaggerRevealItem>
             ))
           ) : (
-            <div className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+            <StaggerRevealItem className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
               No posts matched this filter yet.
-            </div>
+            </StaggerRevealItem>
           )}
-          <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
             <Link
               href={buildPostsHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
               aria-disabled={safeCurrentPage === 1}
@@ -269,10 +309,10 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
             >
               Next
             </Link>
-          </div>
-        </div>
+          </StaggerRevealItem>
+        </StaggerReveal>
 
-        <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
+        <StaggerRevealItem className="order-1 lg:order-2 lg:sticky lg:top-28" offset={22}>
           <div className="border-l border-zinc-200/80 pl-6 dark:border-zinc-800/80">
             <div>
               <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
@@ -308,9 +348,9 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
               clearHref={selectedTags.length > 0 ? buildPostsHref({ nextTags: [] }) : null}
             />
           </div>
-        </aside>
+        </StaggerRevealItem>
       </div>
-    </main>
+    </>
   );
 }
 

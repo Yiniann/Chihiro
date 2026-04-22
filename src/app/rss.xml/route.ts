@@ -1,10 +1,43 @@
 import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { absoluteUrl, siteConfig } from "@/lib/site";
-import { listPublicPosts, getPublicSiteSettings } from "@/server/public-content";
+import {
+  getPublicSiteSettings,
+  isPublicSiteUnavailableError,
+  isUninstalledSiteError,
+  listPublicPosts,
+} from "@/server/public-content";
 
 export async function GET() {
-  const [posts, siteSettings] = await Promise.all([listPublicPosts(), getPublicSiteSettings()]);
+  let posts;
+  let siteSettings;
+
+  try {
+    [posts, siteSettings] = await Promise.all([listPublicPosts(), getPublicSiteSettings()]);
+  } catch (error) {
+    if (isUninstalledSiteError(error)) {
+      return new Response("404 · Not Found", {
+        status: 404,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
+    if (isPublicSiteUnavailableError(error)) {
+      return new Response("503 · Service Unavailable", {
+        status: 503,
+        headers: {
+          "Content-Type": "text/plain; charset=utf-8",
+          "Cache-Control": "no-store",
+        },
+      });
+    }
+
+    throw error;
+  }
+
   const feedUrl = absoluteUrl("/rss.xml");
   const siteUrl = absoluteUrl("/");
 

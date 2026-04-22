@@ -1,11 +1,15 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { getContentPreview, getContentText } from "@/lib/content";
 import { getPostPath, getTimelinePath, getUpdateAnchorPath } from "@/lib/routes";
 import { ArchiveTimeline, type ArchiveYearGroup } from "@/components/archive-timeline";
+import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { SearchDialog } from "@/components/search-dialog";
 import { ScrollToTopLink } from "@/components/scroll-to-top-link";
 import { SiteLogoMark } from "@/components/site-logo-mark";
-import { listPublicPosts, listPublicUpdates } from "@/server/public-content";
+import { TimelinePageContentSkeleton } from "@/components/site-route-skeletons";
+import { StaggerRevealItem } from "@/components/stagger-reveal";
+import { isPublicSiteUnavailableError, listPublicPosts, listPublicUpdates } from "@/server/public-content";
 
 type TimelinePageProps = {
   searchParams: Promise<{
@@ -38,9 +42,6 @@ const UPDATES_PER_PAGE = 10;
 export default async function TimelinePage({ searchParams }: TimelinePageProps) {
   const { type } = await searchParams;
   const archiveType = normalizeArchiveType(type);
-  const [posts, updates] = await Promise.all([listPublicPosts(), listPublicUpdates()]);
-  const items = getTimelineItems(archiveType, posts, updates);
-  const groups = groupTimelineItemsByYearAndMonth(items);
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
@@ -57,7 +58,33 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
         </span>
       </h1>
 
-      <div className="mt-6">
+      <Suspense fallback={<TimelinePageContentSkeleton />}>
+        <TimelinePageContent archiveType={archiveType} />
+      </Suspense>
+    </main>
+  );
+}
+
+async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }) {
+  let posts;
+  let updates;
+
+  try {
+    [posts, updates] = await Promise.all([listPublicPosts(), listPublicUpdates()]);
+  } catch (error) {
+    if (isPublicSiteUnavailableError(error)) {
+      return <PublicSiteUnavailableScreen />;
+    }
+
+    throw error;
+  }
+
+  const items = getTimelineItems(archiveType, posts, updates);
+  const groups = groupTimelineItemsByYearAndMonth(items);
+
+  return (
+    <>
+      <StaggerRevealItem className="mt-6">
         <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-zinc-400 dark:text-zinc-500">
           <span className="text-7xl font-light leading-none tracking-[-0.06em] sm:text-8xl">
             {items.length}
@@ -102,16 +129,16 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
             }))}
           />
         </div>
-      </div>
+      </StaggerRevealItem>
 
       <ArchiveTimeline groups={groups} />
 
-      <div className="mt-10 flex flex-col items-center gap-5">
+      <StaggerRevealItem className="mt-10 flex flex-col items-center gap-5" offset={22}>
         <div className="h-px w-20 bg-gradient-to-r from-transparent via-primary/45 to-transparent dark:via-sky-300/45" />
         <SiteLogoMark caption="At the deepest point, time no longer moves forward. Here lies the very first, gently fallen stroke." />
         <ScrollToTopLink>Back to top</ScrollToTopLink>
-      </div>
-    </main>
+      </StaggerRevealItem>
+    </>
   );
 }
 

@@ -1,7 +1,6 @@
 import "server-only";
 
-import { randomBytes, scrypt as nodeScrypt, timingSafeEqual } from "node:crypto";
-import { promisify } from "node:util";
+import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
@@ -11,6 +10,9 @@ import {
   MIN_ADMIN_USERNAME_LENGTH,
   normalizeAdminUsername,
 } from "@/lib/admin-auth";
+import { getAdminBackendStatus } from "@/server/admin-backend";
+import { isDatabaseUnavailableError } from "@/server/database-errors";
+import { verifyPasswordHash } from "@/server/passwords";
 import {
   countAdminUsers,
   createAdminSessionRecord,
@@ -18,8 +20,6 @@ import {
   findActiveAdminSessionByToken,
   findAdminUserByUsername,
 } from "@/server/repositories/admin-auth";
-
-const scrypt = promisify(nodeScrypt);
 
 type AdminSignInResult =
   | {
@@ -56,6 +56,36 @@ export async function signInAdmin(username: string, password: string): Promise<A
     };
   }
 
+  const backendStatus = await getAdminBackendStatus();
+
+  if (backendStatus === "missing_database") {
+    return {
+      ok: false,
+      error: "后台还没有连接数据库，请先完成初始化。",
+    };
+  }
+
+  if (backendStatus === "database_unavailable") {
+    return {
+      ok: false,
+      error: "数据库当前不可用，请检查连接后再试。",
+    };
+  }
+
+  if (backendStatus === "schema_missing") {
+    return {
+      ok: false,
+      error: "数据库表结构尚未初始化，请先运行 pnpm db:push。",
+    };
+  }
+
+  if (backendStatus === "needs_installation") {
+    return {
+      ok: false,
+      error: "后台尚未完成初始化，请先前往 /install 创建站点信息和首个管理员。",
+    };
+  }
+
   const existingUserCount = await countAdminUsers();
 
   if (existingUserCount === 0) {
@@ -83,7 +113,7 @@ export async function signInAdmin(username: string, password: string): Promise<A
     };
   }
 
-  await createAdminSession(user.id);
+  await createAdminSessionForUser(user.id);
 
   return {
     ok: true,
@@ -102,8 +132,16 @@ export async function clearAdminSession() {
 }
 
 export async function requireAdminSession(nextPath = "/admin") {
-  if (!(await isAdminAuthenticated())) {
-    redirect(createSiteLoginHref(nextPath));
+  try {
+    if (!(await isAdminAuthenticated())) {
+      redirect(createSiteLoginHref(nextPath));
+    }
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      redirect("/admin");
+    }
+
+    throw error;
   }
 }
 
@@ -122,6 +160,10 @@ async function createAdminSession(userId: string) {
   });
 }
 
+export async function createAdminSessionForUser(userId: string) {
+  await createAdminSession(userId);
+}
+
 async function getCurrentAdminSession() {
   const cookieStore = await cookies();
   const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
@@ -138,24 +180,6 @@ async function getCurrentAdminSession() {
   }
 
   return session;
-}
-
-async function verifyPasswordHash(password: string, storedHash: string) {
-  const [saltHex, hashHex] = storedHash.split(":");
-
-  if (!saltHex || !hashHex) {
-    return false;
-  }
-
-  const salt = Buffer.from(saltHex, "hex");
-  const expectedHash = Buffer.from(hashHex, "hex");
-  const derivedKey = (await scrypt(password, salt, expectedHash.length)) as Buffer;
-
-  if (derivedKey.length !== expectedHash.length) {
-    return false;
-  }
-
-  return timingSafeEqual(derivedKey, expectedHash);
 }
 
 function clearAdminSessionCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {

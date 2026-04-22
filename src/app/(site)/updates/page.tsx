@@ -1,8 +1,12 @@
+import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
+import { Suspense } from "react";
 import { getContentPreview, getContentText } from "@/lib/content";
 import { getUpdateAnchorPath } from "@/lib/routes";
 import { SearchDialog } from "@/components/search-dialog";
-import { listPublicUpdates } from "@/server/public-content";
+import { UpdatesPageContentSkeleton } from "@/components/site-route-skeletons";
+import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
+import { isPublicSiteUnavailableError, listPublicUpdates } from "@/server/public-content";
 
 type UpdatesPageProps = {
   searchParams: Promise<{
@@ -17,7 +21,52 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
   const { sort, page } = await searchParams;
   const activeSort = getSortValue(sort);
   const currentPage = getPageValue(page);
-  const allUpdates = await listPublicUpdates();
+
+  return (
+    <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
+      <header>
+        <div>
+          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+            Updates
+          </p>
+          <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            <span>足迹</span>
+            <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+              ·
+            </span>
+            <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+              最近动态
+            </span>
+          </h1>
+        </div>
+      </header>
+
+      <Suspense fallback={<UpdatesPageContentSkeleton />}>
+        <UpdatesPageContent activeSort={activeSort} currentPage={currentPage} />
+      </Suspense>
+    </main>
+  );
+}
+
+async function UpdatesPageContent({
+  activeSort,
+  currentPage,
+}: {
+  activeSort: SortValue;
+  currentPage: number;
+}) {
+  let allUpdates;
+
+  try {
+    allUpdates = await listPublicUpdates();
+  } catch (error) {
+    if (isPublicSiteUnavailableError(error)) {
+      return <PublicSiteUnavailableScreen />;
+    }
+
+    throw error;
+  }
+
   const sortedUpdates = sortUpdates(allUpdates, activeSort);
   const totalPages = Math.max(1, Math.ceil(sortedUpdates.length / UPDATES_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, totalPages);
@@ -59,23 +108,8 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
   };
 
   return (
-    <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
-      <header className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-            Updates
-          </p>
-          <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            <span>足迹</span>
-            <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
-              ·
-            </span>
-            <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
-              最近动态
-            </span>
-          </h1>
-        </div>
-
+    <>
+      <StaggerRevealItem className="mt-8 flex flex-wrap items-end justify-between gap-6">
         <div className="flex flex-wrap items-center gap-4">
           <SearchDialog
             buttonLabel="Search"
@@ -102,9 +136,9 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
             }))}
           />
         </div>
-      </header>
+      </StaggerRevealItem>
 
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
         <p>{updatesCountLabel}</p>
         <div className="flex flex-wrap items-center gap-3">
           {SORT_OPTIONS.map((option) => {
@@ -125,12 +159,12 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
             );
           })}
         </div>
-      </div>
+      </StaggerRevealItem>
 
-      <div className="mt-10 space-y-10">
+      <StaggerReveal className="mt-10 space-y-10" delayChildren={0.04}>
         {paginatedUpdates.length > 0 ? (
           groups.map((group) => (
-            <section key={group.year} className="space-y-6">
+            <StaggerRevealItem key={group.year} className="space-y-6" offset={20}>
               <div className="flex items-center gap-4">
                 <h2 className="text-xl font-semibold tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
                   {group.year}
@@ -138,44 +172,45 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
                 <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800/80" />
               </div>
 
-              <div className="grid gap-6">
+              <StaggerReveal className="grid gap-6" delayChildren={0.02} staggerChildren={0.065}>
                 {group.items.map((item) => (
-                  <article
-                    key={item.id}
-                    id={`update-${item.id}`}
-                    className="group grid gap-4 border-b border-zinc-200/80 py-6 transition last:border-b-0 hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/30 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
-                  >
-                    <div className="min-w-[4.5rem]">
-                      <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                        {formatFeedMonth(item.publishedAt)}
-                      </p>
-                      <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                        {formatFeedDay(item.publishedAt)}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="reading-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
-                        {getContentPreview(item.contentHtml, item.content)}
-                      </p>
-                      <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                        <span>{formatFeedTime(item.publishedAt)}</span>
-                        <span>{item.authorName ?? "未署名"}</span>
+                  <StaggerRevealItem key={item.id}>
+                    <article
+                      id={`update-${item.id}`}
+                      className="group grid gap-4 border-b border-zinc-200/80 py-6 transition last:border-b-0 hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/30 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
+                    >
+                      <div className="min-w-[4.5rem]">
+                        <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                          {formatFeedMonth(item.publishedAt)}
+                        </p>
+                        <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                          {formatFeedDay(item.publishedAt)}
+                        </p>
                       </div>
-                    </div>
-                  </article>
+
+                      <div>
+                        <p className="reading-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
+                          {getContentPreview(item.contentHtml, item.content)}
+                        </p>
+                        <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                          <span>{formatFeedTime(item.publishedAt)}</span>
+                          <span>{item.authorName ?? "未署名"}</span>
+                        </div>
+                      </div>
+                    </article>
+                  </StaggerRevealItem>
                 ))}
-              </div>
-            </section>
+              </StaggerReveal>
+            </StaggerRevealItem>
           ))
         ) : (
-          <div className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+          <StaggerRevealItem className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
             No updates matched this filter yet.
-          </div>
+          </StaggerRevealItem>
         )}
-      </div>
+      </StaggerReveal>
 
-      <div className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
         <Link
           href={buildUpdatesHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
           aria-disabled={safeCurrentPage === 1}
@@ -224,8 +259,8 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
         >
           Next
         </Link>
-      </div>
-    </main>
+      </StaggerRevealItem>
+    </>
   );
 }
 

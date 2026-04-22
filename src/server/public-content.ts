@@ -1,28 +1,89 @@
-import { deriveFallbackCategories, fallbackPosts, fallbackSiteSettings, fallbackUpdates } from "@/content/fallback";
+import { getPostPath, getUpdateAnchorPath } from "@/lib/routes";
 import { hasAdminUsers, isAdminAuthenticated } from "@/server/auth";
 import { hasDatabaseUrl } from "@/server/db/client";
+import {
+  isDatabaseSchemaMissingError,
+  isDatabaseUnavailableError,
+} from "@/server/database-errors";
+import { getInstallationState } from "@/server/installation";
 import { listPostCategories, type CategoryOption } from "@/server/repositories/categories";
 import {
-  getPublishedPostByCategoryAndSlug,
-  getPublishedPostBySlug,
   getPublishedPostRouteParams,
   getPublishedPostSlugs,
   listAllPublishedPosts,
+  listPublishedPostCategoriesForNavigation,
+  listRecentPublishedPostsForNavigation,
   type PostItem,
 } from "@/server/repositories/posts";
 import { getSiteSettings, type SiteSettingsRecord } from "@/server/repositories/site";
-import { listAllPublishedUpdates, type UpdateItem } from "@/server/repositories/updates";
+import {
+  listAllPublishedUpdates,
+  listRecentPublishedUpdatesForNavigation,
+  type UpdateItem,
+} from "@/server/repositories/updates";
+
+export class PublicSiteUnavailableError extends Error {
+  constructor() {
+    super("PUBLIC_SITE_UNAVAILABLE");
+    this.name = "PublicSiteUnavailableError";
+  }
+}
+
+export function isPublicSiteUnavailableError(error: unknown) {
+  return error instanceof PublicSiteUnavailableError;
+}
+
+export class UninstalledSiteError extends Error {
+  constructor() {
+    super("UNINSTALLED_SITE");
+    this.name = "UninstalledSiteError";
+  }
+}
+
+export function isUninstalledSiteError(error: unknown) {
+  return error instanceof UninstalledSiteError;
+}
+
+export type PublicHeaderPostCategory = {
+  slug: string;
+  label: string;
+  href: string;
+  contentCount: number;
+  posts: Array<{
+    id: number;
+    slug: string;
+    title: string;
+    href: string;
+  }>;
+};
+
+export type PublicRecentArchiveItem = {
+  id: number;
+  href: string;
+  title: string;
+  categoryLabel: string;
+  publishedAt: string | null;
+  kind: "文章" | "动态";
+};
 
 export async function getPublicSiteSettings(): Promise<SiteSettingsRecord> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return fallbackSiteSettings;
+    throw new PublicSiteUnavailableError();
   }
 
   try {
-    return (await getSiteSettings()) ?? fallbackSiteSettings;
+    const settings = await getSiteSettings();
+
+    if (!settings) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    return settings;
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return fallbackSiteSettings;
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -30,15 +91,17 @@ export async function getPublicSiteSettings(): Promise<SiteSettingsRecord> {
 }
 
 export async function listPublicPosts(): Promise<PostItem[]> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return fallbackPosts;
+    throw new PublicSiteUnavailableError();
   }
 
   try {
     return await listAllPublishedPosts();
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return fallbackPosts;
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -65,15 +128,17 @@ export async function getPublicPostByCategoryAndSlug(
 }
 
 export async function getPublicPostSlugs(): Promise<string[]> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return fallbackPosts.map((post) => post.slug);
+    throw new PublicSiteUnavailableError();
   }
 
   try {
     return await getPublishedPostSlugs();
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return fallbackPosts.map((post) => post.slug);
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -81,21 +146,17 @@ export async function getPublicPostSlugs(): Promise<string[]> {
 }
 
 export async function getPublicPostRouteParams(): Promise<Array<{ category: string; slug: string }>> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return fallbackPosts.map((post) => ({
-      category: post.category?.slug ?? "uncategorized",
-      slug: post.slug,
-    }));
+    throw new PublicSiteUnavailableError();
   }
 
   try {
     return await getPublishedPostRouteParams();
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return fallbackPosts.map((post) => ({
-        category: post.category?.slug ?? "uncategorized",
-        slug: post.slug,
-      }));
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -103,15 +164,17 @@ export async function getPublicPostRouteParams(): Promise<Array<{ category: stri
 }
 
 export async function listPublicUpdates(): Promise<UpdateItem[]> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return fallbackUpdates;
+    throw new PublicSiteUnavailableError();
   }
 
   try {
     return await listAllPublishedUpdates();
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return fallbackUpdates;
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -119,15 +182,137 @@ export async function listPublicUpdates(): Promise<UpdateItem[]> {
 }
 
 export async function listPublicPostCategories(): Promise<CategoryOption[]> {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return deriveFallbackCategories(fallbackPosts);
+    throw new PublicSiteUnavailableError();
   }
 
   try {
     return await listPostCategories();
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return deriveFallbackCategories(fallbackPosts);
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicHeaderPostCategories(): Promise<PublicHeaderPostCategory[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    const categories = await listPublishedPostCategoriesForNavigation();
+
+    return categories.map((category) => ({
+      slug: category.slug,
+      label: category.label,
+      href: `/posts?category=${encodeURIComponent(category.slug)}`,
+      contentCount: category.contentCount,
+      posts: category.posts.map((post) => ({
+        id: post.id,
+        slug: post.slug,
+        title: post.title,
+        href: getPostPath({
+          slug: post.slug,
+          categorySlug: category.slug === "uncategorized" ? null : category.slug,
+        }),
+      })),
+    }));
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicRecentArchiveItems(
+  limit = 5,
+): Promise<PublicRecentArchiveItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    const [posts, updates] = await Promise.all([
+      listRecentPublishedPostsForNavigation(limit),
+      listRecentPublishedUpdatesForNavigation(limit),
+    ]);
+
+    return [
+      ...posts.map((post) => ({
+        id: post.id,
+        href: getPostPath({
+          slug: post.slug,
+          categorySlug: post.category?.slug,
+        }),
+        title: post.title,
+        categoryLabel: post.category?.name ?? "Uncategorized",
+        publishedAt: post.publishedAt,
+        kind: "文章" as const,
+      })),
+      ...updates.map((item) => ({
+        id: item.id,
+        href: getUpdateAnchorPath({
+          updateId: item.id,
+          page: 1,
+        }),
+        title: item.title,
+        categoryLabel: "动态",
+        publishedAt: item.publishedAt,
+        kind: "动态" as const,
+      })),
+    ]
+      .sort((a, b) => {
+        const leftTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+        const rightTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+        return rightTime - leftTime;
+      })
+      .slice(0, limit);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicRecentUpdateItems(
+  limit = 4,
+): Promise<PublicRecentArchiveItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    const updates = await listRecentPublishedUpdatesForNavigation(limit);
+
+    return updates.map((item) => ({
+      id: item.id,
+      href: getUpdateAnchorPath({
+        updateId: item.id,
+        page: 1,
+      }),
+      title: item.title,
+      categoryLabel: "动态",
+      publishedAt: item.publishedAt,
+      kind: "动态" as const,
+    }));
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
@@ -135,11 +320,10 @@ export async function listPublicPostCategories(): Promise<CategoryOption[]> {
 }
 
 export async function getPublicAdminState() {
+  await assertInstalledPublicSite();
+
   if (!hasDatabaseUrl()) {
-    return {
-      adminHasUsers: false,
-      isAdminLoggedIn: false,
-    };
+    throw new PublicSiteUnavailableError();
   }
 
   try {
@@ -153,53 +337,18 @@ export async function getPublicAdminState() {
       isAdminLoggedIn,
     };
   } catch (error) {
-    if (isDatabaseUnavailableError(error)) {
-      return {
-        adminHasUsers: false,
-        isAdminLoggedIn: false,
-      };
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
     }
 
     throw error;
   }
 }
 
-function isDatabaseUnavailableError(error: unknown): boolean {
-  if (!error || typeof error !== "object") {
-    return false;
+async function assertInstalledPublicSite() {
+  const installationState = await getInstallationState();
+
+  if (!installationState.installed) {
+    throw new UninstalledSiteError();
   }
-
-  const code = Reflect.get(error, "code");
-  if (typeof code === "string") {
-    const normalizedCode = code.toUpperCase();
-
-    if (
-      normalizedCode === "ECONNREFUSED" ||
-      normalizedCode === "ECONNRESET" ||
-      normalizedCode === "ENOTFOUND" ||
-      normalizedCode === "EHOSTUNREACH" ||
-      normalizedCode === "ETIMEDOUT" ||
-      normalizedCode === "57P01"
-    ) {
-      return true;
-    }
-  }
-
-  const message = Reflect.get(error, "message");
-  if (typeof message === "string") {
-    const normalizedMessage = message.toLowerCase();
-
-    if (
-      normalizedMessage.includes("database_url is not set") ||
-      normalizedMessage.includes("can't reach database server") ||
-      normalizedMessage.includes("failed to connect") ||
-      normalizedMessage.includes("connection") ||
-      normalizedMessage.includes("timeout")
-    ) {
-      return true;
-    }
-  }
-
-  const cause = Reflect.get(error, "cause");
-  return cause !== error && isDatabaseUnavailableError(cause);
 }
