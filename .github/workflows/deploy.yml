@@ -11,23 +11,83 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm exec prisma generate
+
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+
+      - name: Build
+        run: pnpm build
+
+      - name: Package runtime artifact
+        run: |
+          tar -czf chihiro-build.tgz \
+            .next \
+            node_modules
+
+      - name: Upload runtime artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chihiro-build
+          path: chihiro-build.tgz
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download runtime artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: chihiro-build
+
+      - name: Upload artifact to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ vars.DEPLOY_PORT || 22 }}
+          source: chihiro-build.tgz
+          target: /tmp
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         env:
           APP_DIR: ${{ vars.DEPLOY_PATH || '/srv/chihiro/current' }}
           DEPLOY_BRANCH: ${{ github.ref_name }}
           PM2_APP_NAME: ${{ vars.PM2_APP_NAME || 'chihiro' }}
+          ARTIFACT_PATH: /tmp/chihiro-build.tgz
         with:
           host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ vars.DEPLOY_PORT || 22 }}
           script_stop: true
-          envs: APP_DIR,DEPLOY_BRANCH,PM2_APP_NAME
+          envs: APP_DIR,DEPLOY_BRANCH,PM2_APP_NAME,ARTIFACT_PATH
           script: |
             cd "$APP_DIR"
             bash scripts/deploy/server-deploy.sh

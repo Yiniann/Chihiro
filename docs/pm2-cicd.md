@@ -1,12 +1,12 @@
 # PM2 + CI/CD 部署
 
-这套方案不再走 standalone 压缩包，而是让服务器保留完整项目仓库，由 GitHub Actions 通过 SSH 触发部署。
+这套方案不再走 standalone 压缩包，而是让服务器保留完整项目仓库和 `.env`，由 GitHub Actions 负责安装依赖、构建产物，再把运行时文件传到服务器。
 
 ## 适合当前项目的原因
 
-- `Prisma migrate deploy` 可以直接在服务器跑
-- 构建、迁移、启动都在同一个目录完成，不再拆成两套环境
-- PM2 负责常驻 Next 服务，部署脚本只做拉代码、装依赖、迁移、构建和重载
+- `Prisma migrate deploy` 仍然可以直接在服务器跑
+- `pnpm install` 和 `pnpm build` 都搬到 GitHub Actions，不再吃服务器内存
+- PM2 负责常驻 Next 服务，服务器只做拉代码、替换 `.next/node_modules`、迁移和重载
 
 ## 服务器首次准备
 
@@ -34,14 +34,21 @@ DATABASE_URL="postgresql://..."
 NEXT_PUBLIC_SITE_URL="https://your-domain.com"
 ```
 
-首次启动建议手动跑一次：
+首次接入这套流程时，不需要再在服务器本地执行 `install/build`。只要下面这些条件已经满足：
+
+- `/srv/chihiro/current` 是完整源码仓库
+- `.env` 已经写好
+- `DATABASE_URL` 仍然指向原来的生产库
+- 服务器已经装好 Node.js、pnpm、pm2、git
+
+之后就可以直接靠 GitHub Actions 首次发布。
+
+如果你想在服务器手动验证一次，也只建议做轻量检查：
 
 ```bash
-pnpm install --frozen-lockfile --prod=false
-pnpm exec prisma migrate deploy
-pnpm build
-pm2 start ecosystem.config.cjs --env production
-pm2 save
+git status
+cat .env
+pm2 status
 ```
 
 ## 日常部署流程
@@ -55,10 +62,9 @@ bash scripts/deploy/server-deploy.sh
 这个脚本会执行：
 
 1. 拉取最新代码
-2. 安装依赖（包含 Prisma CLI）
+2. 解压 GitHub Actions 上传的 `.next` 和 `node_modules`
 3. 执行 `prisma migrate deploy`
-4. 构建 Next.js
-5. 用 PM2 reload 服务
+4. 用 PM2 reload 服务
 
 ## GitHub Actions 配置
 
@@ -70,7 +76,7 @@ bash scripts/deploy/server-deploy.sh
 其中：
 
 - `CI` 在 PR 和 `main` push 时跑 `tsc`、`build`
-- `Deploy` 在 `main` push 后通过 SSH 登录服务器并执行部署脚本
+- `Deploy` 在 `main` push 后先在 GitHub Actions 构建，再把运行时产物上传到服务器并执行部署脚本
 
 当前仓库里还有一批历史 ESLint 告警和错误没有清理，所以这里先把 CI 的阻塞项收敛到类型检查和构建，避免流程一直红灯。
 
@@ -85,6 +91,12 @@ bash scripts/deploy/server-deploy.sh
 - `DEPLOY_PATH`：服务器项目目录，默认 `/srv/chihiro/current`
 - `DEPLOY_PORT`：SSH 端口，默认 `22`
 - `PM2_APP_NAME`：PM2 进程名，默认 `chihiro`
+
+## 切换自旧 standalone 的建议
+
+如果你之前的目录也是 `/srv/chihiro/current`，现在只需要把它变成完整源码仓库，并保留原来的 `.env` 与数据库即可。
+
+数据库不会跟着应用目录切换而丢失，核心是确保 `.env` 里的 `DATABASE_URL` 继续指向原来的生产库。
 
 ## 常用命令
 
@@ -104,5 +116,7 @@ pm2 reload ecosystem.config.cjs --env production
 手动执行一次部署：
 
 ```bash
-APP_DIR=/srv/chihiro/current DEPLOY_BRANCH=main bash scripts/deploy/server-deploy.sh
+APP_DIR=/srv/chihiro/current DEPLOY_BRANCH=main ARTIFACT_PATH=/tmp/chihiro-build.tgz bash scripts/deploy/server-deploy.sh
 ```
+
+这里的 `/tmp/chihiro-build.tgz` 一般由 GitHub Actions 上传，不需要你手工准备。
