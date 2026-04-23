@@ -31,6 +31,8 @@ if ! command -v pm2 >/dev/null 2>&1; then
   exit 1
 fi
 
+git config --global --add safe.directory "$APP_DIR"
+
 cd "$APP_DIR"
 
 git fetch origin "$DEPLOY_BRANCH"
