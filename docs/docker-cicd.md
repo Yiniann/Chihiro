@@ -18,7 +18,7 @@ cd /www/wwwroot/www.xiami.dev
 cp .env.example .env
 ```
 
-生产 `.env` 至少要确认这些值：
+第一次部署时，如果服务器目录没有 `.env`，部署脚本会自动生成一份可运行配置，并随机生成 Postgres 密码。你也可以手动创建 `.env` 来覆盖默认值：
 
 ```bash
 DATABASE_URL="postgresql://chihiro:your-password@localhost:5432/chihiro?schema=public"
@@ -49,6 +49,7 @@ RUN_MIGRATIONS="true"
 - `DEPLOY_PATH`：服务器项目目录，默认 `/www/wwwroot/www.xiami.dev`
 - `DEPLOY_PORT`：SSH 端口，默认 `22`
 - `COMPOSE_PROJECT_NAME`：compose 项目名，默认 `chihiro`
+- `NEXT_PUBLIC_SITE_URL`：站点地址，默认 `https://www.xiami.dev`
 
 不需要配置 GHCR，也不需要服务器目录是 git 仓库。
 

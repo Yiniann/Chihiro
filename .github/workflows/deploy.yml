@@ -84,6 +84,7 @@ jobs:
           APP_DIR: ${{ vars.DEPLOY_PATH || '/www/wwwroot/www.xiami.dev' }}
           CHIHIRO_IMAGE: chihiro:${{ github.sha }}
           COMPOSE_PROJECT_NAME: ${{ vars.COMPOSE_PROJECT_NAME || 'chihiro' }}
+          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL || 'https://www.xiami.dev' }}
           IMAGE_TAR: chihiro-image.tar
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -91,7 +92,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ vars.DEPLOY_PORT || 22 }}
           script_stop: true
-          envs: APP_DIR,CHIHIRO_IMAGE,COMPOSE_PROJECT_NAME,IMAGE_TAR
+          envs: APP_DIR,CHIHIRO_IMAGE,COMPOSE_PROJECT_NAME,NEXT_PUBLIC_SITE_URL,IMAGE_TAR
           script: |
             cd "$APP_DIR"
             bash scripts/deploy/docker-load-deploy.sh

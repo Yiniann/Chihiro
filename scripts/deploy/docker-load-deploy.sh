@@ -29,8 +29,25 @@ if [ ! -f "$IMAGE_TAR" ]; then
 fi
 
 if [ ! -f "$APP_DIR/.env" ]; then
-  echo ".env is missing in $APP_DIR. Create it before deploying." >&2
-  exit 1
+  postgres_password="$(openssl rand -base64 24 | tr -d '\n' | tr '/+' '__')"
+  site_url="${NEXT_PUBLIC_SITE_URL:-https://www.xiami.dev}"
+
+  cat > "$APP_DIR/.env" <<EOF
+DATABASE_URL="postgresql://chihiro:${postgres_password}@localhost:5432/chihiro?schema=public"
+DOCKER_DATABASE_URL="postgresql://chihiro:${postgres_password}@postgres:5432/chihiro?schema=public"
+NEXT_PUBLIC_SITE_URL="${site_url}"
+POSTGRES_DB="chihiro"
+POSTGRES_USER="chihiro"
+POSTGRES_PASSWORD="${postgres_password}"
+POSTGRES_HOST="127.0.0.1"
+POSTGRES_PORT="5432"
+APP_PORT="3000"
+PORT="3000"
+RUN_MIGRATIONS="true"
+EOF
+
+  chmod 600 "$APP_DIR/.env"
+  echo "Created $APP_DIR/.env with generated database credentials."
 fi
 
 docker load -i "$IMAGE_TAR"
