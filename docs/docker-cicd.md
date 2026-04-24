@@ -1,6 +1,6 @@
 # Docker + CI/CD 部署
 
-这套部署让 GitHub Actions 构建 Docker 镜像，把镜像包和 compose 配置上传到服务器，服务器只负责 `docker load` 和 `docker compose up -d`。容器启动时会先执行 `prisma migrate deploy`，再启动 Next.js。
+这套部署让 GitHub Actions 构建 Docker 镜像，把镜像包和 compose 配置上传到服务器，服务器只负责 `docker load` 和 `docker compose up -d`。容器启动时会先同步 Prisma schema，再启动 Next.js。
 
 ## 服务器首次准备
 
@@ -31,6 +31,7 @@ POSTGRES_HOST="127.0.0.1"
 POSTGRES_PORT="5432"
 APP_PORT="3000"
 RUN_MIGRATIONS="true"
+PRISMA_DEPLOY_MODE="push"
 ```
 
 如果数据库也跑在这份 compose 里，容器内连接串 `DOCKER_DATABASE_URL` 的 host 使用 `postgres`。`DATABASE_URL` 留给服务器本机上的手动 Prisma 命令使用，所以默认 host 是 `localhost`。
@@ -67,8 +68,10 @@ RUN_MIGRATIONS="true"
 容器启动入口在 `docker/entrypoint.sh`，默认会跑：
 
 ```bash
-pnpm exec prisma migrate deploy
+pnpm exec prisma db push --skip-generate
 ```
+
+当前仓库的 migrations 不是从空数据库初始化开始的，所以 Docker 新库默认用 `db push` 按当前 Prisma schema 建表。若你后续整理出完整生产迁移链路，可以在 `.env` 设置 `PRISMA_DEPLOY_MODE="migrate"` 切回 `migrate deploy`。
 
 如需临时跳过迁移，可以在服务器 `.env` 设置：
 
