@@ -68,7 +68,7 @@ PRISMA_DEPLOY_MODE="push"
 容器启动入口在 `docker/entrypoint.sh`，默认会跑：
 
 ```bash
-pnpm exec prisma db push --skip-generate
+pnpm exec prisma db push
 ```
 
 当前仓库的 migrations 不是从空数据库初始化开始的，所以 Docker 新库默认用 `db push` 按当前 Prisma schema 建表。若你后续整理出完整生产迁移链路，可以在 `.env` 设置 `PRISMA_DEPLOY_MODE="migrate"` 切回 `migrate deploy`。

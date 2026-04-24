@@ -5,7 +5,7 @@ if [ "${RUN_MIGRATIONS:-true}" != "false" ]; then
   if [ "${PRISMA_DEPLOY_MODE:-push}" = "migrate" ]; then
     pnpm exec prisma migrate deploy
   else
-    pnpm exec prisma db push --skip-generate
+    pnpm exec prisma db push
   fi
 fi
 
