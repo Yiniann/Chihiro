@@ -75,4 +75,7 @@ jobs:
           script: |
             git config --global --add safe.directory "$APP_DIR"
             cd "$APP_DIR"
+            git fetch origin "$DEPLOY_BRANCH"
+            git checkout "$DEPLOY_BRANCH"
+            git pull --ff-only origin "$DEPLOY_BRANCH"
             bash scripts/deploy/docker-deploy.sh
