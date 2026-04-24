@@ -113,7 +113,7 @@ function renderSlateNode(node: Descendant): string {
     case "block-quote":
       return `<blockquote class="border-l-2 border-zinc-200 pl-4 text-zinc-600 dark:border-zinc-800 dark:text-zinc-300">${childrenHtml}</blockquote>`;
     case "link":
-      return `<a href="${escapeHtml(node.url ?? "#")}" class="text-primary underline dark:text-sky-300" rel="noreferrer noopener">${childrenHtml}</a>`;
+      return `<a href="${escapeHtml(node.url ?? "#")}" class="text-primary underline" rel="noreferrer noopener">${childrenHtml}</a>`;
     case "image":
       return `<figure class="my-8 overflow-hidden rounded-2xl border border-zinc-200/70 bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-900"><img src="${escapeHtml(
         node.url ?? "",

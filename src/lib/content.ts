@@ -124,6 +124,52 @@ export function getRenderedContentHtml(contentHtml: string | null, content: unkn
   return paragraphs.length === 0 ? null : renderParagraphsAsHtml(paragraphs);
 }
 
+export type TableOfContentsItem = {
+  id: string;
+  text: string;
+  level: 2 | 3 | 4;
+};
+
+export function addHeadingAnchors(contentHtml: string) {
+  const usedIds = new Map<string, number>();
+  const items: TableOfContentsItem[] = [];
+  const html = contentHtml.replace(
+    /<h([2-4])([^>]*)>([\s\S]*?)<\/h\1>/gi,
+    (match, levelValue: string, attributes: string, innerHtml: string) => {
+      const text = stripHtml(innerHtml);
+
+      if (!text) {
+        return match;
+      }
+
+      const existingId = getHtmlAttribute(attributes, "id");
+      const id = existingId || getUniqueHeadingId(slugifyHeadingText(text), usedIds);
+      const level = Number(levelValue) as 2 | 3 | 4;
+
+      if (existingId) {
+        registerHeadingId(existingId, usedIds);
+      }
+
+      items.push({
+        id,
+        text,
+        level,
+      });
+
+      if (existingId) {
+        return match;
+      }
+
+      return `<h${levelValue} id="${escapeHtmlAttribute(id)}"${attributes}>${innerHtml}</h${levelValue}>`;
+    },
+  );
+
+  return {
+    html,
+    items,
+  };
+}
+
 export function renderPlainTextContentHtml(content: string | null) {
   if (!content) {
     return null;
@@ -150,6 +196,10 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+function escapeHtmlAttribute(value: string) {
+  return escapeHtml(value).replace(/`/g, "&#96;");
 }
 
 function renderParagraphsAsHtml(paragraphs: string[]) {
@@ -244,6 +294,33 @@ function isExternalImageUrl(value: string) {
 
 function normalizeLine(value: string) {
   return value.replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/\u00A0/g, " ").trim();
+}
+
+function getHtmlAttribute(attributes: string, name: string) {
+  const match = attributes.match(new RegExp(`\\s${name}=(["'])(.*?)\\1`, "i"));
+  return match?.[2] ?? null;
+}
+
+function slugifyHeadingText(value: string) {
+  const slug = value
+    .toLowerCase()
+    .trim()
+    .replace(/&[a-z0-9#]+;/gi, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "section";
+}
+
+function registerHeadingId(id: string, usedIds: Map<string, number>) {
+  usedIds.set(id, (usedIds.get(id) ?? 0) + 1);
+}
+
+function getUniqueHeadingId(baseId: string, usedIds: Map<string, number>) {
+  const count = usedIds.get(baseId) ?? 0;
+  registerHeadingId(baseId, usedIds);
+
+  return count === 0 ? baseId : `${baseId}-${count + 1}`;
 }
 
 function collectText(nodes: unknown[]) {

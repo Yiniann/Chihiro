@@ -76,7 +76,7 @@ export function SearchDialog({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+        className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
       >
         <Search className="h-4 w-4" />
         <span>{buttonLabel}</span>
@@ -337,7 +337,7 @@ function highlightText(text: string, searchTerms: string[]) {
     ) : (
       <mark
         key={index}
-        className="rounded bg-primary/12 px-0.5 text-inherit dark:bg-sky-300/20"
+        className="rounded bg-primary/12 px-0.5 text-inherit"
       >
         {segment.match}
       </mark>

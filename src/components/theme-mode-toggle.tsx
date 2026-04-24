@@ -106,7 +106,7 @@ export function ThemeModeToggle({
           }}
           className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
             preference === "light"
-              ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-300/10 dark:text-sky-300"
+              ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
           }`}
         >
@@ -122,7 +122,7 @@ export function ThemeModeToggle({
           }}
           className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
             preference === "dark"
-              ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-300/10 dark:text-sky-300"
+              ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
           }`}
         >
@@ -134,7 +134,7 @@ export function ThemeModeToggle({
           onClick={handleFollowSystem}
           className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
             preference === "system"
-              ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-300/10 dark:text-sky-300"
+              ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
           }`}
         >
@@ -188,8 +188,8 @@ export function ThemeModeToggle({
                 onClick={handleFollowSystem}
                 className={`cursor-pointer text-xs font-medium transition ${
                   preference === "system"
-                    ? "text-primary opacity-100 dark:text-sky-300"
-                    : "text-primary hover:opacity-80 dark:text-sky-300 dark:hover:opacity-80"
+                    ? "text-primary opacity-100"
+                    : "text-primary hover:opacity-80"
                 }`}
               >
                 follow system

@@ -549,7 +549,7 @@ export function SiteHeader({
                             }
                             className={`inline-flex h-9 min-w-11 shrink-0 items-center justify-center rounded-2xl border px-2 transition ${
                               active
-                                ? "border-primary/20 bg-primary/10 text-primary dark:border-sky-300/20 dark:bg-sky-400/12 dark:text-sky-300"
+                                ? "border-primary/20 bg-primary/10 text-primary"
                                 : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/90 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-zinc-200"
                             }`}
                           >
@@ -847,7 +847,7 @@ function MegaNavLinkCard({
             {title}
           </span>
         </div>
-        <span className="inline-flex h-8 w-8 items-center justify-center text-zinc-400 transition group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-sky-300">
+        <span className="inline-flex h-8 w-8 items-center justify-center text-zinc-400 transition group-hover:text-primary dark:text-zinc-500">
           <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
         </span>
       </div>
@@ -911,7 +911,7 @@ function PostMegaNavContent({
           <Link
             href={activeCategory.href}
             onClick={onNavigate}
-            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
           >
             View all
           </Link>
@@ -1004,10 +1004,10 @@ function MegaNavArticleLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 hover:text-primary dark:hover:bg-zinc-900/70 dark:hover:text-sky-300"
+      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 hover:text-primary dark:hover:bg-zinc-900/70"
     >
       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</p>
-      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-sky-300" />
+      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500" />
     </Link>
   );
 }
@@ -1058,7 +1058,7 @@ function MegaNavRecentEntry({
               {kind}
             </span>
           ) : null}
-          <p className={`${compact ? "text-sm" : "mt-1 text-sm"} font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100 dark:group-hover:text-sky-300`}>
+          <p className={`${compact ? "text-sm" : "mt-1 text-sm"} font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100`}>
             {title}
           </p>
         </div>
@@ -1086,7 +1086,7 @@ function MobileNavSubLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
+      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200"
     >
       <span>{label}</span>
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
@@ -1107,7 +1107,7 @@ function MobileNavChip({
     <Link
       href={href}
       onClick={onNavigate}
-      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-sky-300"
+      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200"
     >
       <span>{label}</span>
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />

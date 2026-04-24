@@ -157,7 +157,7 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
                 <button
                   type="button"
                   onClick={() => setIsCategoryDialogOpen(true)}
-                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
                 >
                   创建分类
                 </button>
@@ -185,7 +185,7 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
                 <button
                   type="button"
                   onClick={() => setIsTagDialogOpen(true)}
-                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
                 >
                   创建标签
                 </button>
@@ -197,7 +197,7 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
                       key={tag.id}
                       className={`inline-flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-xs font-medium transition ${
                         selectedTagIds.has(tag.id)
-                          ? "bg-primary text-white dark:bg-sky-300 dark:text-zinc-950"
+                          ? "bg-primary text-primary-foreground"
                           : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
                       }`}
                     >
@@ -394,7 +394,7 @@ function buildPostPreviewState(
     body: `
       <article class="mx-auto max-w-3xl">
         <div class="mt-5 flex flex-wrap gap-2">
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary dark:bg-sky-400/10 dark:text-sky-300">${categoryLabel}</span>
+          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">${categoryLabel}</span>
           ${tagLabels}
         </div>
         <div class="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200">
@@ -420,7 +420,7 @@ function PreviewButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-10 w-full items-center justify-center px-1 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300 sm:w-auto"
+      className="inline-flex h-10 w-full items-center justify-center px-1 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 sm:w-auto"
     >
       预览
     </button>
@@ -450,7 +450,7 @@ function PublishButton({ hasExistingPost }: { hasExistingPost: boolean }) {
       name="intent"
       value="publish"
       disabled={pending}
-      className="inline-flex h-10 w-full items-center justify-center px-1 text-[0.98rem] font-semibold text-primary underline decoration-1 underline-offset-4 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 dark:text-sky-300 sm:w-auto"
+      className="inline-flex h-10 w-full items-center justify-center px-1 text-[0.98rem] font-semibold text-primary underline decoration-1 underline-offset-4 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
     >
       {pending ? "发布中..." : hasExistingPost ? "更新并发布" : "发布文章"}
     </button>

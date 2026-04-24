@@ -89,7 +89,7 @@ export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
           <h2 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-100">
             {activePeriod.year}
           </h2>
-          <span className="text-lg font-medium text-primary dark:text-sky-300">
+          <span className="text-lg font-medium text-primary">
             {activePeriod.month}
           </span>
         </div>
@@ -171,7 +171,7 @@ function ArchiveCardContent({ item }: { item: ArchiveItem }) {
           <span>/</span>
           <span>{item.categoryLabel}</span>
         </div>
-        <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary dark:bg-sky-300/12 dark:text-sky-300">
+        <span className="rounded-full bg-primary/8 px-2.5 py-1 text-xs font-medium text-primary">
           {item.kindLabel}
         </span>
       </div>
@@ -180,7 +180,7 @@ function ArchiveCardContent({ item }: { item: ArchiveItem }) {
         className={[
           "mt-2 text-lg font-semibold text-zinc-950 dark:text-zinc-50",
           item.href
-            ? "transition group-hover:text-primary dark:group-hover:text-sky-300"
+            ? "transition group-hover:text-primary"
             : "",
         ].join(" ")}
       >

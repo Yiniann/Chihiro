@@ -12,6 +12,8 @@
   --foreground: #171717;
   --primary-rgb: 94 129 172;
   --primary: rgb(var(--primary-rgb));
+  --primary-foreground-rgb: 255 255 255;
+  --primary-foreground: rgb(var(--primary-foreground-rgb));
   --footer-bg: color-mix(
     in srgb,
     rgb(var(--primary-rgb)) 20%,
@@ -23,6 +25,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --font-sans: var(--font-ui), "Avenir Next", "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
   --font-serif: var(--font-reading), "Noto Serif SC", "Source Han Serif SC",
@@ -38,6 +41,8 @@ html[data-theme="dark"] {
   --foreground: #ededed;
   --primary-rgb: 56 189 248;
   --primary: rgb(var(--primary-rgb));
+  --primary-foreground-rgb: 9 9 11;
+  --primary-foreground: rgb(var(--primary-foreground-rgb));
   --footer-bg: color-mix(
     in srgb,
     rgb(var(--primary-rgb)) 8%,
@@ -60,12 +65,20 @@ body {
   font-family: var(--font-serif);
 }
 
+.updates-copy {
+  font-family: ui-serif, STSong, "Songti SC", "Noto Serif SC",
+    "Source Han Serif SC", serif;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
 .tiptap-editor {
   font-family: var(--font-serif);
 }
 
 .reading-copy h1,
 .tiptap-editor h1 {
+  scroll-margin-top: 7rem;
   margin-top: 2.5rem;
   font-size: 1.875rem;
   line-height: 1.2;
@@ -75,6 +88,7 @@ body {
 
 .reading-copy h2,
 .tiptap-editor h2 {
+  scroll-margin-top: 7rem;
   margin-top: 2rem;
   font-size: 1.5rem;
   line-height: 1.3;
@@ -84,6 +98,7 @@ body {
 
 .reading-copy h3,
 .tiptap-editor h3 {
+  scroll-margin-top: 7rem;
   margin-top: 1.5rem;
   font-size: 1.25rem;
   line-height: 1.4;
@@ -214,7 +229,7 @@ html[data-theme="dark"] .tiptap-editor blockquote {
 }
 
 html[data-theme="dark"] .tiptap-editor .ProseMirror-selectednode {
-  outline-color: rgb(56 189 248 / 0.45);
+  outline-color: rgb(var(--primary-rgb) / 0.45);
 }
 
 html[data-theme="dark"] .reading-copy code,

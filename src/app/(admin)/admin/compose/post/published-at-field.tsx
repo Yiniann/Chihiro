@@ -311,10 +311,10 @@ export function PublishedAtField({ defaultValue }: PublishedAtFieldProps) {
               week: "grid grid-cols-7 gap-y-0",
               day: `${dayPickerStyles.day} p-0`,
               day_button:
-                `${dayPickerStyles.day_button} inline-flex !h-[1.625rem] !w-[1.625rem] items-center justify-center rounded-full text-[11px] font-medium transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:hover:bg-white/5 dark:focus-visible:ring-sky-300/20`,
+                `${dayPickerStyles.day_button} inline-flex !h-[1.625rem] !w-[1.625rem] items-center justify-center rounded-full text-[11px] font-medium transition hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:hover:bg-white/5`,
               selected:
-                `${dayPickerStyles.selected} !h-[1.625rem] !w-[1.625rem] rounded-full bg-primary !text-white font-semibold text-[11px] shadow-sm hover:bg-primary dark:bg-sky-300 dark:!text-zinc-950 dark:hover:bg-sky-300`,
-              today: `${dayPickerStyles.today} text-primary font-semibold dark:text-sky-300`,
+                `${dayPickerStyles.selected} !h-[1.625rem] !w-[1.625rem] rounded-full bg-primary !text-primary-foreground font-semibold text-[11px] shadow-sm hover:bg-primary`,
+              today: `${dayPickerStyles.today} text-primary font-semibold`,
               outside: `${dayPickerStyles.outside} text-zinc-300 dark:text-zinc-700`,
               disabled: `${dayPickerStyles.disabled} cursor-not-allowed opacity-30`,
               hidden: dayPickerStyles.hidden,

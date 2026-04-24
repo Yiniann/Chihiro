@@ -92,7 +92,7 @@ const MainToolbarContent = ({
       <ToolbarSeparator />
 
       <ToolbarGroup>
-        <HeadingDropdownMenu editor={editor} modal={false} levels={[1, 2, 3, 4]} />
+        <HeadingDropdownMenu editor={editor} modal={false} levels={[2, 3, 4]} />
         <ListDropdownMenu
           editor={editor}
           modal={false}

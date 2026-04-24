@@ -56,7 +56,7 @@ export function PostTagsPanel({
           {clearHref ? (
             <Link
               href={clearHref}
-              className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+              className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
             >
               Clear
             </Link>
@@ -70,7 +70,7 @@ export function PostTagsPanel({
               href={tag.href}
               className={`rounded-2xl px-3 py-1.5 text-xs font-medium transition ${
                 tag.isActive
-                  ? "bg-primary text-white dark:bg-sky-300 dark:text-zinc-950"
+                  ? "bg-primary text-primary-foreground"
                   : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
               }`}
             >
@@ -133,7 +133,7 @@ export function PostTagsPanel({
                       onClick={() => setIsOpen(false)}
                       className={`inline-flex items-center rounded-2xl px-3.5 py-2 text-sm transition ${
                         tag.isActive
-                          ? "bg-primary text-white shadow-[0_10px_30px_rgba(94,129,172,0.22)] dark:bg-sky-300 dark:text-zinc-950 dark:shadow-[0_12px_30px_rgba(56,189,248,0.18)]"
+                          ? "bg-primary text-primary-foreground shadow-[0_10px_30px_rgb(var(--primary-rgb)/0.22)]"
                           : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800"
                       }`}
                     >

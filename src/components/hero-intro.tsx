@@ -82,7 +82,7 @@ function HeroTypewriter({ text }: { text: string }) {
 
   return (
     <span
-      className="hero-copy-typewriter font-mono text-[0.95em] text-primary dark:text-sky-300"
+      className="hero-copy-typewriter font-mono text-[0.95em] text-primary"
       aria-label={text}
       style={style}
     >

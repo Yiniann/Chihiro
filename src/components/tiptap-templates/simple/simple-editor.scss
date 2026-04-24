@@ -137,7 +137,7 @@ html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor
 }
 
 html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor .ProseMirror-selectednode:not(img):not(pre):not(.react-renderer) {
-  background-color: rgb(56 189 248 / 0.12);
+  background-color: rgb(var(--primary-rgb) / 0.12);
 }
 
 html[data-theme="dark"] .simple-editor-content .tiptap.ProseMirror.simple-editor p.is-editor-empty:first-child::before {
@@ -218,7 +218,7 @@ html[data-theme="dark"] .simple-editor-code-input::placeholder {
 }
 
 html[data-theme="dark"] .simple-editor-code-input::selection {
-  background: rgb(56 189 248 / 0.2);
+  background: rgb(var(--primary-rgb) / 0.2);
 }
 
 .simple-editor-code-input:focus {

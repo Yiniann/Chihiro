@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
-import { getRenderedContentHtml } from "@/lib/content";
+import { addHeadingAnchors, getRenderedContentHtml } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { RelativeDate } from "@/components/relative-date";
 import {
@@ -138,60 +139,65 @@ export default async function PostPage({ params }: PostPageProps) {
     }
 
     const renderedContentHtml = getRenderedContentHtml(post.contentHtml, post.content);
+    const contentWithToc = renderedContentHtml ? addHeadingAnchors(renderedContentHtml) : null;
+    const tocItems = contentWithToc?.items ?? [];
 
     return (
-      <main className="mx-auto min-h-screen w-full max-w-3xl px-6 py-16 sm:px-10">
-        <article>
-          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-            {post.authorName ?? "Unknown author"}
-          </p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            {post.title}
-          </h1>
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-            <RelativeDate value={post.publishedAt} />
-            {post.updatedAt ? (
-              <span>
-                Updated <RelativeDate value={post.updatedAt} />
-              </span>
-            ) : null}
-          </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            {post.category ? (
-              <Link
-                href={`/posts?category=${encodeURIComponent(post.category.slug)}`}
-                className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary dark:bg-sky-400/10 dark:text-sky-300"
-              >
-                {post.category.name}
-              </Link>
-            ) : null}
-            {post.tags.map((tag) => (
-              <Link
-                key={tag.id}
-                href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
-                className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
-              >
-                {tag.name}
-              </Link>
-            ))}
-          </div>
-          {post.summary ? (
-            <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-              {post.summary}
+      <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_13rem] lg:items-start lg:justify-center">
+          <article className="min-w-0">
+            <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+              {post.authorName ?? "Unknown author"}
             </p>
-          ) : null}
-
-          {renderedContentHtml ? (
-            <div
-              className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
-              dangerouslySetInnerHTML={{ __html: renderedContentHtml }}
-            />
-          ) : (
-            <div className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200">
-              <p>暂无内容。</p>
+            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+              {post.title}
+            </h1>
+            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+              <RelativeDate value={post.publishedAt} />
+              {post.updatedAt ? (
+                <span>
+                  Updated <RelativeDate value={post.updatedAt} />
+                </span>
+              ) : null}
             </div>
-          )}
-        </article>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {post.category ? (
+                <Link
+                  href={`/posts?category=${encodeURIComponent(post.category.slug)}`}
+                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                >
+                  {post.category.name}
+                </Link>
+              ) : null}
+              {post.tags.map((tag) => (
+                <Link
+                  key={tag.id}
+                  href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
+                  className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                >
+                  {tag.name}
+                </Link>
+              ))}
+            </div>
+            {post.summary ? (
+              <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+                {post.summary}
+              </p>
+            ) : null}
+
+            {renderedContentHtml ? (
+              <div
+                className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                dangerouslySetInnerHTML={{ __html: contentWithToc?.html ?? renderedContentHtml }}
+              />
+            ) : (
+              <div className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200">
+                <p>暂无内容。</p>
+              </div>
+            )}
+          </article>
+          <PostTableOfContents items={tocItems} />
+        </div>
       </main>
     );
   } catch (error) {

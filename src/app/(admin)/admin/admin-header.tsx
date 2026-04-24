@@ -142,7 +142,7 @@ export function AdminHeader() {
           }`}
         >
           <span>{siteConfig.name}</span>
-          <span className="hidden rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[0.68rem] font-medium uppercase tracking-[0.22em] text-primary dark:border-sky-300/20 dark:bg-sky-400/12 dark:text-sky-300 md:inline-flex">
+          <span className="hidden rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[0.68rem] font-medium uppercase tracking-[0.22em] text-primary md:inline-flex">
             Admin
           </span>
         </Link>

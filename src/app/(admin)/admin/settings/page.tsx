@@ -16,7 +16,7 @@ export default async function AdminSettingsPage() {
       <section className="grid gap-2">
         <Link
           href="/admin/settings/general"
-          className="grid gap-2 border-b border-zinc-200/80 py-5 text-left transition hover:text-primary dark:border-zinc-800/80 dark:hover:text-sky-300"
+          className="grid gap-2 border-b border-zinc-200/80 py-5 text-left transition hover:text-primary dark:border-zinc-800/80"
         >
           <span className="text-[0.68rem] font-medium uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
             Basic

@@ -181,7 +181,7 @@ async function PostsPageContent({
           <span>{activeFilters.join(" · ")}</span>
           <Link
             href="/posts"
-            className="font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
+            className="font-medium text-primary transition hover:opacity-80"
           >
             Clear
           </Link>
@@ -202,7 +202,7 @@ async function PostsPageContent({
                     href={buildPostsHref({ nextSort: option.value })}
                     className={`transition ${
                       isActive
-                        ? "text-primary dark:text-sky-300"
+                        ? "text-primary"
                         : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                     }`}
                   >
@@ -229,7 +229,7 @@ async function PostsPageContent({
                       {post.category ? (
                         <Link
                           href={buildPostsHref({ nextCategory: post.category.slug })}
-                          className="text-xs font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
+                          className="text-xs font-medium text-primary transition hover:opacity-80"
                         >
                           / {post.category.name}
                         </Link>
@@ -240,7 +240,7 @@ async function PostsPageContent({
                           href={buildPostsHref({
                             nextTags: Array.from(new Set([...selectedTags, item.slug])),
                           })}
-                          className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+                          className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
                         >
                           #{item.name}
                         </Link>
@@ -288,7 +288,7 @@ async function PostsPageContent({
                       href={buildPostsHref({ nextPage: item })}
                       className={`transition ${
                         item === safeCurrentPage
-                          ? "text-primary dark:text-sky-300"
+                          ? "text-primary"
                           : "hover:text-zinc-900 dark:hover:text-zinc-200"
                       }`}
                     >

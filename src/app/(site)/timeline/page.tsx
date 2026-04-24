@@ -116,8 +116,8 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
                   href={getTimelinePath({ type: item.value })}
                   className={`px-1 py-1 text-sm font-medium transition ${
                     active
-                      ? "text-primary dark:text-sky-300"
-                      : "text-zinc-500 hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300"
+                      ? "text-primary"
+                      : "text-zinc-500 hover:text-primary dark:text-zinc-400"
                   }`}
                 >
                   {item.label}
@@ -146,7 +146,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
       <ArchiveTimeline groups={groups} />
 
       <StaggerRevealItem className="mt-10 flex flex-col items-center gap-5" offset={22}>
-        <div className="h-px w-20 bg-gradient-to-r from-transparent via-primary/45 to-transparent dark:via-sky-300/45" />
+        <div className="h-px w-20 bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
         <SiteLogoMark
           siteName={siteName}
           caption="At the deepest point, time no longer moves forward. Here lies the very first, gently fallen stroke."

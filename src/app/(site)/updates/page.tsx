@@ -150,7 +150,7 @@ async function UpdatesPageContent({
                 href={buildUpdatesHref({ nextSort: option.value })}
                 className={`transition ${
                   isActive
-                    ? "text-primary dark:text-sky-300"
+                    ? "text-primary"
                     : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
                 }`}
               >
@@ -177,7 +177,7 @@ async function UpdatesPageContent({
                   <StaggerRevealItem key={item.id}>
                     <article
                       id={`update-${item.id}`}
-                      className="group grid gap-4 border-b border-zinc-200/80 py-6 transition last:border-b-0 hover:bg-zinc-50/50 dark:border-zinc-800/80 dark:hover:bg-zinc-900/30 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
+                      className="grid gap-4 border-b border-zinc-200/80 py-6 last:border-b-0 dark:border-zinc-800/80 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
                     >
                       <div className="min-w-[4.5rem]">
                         <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
@@ -189,7 +189,7 @@ async function UpdatesPageContent({
                       </div>
 
                       <div>
-                        <p className="reading-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
+                        <p className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
                           {getContentPreview(item.contentHtml, item.content)}
                         </p>
                         <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
@@ -238,7 +238,7 @@ async function UpdatesPageContent({
                   href={buildUpdatesHref({ nextPage: item })}
                   className={`transition ${
                     item === safeCurrentPage
-                      ? "text-primary dark:text-sky-300"
+                      ? "text-primary"
                       : "hover:text-zinc-900 dark:hover:text-zinc-200"
                   }`}
                 >

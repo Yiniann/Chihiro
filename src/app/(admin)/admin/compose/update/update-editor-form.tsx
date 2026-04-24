@@ -241,7 +241,7 @@ function PublishButton({ isPublished }: { isPublished: boolean }) {
       name="intent"
       value="publish"
       disabled={pending}
-      className="inline-flex h-10 w-full items-center justify-center px-1 text-[0.98rem] font-semibold text-primary underline decoration-1 underline-offset-4 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 dark:text-sky-300 sm:w-auto"
+      className="inline-flex h-10 w-full items-center justify-center px-1 text-[0.98rem] font-semibold text-primary underline decoration-1 underline-offset-4 transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
     >
       {pending ? "发布中..." : isPublished ? "更新并发布" : "发布动态"}
     </button>
@@ -268,7 +268,7 @@ function PreviewButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-10 w-full items-center justify-center px-1 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 dark:hover:text-sky-300 sm:w-auto"
+      className="inline-flex h-10 w-full items-center justify-center px-1 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400 sm:w-auto"
     >
       预览
     </button>

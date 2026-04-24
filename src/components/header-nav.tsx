@@ -86,7 +86,7 @@ export function HeaderNav({
             {active && deferredIsScrolled ? (
               <motion.span
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full border border-primary/25 bg-primary/10 shadow-sm dark:border-sky-300/15 dark:bg-sky-400/10 dark:shadow-[0_0_0_1px_rgba(125,211,252,0.05),0_12px_28px_rgba(2,6,23,0.42)]"
+                className="absolute inset-0 rounded-full border border-primary/25 bg-primary/10 shadow-sm dark:shadow-[0_0_0_1px_rgb(var(--primary-rgb)/0.05),0_12px_28px_rgba(2,6,23,0.42)]"
                 {...indicatorMotion}
               />
             ) : null}

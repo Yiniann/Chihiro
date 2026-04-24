@@ -80,7 +80,7 @@ export default async function InstallPage() {
       <div className="mt-8 flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
         <Link
           href="/"
-          className="font-medium text-primary transition hover:opacity-80 dark:text-sky-300"
+          className="font-medium text-primary transition hover:opacity-80"
         >
           返回站点
         </Link>

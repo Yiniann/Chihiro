@@ -34,7 +34,7 @@ export function WorkbenchCategoryPanel({ postCategories }: WorkbenchCategoryPane
                   <div className="flex flex-wrap items-center gap-2">
                     <Link
                       href={`/admin/categories/${item.id}`}
-                      className="text-sm font-medium text-zinc-950 transition hover:text-primary dark:text-zinc-50 dark:hover:text-sky-300"
+                      className="text-sm font-medium text-zinc-950 transition hover:text-primary dark:text-zinc-50"
                     >
                       {item.name}
                     </Link>
