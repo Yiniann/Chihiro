@@ -24,9 +24,12 @@ type InstallFormProps = {
   needsAdminSetup: boolean;
 };
 
+type SiteDefaults = InstallFormProps["defaults"];
+
 export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
   const [state, formAction] = useActionState(initializeSiteAction, initialState);
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [siteFields, setSiteFields] = useState<SiteDefaults>(defaults);
   const steps = useMemo(
     () => [
       {
@@ -54,9 +57,26 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
   );
 
   const currentStep = steps.find((item) => item.id === step)!;
+  const updateSiteField = (name: keyof SiteDefaults, value: string) => {
+    setSiteFields((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  };
+  const siteFieldProps = (name: keyof SiteDefaults) => ({
+    name,
+    value: siteFields[name],
+    onChange: (value: string) => updateSiteField(name, value),
+  });
 
   return (
     <form action={formAction} className="grid gap-10">
+      {step !== 2
+        ? Object.entries(siteFields).map(([name, value]) => (
+            <input key={name} type="hidden" name={name} value={value} />
+          ))
+        : null}
+
       <section className="grid gap-6">
         <div className="grid gap-3 sm:grid-cols-3">
           {steps.map((item) => {
@@ -123,19 +143,19 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
       {step === 2 ? (
         <section className="grid gap-5 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
           <div className="grid gap-5 md:grid-cols-2">
-            <Field label="站点名称" name="siteName" defaultValue={defaults.siteName} required />
-            <Field label="作者名称" name="authorName" defaultValue={defaults.authorName} required />
-            <Field label="站点地址" name="siteUrl" defaultValue={defaults.siteUrl} required />
-            <Field label="语言" name="locale" defaultValue={defaults.locale} />
-            <Field label="作者头像" name="authorAvatarUrl" defaultValue={defaults.authorAvatarUrl} />
-            <Field label="邮箱" name="email" defaultValue={defaults.email} />
-            <Field label="GitHub" name="githubUrl" defaultValue={defaults.githubUrl} />
-            <Field label="站点简介" name="siteDescription" defaultValue={defaults.siteDescription} required />
+            <Field label="站点名称" {...siteFieldProps("siteName")} required />
+            <Field label="作者名称" {...siteFieldProps("authorName")} required />
+            <Field label="站点地址" {...siteFieldProps("siteUrl")} required />
+            <Field label="语言" {...siteFieldProps("locale")} />
+            <Field label="作者头像" {...siteFieldProps("authorAvatarUrl")} />
+            <Field label="邮箱" {...siteFieldProps("email")} />
+            <Field label="GitHub" {...siteFieldProps("githubUrl")} />
+            <Field label="站点简介" {...siteFieldProps("siteDescription")} required />
           </div>
 
-          <FieldArea label="首页介绍" name="heroIntro" defaultValue={defaults.heroIntro} />
-          <FieldArea label="首页摘要" name="summary" defaultValue={defaults.summary} />
-          <FieldArea label="站点格言" name="motto" defaultValue={defaults.motto} />
+          <FieldArea label="首页介绍" {...siteFieldProps("heroIntro")} />
+          <FieldArea label="首页摘要" {...siteFieldProps("summary")} />
+          <FieldArea label="站点格言" {...siteFieldProps("motto")} />
         </section>
       ) : null}
 
@@ -222,12 +242,16 @@ function Field({
   label,
   name,
   defaultValue,
+  value,
+  onChange,
   type = "text",
   required = false,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
   type?: string;
   required?: boolean;
 }) {
@@ -238,7 +262,9 @@ function Field({
         type={type}
         name={name}
         required={required}
-        defaultValue={defaultValue}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        value={value}
+        onChange={(event) => onChange?.(event.target.value)}
         className="h-12 rounded-2xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100 dark:placeholder:text-zinc-500"
       />
     </label>
@@ -249,10 +275,14 @@ function FieldArea({
   label,
   name,
   defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
   defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
 }) {
   return (
     <label className="grid gap-2">
@@ -260,7 +290,9 @@ function FieldArea({
       <textarea
         name={name}
         rows={4}
-        defaultValue={defaultValue}
+        defaultValue={value === undefined ? defaultValue : undefined}
+        value={value}
+        onChange={(event) => onChange?.(event.target.value)}
         className="min-h-28 rounded-[1.5rem] border border-zinc-200/80 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100 dark:placeholder:text-zinc-500"
       />
     </label>

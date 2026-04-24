@@ -11,6 +11,7 @@ import { WorkbenchContentSwitcher } from "@/app/(admin)/admin/workbench/workbenc
 import { PostActionMenu } from "@/app/(admin)/admin/workbench/post-action-menu";
 import { UpdateActionMenu } from "@/app/(admin)/admin/workbench/update-action-menu";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
+import { getContentText } from "@/lib/content";
 import { ChevronRight } from "lucide-react";
 
 type WorkbenchSearchParams = Promise<{
@@ -225,25 +226,7 @@ function UpdateListPanel({
 }
 
 function getUpdatePreviewText(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
-  if (typeof item.content === "string") {
-    return item.content.trim() || "空内容";
-  }
-
-  if (Array.isArray(item.content)) {
-    const text = item.content
-      .filter((part): part is string => typeof part === "string")
-      .map((part) => part.trim())
-      .filter(Boolean)
-      .join("\n");
-
-    return text || "空内容";
-  }
-
-  if (item.content && typeof item.content === "object") {
-    return JSON.stringify(item.content);
-  }
-
-  return item.contentHtml?.trim() || "空内容";
+  return getContentText(item.contentHtml, item.content) || "空内容";
 }
 
 function formatUpdateTime(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {

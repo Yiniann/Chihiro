@@ -4,14 +4,17 @@ const footerFeedLinks = [
   {
     href: "/rss.xml",
     label: "RSS",
-  },
-  {
-    href: "/more",
-    label: "Subscribe",
+    openInNewTab: true,
   },
   {
     href: "/sitemap.xml",
     label: "Sitemap",
+    openInNewTab: true,
+  },
+  {
+    href: "/more",
+    label: "Subscribe",
+    openInNewTab: false,
   },
 ] as const;
 
@@ -82,18 +85,38 @@ export function SiteFooter({
                 Follow
               </p>
               <div className="mt-4 grid gap-3">
-                {footerFeedLinks.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="group inline-flex w-fit items-center gap-3 text-sm text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
-                  >
-                    <span>{item.label}</span>
-                    <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-700 dark:group-hover:text-zinc-400">
-                      /
-                    </span>
-                  </Link>
-                ))}
+                {footerFeedLinks.map((item) => {
+                  const className =
+                    "group inline-flex w-fit items-center gap-3 text-sm text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100";
+                  const content = (
+                    <>
+                      <span>{item.label}</span>
+                      <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-700 dark:group-hover:text-zinc-400">
+                        /
+                      </span>
+                    </>
+                  );
+
+                  if (item.openInNewTab) {
+                    return (
+                      <a
+                        key={item.href}
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={className}
+                      >
+                        {content}
+                      </a>
+                    );
+                  }
+
+                  return (
+                    <Link key={item.href} href={item.href} className={className}>
+                      {content}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 

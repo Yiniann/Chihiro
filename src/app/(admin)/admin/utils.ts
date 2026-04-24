@@ -1,4 +1,5 @@
 import { ContentStatus } from "@prisma/client";
+import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import type { PostItem } from "@/server/repositories/posts";
 import type { UpdateItem } from "@/server/repositories/updates";
@@ -71,6 +72,32 @@ export function formatAdminDateTime(value: string | null) {
   }).format(date);
 }
 
+export function formatAdminNumber(value: number) {
+  return new Intl.NumberFormat("zh-CN").format(value);
+}
+
+export function getContentWordCount(posts: PostItem[], updates: UpdateItem[]) {
+  return [...posts, ...updates].reduce((total, item) => {
+    const text = getContentText(item.contentHtml, item.content);
+    return total + countTextUnits(text);
+  }, 0);
+}
+
+export function getSiteRuntimeDays(startedAt: string | null) {
+  if (!startedAt) {
+    return null;
+  }
+
+  const startTime = new Date(startedAt).getTime();
+
+  if (Number.isNaN(startTime)) {
+    return null;
+  }
+
+  const elapsedDays = Math.floor((Date.now() - startTime) / 86_400_000);
+  return Math.max(1, elapsedDays + 1);
+}
+
 export function getPublishedCount(posts: PostItem[], updates: UpdateItem[]) {
   return (
     posts.filter((item) => item.status === ContentStatus.PUBLISHED).length +
@@ -119,4 +146,12 @@ export function getDraftUpdates(updates: UpdateItem[]) {
   return updates
     .filter((item) => item.status === ContentStatus.DRAFT)
     .sort((left, right) => compareAdminDates(right.updatedAt, left.updatedAt));
+}
+
+function countTextUnits(value: string) {
+  const hanCharacters = value.match(/[\u3400-\u9fff\uf900-\ufaff]/g)?.length ?? 0;
+  const nonHanText = value.replace(/[\u3400-\u9fff\uf900-\ufaff]/g, " ");
+  const latinWords = nonHanText.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g)?.length ?? 0;
+
+  return hanCharacters + latinWords;
 }

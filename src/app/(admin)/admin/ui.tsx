@@ -56,17 +56,17 @@ export function StatCard({
 }) {
   const toneClassName =
     tone === "success"
-      ? "border-emerald-200/70 bg-emerald-50/55 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/20 dark:text-emerald-300"
+      ? "text-emerald-700 dark:text-emerald-300"
       : tone === "muted"
-        ? "border-amber-200/70 bg-amber-50/55 text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/20 dark:text-amber-300"
+        ? "text-amber-700 dark:text-amber-300"
         : tone === "neutral"
-          ? "border-sky-200/70 bg-sky-50/55 text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/20 dark:text-sky-300"
-          : "border-zinc-200/80 bg-zinc-50/55 text-zinc-700 dark:border-zinc-800/80 dark:bg-zinc-900/55 dark:text-zinc-200";
+          ? "text-sky-700 dark:text-sky-300"
+          : "text-zinc-950 dark:text-zinc-100";
 
   return (
-    <div className={`border p-4 ${toneClassName}`}>
-      <p className="text-xs font-medium uppercase tracking-[0.18em] opacity-70">{label}</p>
-      <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+    <div className="min-w-0 py-1">
+      <p className={`text-3xl font-semibold tracking-tight ${toneClassName}`}>{value}</p>
+      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{label}</p>
     </div>
   );
 }

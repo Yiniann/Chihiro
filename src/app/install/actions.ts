@@ -55,6 +55,30 @@ export async function initializeSiteAction(
   const email = getOptionalString(formData, "email");
   const githubUrl = getOptionalUrl(formData, "githubUrl");
 
+  if (!siteName) {
+    return {
+      error: "请填写站点名称。",
+    };
+  }
+
+  if (!authorName) {
+    return {
+      error: "请填写作者名称。",
+    };
+  }
+
+  if (!siteDescription) {
+    return {
+      error: "请填写站点简介。",
+    };
+  }
+
+  if (!siteUrl) {
+    return {
+      error: "请填写有效的站点地址。",
+    };
+  }
+
   let createdAdminId: string | null = null;
 
   try {

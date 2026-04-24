@@ -40,6 +40,19 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
   };
 }
 
+export async function getSiteCreatedAt(): Promise<string | null> {
+  const settings = await prisma.siteSettings.findUnique({
+    where: {
+      id: "default",
+    },
+    select: {
+      createdAt: true,
+    },
+  });
+
+  return settings?.createdAt.toISOString() ?? null;
+}
+
 export async function upsertSiteSettings(input: SiteSettingsRecord) {
   return prisma.siteSettings.upsert({
     where: {
