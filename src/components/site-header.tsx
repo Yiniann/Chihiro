@@ -629,14 +629,31 @@ export function SiteHeader({
 }
 
 function HeaderUserAvatar({ author, src }: { author: string; src?: string | null }) {
+  const [showFallback, setShowFallback] = useState(!src);
   const initial = author.trim().charAt(0).toUpperCase() || "?";
+  const isRemoteAvatar = src ? /^https?:\/\//i.test(src) : false;
 
-  if (!src) {
+  if (showFallback || !src) {
     return (
       <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 via-zinc-100 to-white text-sm font-semibold text-zinc-500 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-950 dark:text-zinc-300">
         <span aria-hidden="true">{initial}</span>
         <span className="sr-only">{author} avatar placeholder</span>
       </span>
+    );
+  }
+
+  if (isRemoteAvatar) {
+    return (
+      <>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={`${author} avatar`}
+          className="h-full w-full object-cover"
+          onError={() => setShowFallback(true)}
+        />
+        <span className="sr-only">{author}</span>
+      </>
     );
   }
 
@@ -648,6 +665,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
         width={40}
         height={40}
         className="h-full w-full object-cover"
+        onError={() => setShowFallback(true)}
       />
       <span className="sr-only">{author}</span>
     </>

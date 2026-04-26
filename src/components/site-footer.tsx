@@ -32,7 +32,7 @@ export function SiteFooter({
   githubUrl: string;
 }) {
   const currentYear = new Date().getFullYear();
-  const mottoLines = splitFooterMotto(motto);
+  const mottoLines = getFooterMottoLines(motto);
   const footerContactLinks = [
     {
       href: `mailto:${email}`,
@@ -68,14 +68,11 @@ export function SiteFooter({
             </div>
 
             <p className="mt-2 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-              {mottoLines ? (
-                <>
-                  <span className="lg:block">{mottoLines[0]}</span>
-                  <span className="lg:block">{mottoLines[1]}</span>
-                </>
-              ) : (
-                motto
-              )}
+              {mottoLines.map((line, index) => (
+                <span key={`${line}-${index}`} className="block">
+                  {line}
+                </span>
+              ))}
             </p>
           </div>
 
@@ -162,16 +159,9 @@ export function SiteFooter({
   );
 }
 
-function splitFooterMotto(motto: string) {
-  const breakMarker = " makes your rose so important.";
-  const breakIndex = motto.indexOf(breakMarker);
-
-  if (breakIndex < 0) {
-    return null;
-  }
-
-  return [
-    motto.slice(0, breakIndex).trimEnd(),
-    motto.slice(breakIndex + 1).trimStart(),
-  ] as const;
+function getFooterMottoLines(motto: string) {
+  return motto
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
 }

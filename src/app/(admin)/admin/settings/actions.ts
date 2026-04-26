@@ -25,6 +25,7 @@ export async function saveGeneralSettingsAction(
     : getRequiredUrl(formData, "siteUrl", "站点地址");
   const email = getOptionalEmail(formData, "email", "邮箱");
   const githubUrl = getOptionalUrl(formData, "githubUrl", "GitHub");
+  const authorAvatarUrl = getOptionalImageSource(formData, "authorAvatarUrl", "作者头像");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
@@ -43,7 +44,7 @@ export async function saveGeneralSettingsAction(
       siteUrl,
       locale: currentSettings?.locale ?? siteConfig.locale,
       authorName,
-      authorAvatarUrl: currentSettings?.authorAvatarUrl ?? siteConfig.avatar,
+      authorAvatarUrl,
       heroIntro,
       summary,
       motto,
@@ -116,6 +117,30 @@ function getOptionalUrl(formData: FormData, key: string, label: string) {
   }
 
   return parseUrl(value, label);
+}
+
+function getOptionalImageSource(formData: FormData, key: string, label: string) {
+  const value = getOptionalString(formData, key);
+
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith("/") && !value.startsWith("//")) {
+    return value;
+  }
+
+  try {
+    const url = new URL(value);
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString().replace(/\/$/, "");
+    }
+  } catch {
+    // Fall through to the shared validation message below.
+  }
+
+  throw new Error(`请填写有效的${label}。`);
 }
 
 function getOptionalEmail(formData: FormData, key: string, label: string) {

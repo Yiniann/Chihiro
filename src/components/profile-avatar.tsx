@@ -20,6 +20,7 @@ function getInitial(author: string) {
 
 export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
   const [showFallback, setShowFallback] = useState(!src);
+  const isRemoteAvatar = src ? /^https?:\/\//i.test(src) : false;
 
   if (showFallback || !src) {
     return (
@@ -27,6 +28,18 @@ export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
         <span aria-hidden="true">{getInitial(author)}</span>
         <span className="sr-only">{author} avatar placeholder</span>
       </div>
+    );
+  }
+
+  if (isRemoteAvatar) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={`${author} avatar`}
+        className="h-full w-full object-cover"
+        onError={() => setShowFallback(true)}
+      />
     );
   }
 

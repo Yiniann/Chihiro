@@ -48,7 +48,7 @@ export async function initializeSiteAction(
   const siteUrl = getValidatedUrl(getRequiredString(formData, "siteUrl"));
   const locale = getOptionalString(formData, "locale") || siteConfig.locale;
   const authorName = getRequiredString(formData, "authorName");
-  const authorAvatarUrl = getOptionalUrl(formData, "authorAvatarUrl");
+  const authorAvatarUrl = getOptionalImageSource(formData, "authorAvatarUrl");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
@@ -185,7 +185,37 @@ function getOptionalUrl(formData: FormData, key: string) {
   }
 
   try {
-    return new URL(value).toString().replace(/\/$/, "");
+    const url = new URL(value);
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString().replace(/\/$/, "");
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function getOptionalImageSource(formData: FormData, key: string) {
+  const value = getOptionalString(formData, key);
+
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith("/") && !value.startsWith("//")) {
+    return value;
+  }
+
+  try {
+    const url = new URL(value);
+
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return url.toString().replace(/\/$/, "");
+    }
+
+    return null;
   } catch {
     return null;
   }

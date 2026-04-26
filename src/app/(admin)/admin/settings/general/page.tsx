@@ -10,6 +10,7 @@ export default async function AdminGeneralSettingsPage() {
   const defaults = {
     siteName: siteSettings?.siteName ?? siteConfig.name,
     authorName: siteSettings?.authorName ?? siteConfig.author,
+    authorAvatarUrl: siteSettings?.authorAvatarUrl ?? siteConfig.avatar,
     siteUrl: resolveCanonicalSiteUrl(siteSettings),
     email: siteSettings?.email ?? siteConfig.email,
     githubUrl: siteSettings?.githubUrl ?? siteConfig.github,

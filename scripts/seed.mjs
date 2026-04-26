@@ -26,7 +26,7 @@ const siteSettings = {
     "Hi, I'm {author}, an interest-driven `<Developer />`\n**builder and writer** exploring products, technology, and personal expression.",
   summary:
     "This is where I share projects, experiments, and reflections on building, learning, and the things that keep me curious.",
-  motto: "It is the time you have wasted for your rose makes your rose so important.",
+  motto: "It is the time you have wasted for your rose\nmakes your rose so important.",
   email: "i@xiamii.com",
   githubUrl: "https://github.com/Yiniann",
 };

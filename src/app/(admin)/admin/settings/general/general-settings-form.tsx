@@ -17,6 +17,7 @@ type GeneralSettingsFormProps = {
   defaults: {
     siteName: string;
     authorName: string;
+    authorAvatarUrl: string;
     siteUrl: string;
     email: string;
     githubUrl: string;
@@ -58,6 +59,19 @@ export function GeneralSettingsForm({ defaults, siteUrlLocked }: GeneralSettings
             defaultValue={defaults.authorName}
             className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
             placeholder="输入作者名称"
+          />
+        </label>
+
+        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            作者头像
+          </span>
+          <input
+            name="authorAvatarUrl"
+            type="text"
+            defaultValue={defaults.authorAvatarUrl}
+            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+            placeholder="/avatar.png 或 https://example.com/avatar.png"
           />
         </label>
 
@@ -130,7 +144,7 @@ export function GeneralSettingsForm({ defaults, siteUrlLocked }: GeneralSettings
               rows={4}
               defaultValue={defaults.motto}
               className="min-h-32 bg-transparent px-0 py-1 text-base leading-8 text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-              placeholder="写一句会出现在站点里的短句"
+              placeholder="写一句会出现在站点里的短句；需要分行时直接换行"
             />
           </label>
         </div>
