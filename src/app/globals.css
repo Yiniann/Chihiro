@@ -673,7 +673,7 @@ html[data-theme="dark"] .reading-copy hr {
   }
 
   to {
-    width: 13ch;
+    width: calc(var(--hero-typewriter-steps, 13) * 1ch + var(--hero-typewriter-edge, 0.28ch));
   }
 }
 
@@ -695,7 +695,7 @@ html[data-theme="dark"] .reading-copy hr {
   }
 
   to {
-    left: calc(100% - 0.08em);
+    left: calc(100% - var(--hero-typewriter-edge, 0.28ch));
   }
 }
 
@@ -724,6 +724,7 @@ html[data-theme="dark"] .reading-copy hr {
 }
 
 .hero-copy-typewriter {
+  --hero-typewriter-edge: 0.28ch;
   position: relative;
   display: inline-grid;
   vertical-align: baseline;
@@ -758,7 +759,7 @@ html[data-theme="dark"] .reading-copy hr {
   bottom: -0.02em;
   color: rgb(var(--primary-rgb) / 0.9);
   animation:
-    hero-caret-track 1.35s steps(13, end) 0.95s forwards,
+    hero-caret-track 1.35s steps(var(--hero-typewriter-steps, 13), end) 0.95s forwards,
     hero-caret-blink 900ms step-end 0.95s infinite;
 }
 
