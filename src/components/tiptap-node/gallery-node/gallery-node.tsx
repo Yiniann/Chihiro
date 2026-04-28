@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react"
+import { NodeSelection } from "@tiptap/pm/state"
 import type { Node as PMNode } from "@tiptap/pm/model"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
@@ -14,7 +15,6 @@ import type { GalleryImage } from "@/components/tiptap-node/gallery-node/gallery
 import { CloseIcon } from "@/components/tiptap-icons/close-icon"
 import { Button } from "@/components/tiptap-ui-primitive/button"
 import {
-  DropZoneContent,
   ImageUploadDragArea,
 } from "@/components/tiptap-node/image-upload-node/image-upload-node"
 import type { UploadFunction } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
@@ -101,6 +101,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null)
+  const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false)
 
   const images = normalizeImages(props.node.attrs.images)
   const options = props.extension.options as {
@@ -121,7 +122,9 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   const remainingSlots = limit > 0 ? Math.max(limit - images.length, 0) : null
   const canAddMore = remainingSlots === null || remainingSlots > 0
   const isSelected = props.selected
+  const hasInlineAddTile = isSelected && images.length > 0 && canAddMore
   const isSingleImage = images.length === 1
+  const useSingleImageLayout = isSingleImage && !hasInlineAddTile
 
   useEffect(() => {
     if (!isSelected) {
@@ -144,7 +147,33 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
     }
   }, [activeImageIndex, images.length])
 
-  const updateImages = (nextImages: GalleryImage[]) => {
+  useEffect(() => {
+    if (!shouldScrollToEnd) {
+      return
+    }
+
+    const track = wrapperRef.current?.querySelector<HTMLElement>(".content-gallery__track")
+
+    if (!track) {
+      setShouldScrollToEnd(false)
+      return
+    }
+
+    requestAnimationFrame(() => {
+      track.scrollTo({
+        left: track.scrollWidth,
+        behavior: "smooth",
+      })
+      setShouldScrollToEnd(false)
+    })
+  }, [images.length, shouldScrollToEnd])
+
+  const updateImages = (
+    nextImages: GalleryImage[],
+    options?: {
+      preserveGallerySelection?: boolean
+    }
+  ) => {
     const pos = props.getPos()
 
     if (typeof pos !== "number") {
@@ -157,9 +186,10 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
       return false
     }
 
+    const preserveGallerySelection = options?.preserveGallerySelection ?? false
+
     return props.editor
       .chain()
-      .focus()
       .command(({ tr }) => {
         if (nextImages.length === 0) {
           tr.deleteRange(pos, pos + currentNode.nodeSize)
@@ -170,13 +200,23 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
           ...currentNode.attrs,
           images: nextImages,
         })
+
+        if (preserveGallerySelection) {
+          tr.setSelection(NodeSelection.create(tr.doc, pos))
+        }
+
         return true
       })
       .run()
   }
 
-  const appendImages = (nextImages: GalleryImage[]) => {
-    return updateImages([...images, ...nextImages])
+  const appendImages = (
+    nextImages: GalleryImage[],
+    options?: {
+      preserveGallerySelection?: boolean
+    }
+  ) => {
+    return updateImages([...images, ...nextImages], options)
   }
 
   const removeImageAt = (index: number) => {
@@ -231,6 +271,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
     if (success) {
       setImageUrl("")
       setImageUrlError(null)
+      setShouldScrollToEnd(true)
     }
   }
 
@@ -287,7 +328,14 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
       ).filter((image): image is Exclude<PendingGalleryImage, null> => image !== null)
 
       if (uploadedImages.length > 0) {
-        appendImages(uploadedImages)
+        const success = appendImages(uploadedImages, {
+          preserveGallerySelection: true,
+        })
+
+        if (success) {
+          setShouldScrollToEnd(true)
+          props.editor.view.focus()
+        }
       }
     } finally {
       setIsUploading(false)
@@ -300,7 +348,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   return (
     <NodeViewWrapper
       ref={wrapperRef}
-      className={`content-gallery content-gallery--editor${isSingleImage ? " content-gallery--single" : ""}`}
+      className={`content-gallery content-gallery--editor${useSingleImageLayout ? " content-gallery--single" : ""}`}
       data-type="gallery"
       data-gallery-root="true"
       data-image-viewer-disabled="true"
@@ -321,6 +369,10 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
           return
         }
 
+        if (target.closest(".content-gallery__add-tile")) {
+          return
+        }
+
         setActiveImageIndex(null)
       }}
       onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) => {
@@ -337,8 +389,17 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
         removeImageAt(activeImageIndex)
       }}
     >
+      {isSelected && images.length > 0 ? (
+        <div className="content-gallery__inline-header">
+          <p className="content-gallery__inline-label">图册</p>
+          <div className="content-gallery__inline-meta">
+            <span>{images.length} / {limit} 张</span>
+          </div>
+        </div>
+      ) : null}
+
       <div
-        className={`content-gallery__track${isSingleImage ? " content-gallery__track--single" : ""}`}
+        className={`content-gallery__track${useSingleImageLayout ? " content-gallery__track--single" : ""}`}
       >
         {images.map((image, index) => (
           <figure
@@ -382,6 +443,63 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
             />
           </figure>
         ))}
+
+        {hasInlineAddTile ? (
+          <ImageUploadDragArea
+            onFile={(files) => {
+              if (isUploading) {
+                return
+              }
+
+              void handleFiles(files)
+            }}
+          >
+            <div
+              className={`content-gallery__add-tile${isUploading ? " content-gallery__add-tile--uploading" : ""}`}
+              role="button"
+              tabIndex={0}
+              aria-label={isUploading ? "上传中" : "继续添加图片到图册"}
+              aria-busy={isUploading}
+              aria-disabled={isUploading}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                if (isUploading) {
+                  return
+                }
+
+                inputRef.current?.click()
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") {
+                  return
+                }
+
+                event.preventDefault()
+                event.stopPropagation()
+
+                if (isUploading) {
+                  return
+                }
+
+                inputRef.current?.click()
+              }}
+            >
+              <div className="content-gallery__add-tile-plus" aria-hidden="true">
+                {isUploading ? <span className="content-gallery__add-tile-spinner" /> : "+"}
+              </div>
+              <div className="content-gallery__add-tile-copy">
+                <strong>{isUploading ? "上传中…" : "继续添加"}</strong>
+                <span>
+                  {isUploading
+                    ? "正在添加图片到当前图册"
+                    : `还可添加 ${remainingSlots ?? "多"} 张`}
+                </span>
+              </div>
+            </div>
+          </ImageUploadDragArea>
+        ) : null}
       </div>
 
       {isSelected ? (
@@ -389,53 +507,67 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
           className="content-gallery__add-panel tiptap-image-upload"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className="tiptap-image-upload-empty">
-            <ImageUploadDragArea
-              onFile={(files) => {
-                if (!canAddMore || isUploading) {
-                  return
-                }
-
-                void handleFiles(files)
-              }}
-            >
-              <div
-                className="content-gallery__upload-surface"
-                role="button"
-                tabIndex={0}
-                aria-label={isUploading ? "上传中" : "添加图片到图册"}
-                onClick={(event) => {
-                  event.preventDefault()
-                  event.stopPropagation()
-
+          <div className={`tiptap-image-upload-empty content-gallery__panel-body${images.length > 0 ? " content-gallery__panel-body--compact" : ""}`}>
+            {images.length === 0 ? (
+              <ImageUploadDragArea
+                onFile={(files) => {
                   if (!canAddMore || isUploading) {
                     return
                   }
 
-                  inputRef.current?.click()
-                }}
-                onKeyDown={(event) => {
-                  if (event.key !== "Enter" && event.key !== " ") {
-                    return
-                  }
-
-                  event.preventDefault()
-                  event.stopPropagation()
-
-                  if (!canAddMore || isUploading) {
-                    return
-                  }
-
-                  inputRef.current?.click()
+                  void handleFiles(files)
                 }}
               >
-                <DropZoneContent maxSize={maxSize} limit={remainingSlots ?? limit} />
-              </div>
-            </ImageUploadDragArea>
+                <div
+                  className={`content-gallery__add-tile${isUploading ? " content-gallery__add-tile--uploading" : ""}`}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={isUploading ? "上传中" : "添加图片到图册"}
+                  aria-busy={isUploading}
+                  aria-disabled={isUploading}
+                  onClick={(event) => {
+                    event.preventDefault()
+                    event.stopPropagation()
+
+                    if (!canAddMore || isUploading) {
+                      return
+                    }
+
+                    inputRef.current?.click()
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" && event.key !== " ") {
+                      return
+                    }
+
+                    event.preventDefault()
+                    event.stopPropagation()
+
+                    if (!canAddMore || isUploading) {
+                      return
+                    }
+
+                    inputRef.current?.click()
+                  }}
+                >
+                  <div className="content-gallery__add-tile-plus" aria-hidden="true">
+                    {isUploading ? <span className="content-gallery__add-tile-spinner" /> : "+"}
+                  </div>
+                  <div className="content-gallery__add-tile-copy">
+                    <strong>{isUploading ? "上传中…" : "继续添加"}</strong>
+                    <span>
+                      {isUploading
+                        ? "正在添加图片到当前图册"
+                        : `还可添加 ${remainingSlots ?? "多"} 张`}
+                    </span>
+                  </div>
+                </div>
+              </ImageUploadDragArea>
+            ) : null}
 
             <div className="tiptap-image-upload-url">
               <div className="tiptap-image-upload-url-divider">
-                <span>或粘贴已上传图片 URL</span>
+                <span>{images.length > 0 ? "继续添加图片 URL" : "或粘贴已上传图片 URL"}</span>
               </div>
               <div className="tiptap-image-upload-url-row">
                 <input
@@ -454,6 +586,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                   onKeyDown={(event) => {
                     if (event.key === "Enter") {
                       event.preventDefault()
+                      event.stopPropagation()
                       handleImageUrlInsert()
                     }
                   }}

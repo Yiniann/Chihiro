@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
+import { NodeSelection } from "@tiptap/pm/state"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
 import type { GalleryImage } from "@/components/tiptap-node/gallery-node/gallery-node-extension"
@@ -409,30 +410,49 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
   )
 }
 
-export const DropZoneContent: React.FC<{ maxSize: number; limit: number }> = ({
-  maxSize,
-  limit,
-}) => (
-  <>
-    <div className="tiptap-image-upload-dropzone">
-      <FileIcon />
-      <FileCornerIcon />
-      <div className="tiptap-image-upload-icon-container">
-        <CloudUploadIcon />
-      </div>
-    </div>
+export const DropZoneContent: React.FC<{
+  maxSize: number
+  limit: number
+  variant?: "image" | "gallery"
+}> = ({ maxSize, limit, variant = "image" }) => {
+  const isGallery = variant === "gallery"
 
-    <div className="tiptap-image-upload-content">
-      <span className="tiptap-image-upload-text">
-        <em>Click to upload</em> or drag and drop
-      </span>
-      <span className="tiptap-image-upload-subtext">
-        Maximum {limit} file{limit === 1 ? "" : "s"}, {maxSize / 1024 / 1024}MB
-        each.
-      </span>
-    </div>
-  </>
-)
+  return (
+    <>
+      <div className="tiptap-image-upload-dropzone">
+        <FileIcon />
+        <FileCornerIcon />
+        <div className="tiptap-image-upload-icon-container">
+          <CloudUploadIcon />
+        </div>
+      </div>
+
+      <div className="tiptap-image-upload-content">
+        {isGallery ? (
+          <>
+            <span className="tiptap-image-upload-chip">Gallery Set</span>
+            <span className="tiptap-image-upload-text">
+              <em>选择多张图片</em>，开始建立一组图册
+            </span>
+            <span className="tiptap-image-upload-subtext">
+              最多 {limit} 张，每张不超过 {maxSize / 1024 / 1024}MB。
+            </span>
+          </>
+        ) : (
+          <>
+            <span className="tiptap-image-upload-text">
+              <em>Click to upload</em> or drag and drop
+            </span>
+            <span className="tiptap-image-upload-subtext">
+              Maximum {limit} file{limit === 1 ? "" : "s"}, {maxSize / 1024 / 1024}MB
+              each.
+            </span>
+          </>
+        )}
+      </div>
+    </>
+  )
+}
 
 export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { accept, limit, maxSize, outputType } = props.node.attrs
@@ -462,14 +482,33 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
       return false
     }
 
+    const shouldSelectInsertedGallery = outputType === "gallery"
+
     props.editor
       .chain()
       .focus()
       .deleteRange({ from: pos, to: pos + props.node.nodeSize })
       .insertContentAt(pos, nodes)
+      .command(({ tr }) => {
+        if (!shouldSelectInsertedGallery) {
+          return true
+        }
+
+        const insertedNode = tr.doc.nodeAt(pos)
+
+        if (insertedNode?.type.name !== "gallery") {
+          return true
+        }
+
+        tr.setSelection(NodeSelection.create(tr.doc, pos))
+        return true
+      })
       .run()
 
-    focusNextNode(props.editor)
+    if (!shouldSelectInsertedGallery) {
+      focusNextNode(props.editor)
+    }
+
     return true
   }
 
@@ -555,17 +594,50 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   }
 
   const hasFiles = fileItems.length > 0
+  const isGalleryUpload = outputType === "gallery"
+  const uploadTitle = isGalleryUpload ? "图册" : "图片"
+  const addTileDescription = "点击或者拖入图片添加"
+  const isTileUploading = fileItems.some((fileItem) => fileItem.status === "uploading")
+  const uploadingDescription = isGalleryUpload
+    ? "正在添加图片到当前图册"
+    : "正在上传图片"
 
   return (
     <NodeViewWrapper
-      className="tiptap-image-upload"
+      className={`tiptap-image-upload tiptap-image-upload--tile${isGalleryUpload ? " tiptap-image-upload--gallery" : ""}`}
       tabIndex={0}
       onClick={handleClick}
     >
-      {!hasFiles && (
+      {(!hasFiles || isGalleryUpload || isTileUploading) && (
         <div className="tiptap-image-upload-empty">
+          <div className="content-gallery__inline-header">
+            <p className="content-gallery__inline-label">{uploadTitle}</p>
+            <div className="content-gallery__inline-meta">
+              <span>0 / {limit} 张</span>
+            </div>
+          </div>
+
           <ImageUploadDragArea onFile={handleUpload}>
-            <DropZoneContent maxSize={maxSize} limit={limit} />
+            <div
+              className={`content-gallery__add-tile tiptap-image-upload-add-tile${isTileUploading ? " content-gallery__add-tile--uploading" : ""}`}
+              aria-busy={isTileUploading}
+            >
+              <div className="content-gallery__add-tile-plus" aria-hidden="true">
+                {isTileUploading ? (
+                  <span className="content-gallery__add-tile-spinner" />
+                ) : (
+                  "+"
+                )}
+              </div>
+              <div className="content-gallery__add-tile-copy">
+                <strong>{isTileUploading ? "上传中…" : "添加图片"}</strong>
+                <span>
+                  {isTileUploading
+                    ? uploadingDescription
+                    : addTileDescription}
+                </span>
+              </div>
+            </div>
           </ImageUploadDragArea>
 
           <div
@@ -573,7 +645,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="tiptap-image-upload-url-divider">
-              <span>或粘贴已上传图片 URL</span>
+              <span>{isGalleryUpload ? "或逐张粘贴图片 URL" : "或粘贴已上传图片 URL"}</span>
             </div>
             <div className="tiptap-image-upload-url-row">
               <input
@@ -610,7 +682,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
         </div>
       )}
 
-      {hasFiles && (
+      {hasFiles && !isGalleryUpload && !isTileUploading && (
         <div className="tiptap-image-upload-previews">
           {fileItems.length > 1 && (
             <div className="tiptap-image-upload-header">

@@ -21,6 +21,7 @@ function getInitial(author: string) {
 export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
   const [showFallback, setShowFallback] = useState(!src);
   const isRemoteAvatar = src ? /^https?:\/\//i.test(src) : false;
+  const isLocalAvatar = src ? src.startsWith("/") : false;
 
   if (showFallback || !src) {
     return (
@@ -31,7 +32,7 @@ export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
     );
   }
 
-  if (isRemoteAvatar) {
+  if (isRemoteAvatar || isLocalAvatar) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img

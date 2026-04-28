@@ -622,6 +622,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
   const [showFallback, setShowFallback] = useState(!src);
   const initial = author.trim().charAt(0).toUpperCase() || "?";
   const isRemoteAvatar = src ? /^https?:\/\//i.test(src) : false;
+  const isLocalAvatar = src ? src.startsWith("/") : false;
 
   if (showFallback || !src) {
     return (
@@ -632,7 +633,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
     );
   }
 
-  if (isRemoteAvatar) {
+  if (isRemoteAvatar || isLocalAvatar) {
     return (
       <>
         {/* eslint-disable-next-line @next/next/no-img-element */}

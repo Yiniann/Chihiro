@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type PointerEvent, type WheelEvent } from "react";
+import { createPortal } from "react-dom";
 
 type ViewerImage = {
   src: string;
@@ -20,7 +21,7 @@ type PanState = {
   offsetY: number;
 };
 
-const IMAGE_SELECTOR = ".reading-copy img, .simple-editor-content .tiptap.ProseMirror img";
+const CONTENT_SELECTOR = ".reading-copy, .simple-editor-content";
 const MIN_ZOOM = 0.25;
 const DEFAULT_ZOOM = 1;
 const MAX_ZOOM = 5;
@@ -29,6 +30,7 @@ const GALLERY_SELECTOR = "[data-gallery-root]";
 const IMAGE_VIEWER_DISABLED_SELECTOR = "[data-image-viewer-disabled]";
 
 export function ImageViewerController() {
+  const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
   const [viewer, setViewer] = useState<ViewerState | null>(null);
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -67,10 +69,23 @@ export function ImageViewerController() {
   );
 
   useEffect(() => {
+    setPortalTarget(document.body);
+  }, []);
+
+  useEffect(() => {
     const handleClick = (event: MouseEvent) => {
-      const image = (event.target as Element | null)?.closest<HTMLImageElement>(IMAGE_SELECTOR);
+      const target = event.target as Element | null;
+      const contentRoot = target?.closest<HTMLElement>(CONTENT_SELECTOR) ?? null;
+      const galleryRootFromTarget = target?.closest<HTMLElement>(GALLERY_SELECTOR) ?? null;
+      const image =
+        target?.closest<HTMLImageElement>("img") ??
+        target
+          ?.closest<HTMLElement>("[data-gallery-item]")
+          ?.querySelector<HTMLImageElement>("img") ??
+        target?.closest<HTMLElement>("figure")?.querySelector<HTMLImageElement>("img");
 
       if (
+        (!contentRoot && !galleryRootFromTarget) ||
         !image?.src ||
         image.closest("[data-image-viewer]") ||
         image.closest(IMAGE_VIEWER_DISABLED_SELECTOR)
@@ -79,15 +94,23 @@ export function ImageViewerController() {
       }
 
       const galleryRoot = image.closest<HTMLElement>(GALLERY_SELECTOR);
-      const imageScope = galleryRoot ?? image.closest<HTMLElement>(".reading-copy, .simple-editor-content");
-      const imageElements = Array.from(
-        imageScope?.querySelectorAll<HTMLImageElement>(IMAGE_SELECTOR) ?? [image],
-      ).filter((item) => Boolean(item.src));
+      const imageElements = galleryRoot
+        ? Array.from(galleryRoot.querySelectorAll<HTMLImageElement>("img")).filter(
+            (item) =>
+              Boolean(item.src) &&
+              !item.closest("[data-image-viewer]") &&
+              !item.closest(IMAGE_VIEWER_DISABLED_SELECTOR),
+          )
+        : [image];
       const images = imageElements.map((item) => ({
         src: item.currentSrc || item.src,
         alt: item.alt || item.title || "图片",
       }));
-      const index = Math.max(0, imageElements.indexOf(image));
+      const index = Math.max(0, imageElements.includes(image) ? imageElements.indexOf(image) : 0);
+
+      if (images.length === 0) {
+        return;
+      }
 
       event.preventDefault();
       event.stopPropagation();
@@ -103,7 +126,7 @@ export function ImageViewerController() {
   }, [resetTransform]);
 
   useEffect(() => {
-    if (!viewer) {
+    if (!viewer || !currentImage) {
       return;
     }
 
@@ -147,7 +170,7 @@ export function ImageViewerController() {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "";
     };
-  }, [moveCurrentViewer, resetTransform, viewer, zoomBy]);
+  }, [currentImage, moveCurrentViewer, resetTransform, viewer, zoomBy]);
 
   const imageCounter = useMemo(() => {
     if (!viewer || viewer.images.length < 2) {
@@ -157,7 +180,7 @@ export function ImageViewerController() {
     return `${viewer.index + 1} / ${viewer.images.length}`;
   }, [viewer]);
 
-  if (!viewer || !currentImage) {
+  if (!viewer || !currentImage || !portalTarget) {
     return null;
   }
 
@@ -203,7 +226,7 @@ export function ImageViewerController() {
     }
   }
 
-  return (
+  return createPortal(
     <div
       data-image-viewer
       className="image-viewer"
@@ -300,7 +323,8 @@ export function ImageViewerController() {
         ) : null}
         {imageCounter ? <div className="image-viewer__counter">{imageCounter}</div> : null}
       </div>
-    </div>
+    </div>,
+    portalTarget,
   );
 }
 
