@@ -7,6 +7,8 @@ export type GalleryImage = {
   src: string
   alt?: string
   title?: string
+  caption?: string
+  meta?: string
 }
 
 export interface GalleryNodeOptions {
@@ -48,8 +50,16 @@ function normalizeGalleryImages(value: unknown): GalleryImage[] {
       typeof (item as { title?: unknown }).title === "string"
         ? (item as { title: string }).title
         : undefined
+    const caption =
+      typeof (item as { caption?: unknown }).caption === "string"
+        ? (item as { caption: string }).caption
+        : undefined
+    const meta =
+      typeof (item as { meta?: unknown }).meta === "string"
+        ? (item as { meta: string }).meta
+        : undefined
 
-    return [{ src, alt, title }]
+    return [{ src, alt, title, caption, meta }]
   })
 }
 
@@ -65,6 +75,8 @@ function parseGalleryImages(element: HTMLElement): GalleryImage[] {
           src: image.getAttribute("src") ?? "",
           alt: image.getAttribute("alt") ?? undefined,
           title: image.getAttribute("title") ?? undefined,
+          caption: image.getAttribute("data-photo-caption") ?? undefined,
+          meta: image.getAttribute("data-photo-meta") ?? undefined,
         }))
       )
     }
@@ -75,27 +87,65 @@ function parseGalleryImages(element: HTMLElement): GalleryImage[] {
       src: image.getAttribute("src") ?? "",
       alt: image.getAttribute("alt") ?? undefined,
       title: image.getAttribute("title") ?? undefined,
+      caption: image.getAttribute("data-photo-caption") ?? undefined,
+      meta: image.getAttribute("data-photo-meta") ?? undefined,
     }))
   )
 }
 
+function getGalleryPhotoMeta(image: GalleryImage) {
+  return [image.caption, image.meta]
+    .map((item) => item?.trim())
+    .filter((item): item is string => (item ? !isGenericPhotoMeta(item) : false))
+    .join(" · ")
+}
+
+function isGenericPhotoMeta(value: string) {
+  const text = value.trim()
+
+  return (
+    /^(图片|image|图册图片\s*\d+)$/i.test(text) ||
+    /^img[_\s-]?\d+$/i.test(text) ||
+    /^dscf?[_\s-]?\d+$/i.test(text) ||
+    /^avatar\s*\d*$/i.test(text) ||
+    /^[a-f0-9]{8,}$/i.test(text) ||
+    /\.(avif|gif|jpe?g|png|webp)$/i.test(text)
+  )
+}
+
 function createGalleryItem(image: GalleryImage, index: number) {
+  const photoMeta = getGalleryPhotoMeta(image)
+
   return [
     "figure",
     {
       class: "content-gallery__item",
       "data-gallery-item": `${index + 1}`,
+      ...(photoMeta ? { "data-photo-meta": photoMeta } : {}),
     },
     [
       "img",
       {
         src: image.src,
         alt: image.alt ?? image.title ?? `图册图片 ${index + 1}`,
-        title: image.title ?? image.alt ?? `图册图片 ${index + 1}`,
+        ...(image.caption ? { "data-photo-caption": image.caption } : {}),
+        ...(image.meta ? { "data-photo-meta": image.meta } : {}),
         loading: "lazy",
         decoding: "async",
+        draggable: "false",
       },
     ],
+    ...(photoMeta
+      ? [
+          [
+            "figcaption",
+            {
+              class: "photo-meta-overlay",
+            },
+            photoMeta,
+          ],
+        ]
+      : []),
   ]
 }
 

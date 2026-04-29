@@ -39,6 +39,7 @@ export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
         src={src}
         alt={`${author} avatar`}
         className="h-full w-full object-cover"
+        draggable={false}
         onError={() => setShowFallback(true)}
       />
     );
@@ -52,6 +53,7 @@ export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
       priority
       sizes="(min-width: 1024px) 30rem, (min-width: 640px) 24rem, 20rem"
       className="object-cover"
+      draggable={false}
       onError={() => setShowFallback(true)}
     />
   );

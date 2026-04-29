@@ -19,6 +19,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       url: uploadedImage.url,
+      meta: uploadedImage.photoMeta,
     });
   } catch (error) {
     return NextResponse.json(

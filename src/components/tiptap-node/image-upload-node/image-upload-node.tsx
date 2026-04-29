@@ -1,10 +1,11 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { NodeSelection } from "@tiptap/pm/state"
 import type { NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper } from "@tiptap/react"
 import type { GalleryImage } from "@/components/tiptap-node/gallery-node/gallery-node-extension"
+import type { UploadedImage } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
 import { Button } from "@/components/tiptap-ui-primitive/button"
 import { CloseIcon } from "@/components/tiptap-icons/close-icon"
 import "@/components/tiptap-node/image-upload-node/image-upload-node.scss"
@@ -66,7 +67,7 @@ export interface UploadOptions {
     file: File,
     onProgress: (event: { progress: number }) => void,
     signal: AbortSignal
-  ) => Promise<string>
+  ) => Promise<string | UploadedImage>
   /**
    * Callback triggered when a file is uploaded successfully
    * @param {string} url - URL of the successfully uploaded file
@@ -87,7 +88,7 @@ export interface UploadOptions {
 function useFileUpload(options: UploadOptions) {
   const [fileItems, setFileItems] = useState<FileItem[]>([])
 
-  const uploadFile = async (file: File): Promise<string | null> => {
+  const uploadFile = async (file: File): Promise<UploadedImage | null> => {
     if (file.size > options.maxSize) {
       const error = new Error(
         `File size exceeds maximum allowed (${options.maxSize / 1024 / 1024}MB)`
@@ -114,7 +115,7 @@ function useFileUpload(options: UploadOptions) {
         throw new Error("Upload function is not defined")
       }
 
-      const url = await options.upload(
+      const uploadResult = await options.upload(
         file,
         (event: { progress: number }) => {
           setFileItems((prev) =>
@@ -125,19 +126,20 @@ function useFileUpload(options: UploadOptions) {
         },
         abortController.signal
       )
+      const uploadedImage = normalizeUploadedImage(uploadResult)
 
-      if (!url) throw new Error("Upload failed: No URL returned")
+      if (!uploadedImage) throw new Error("Upload failed: No URL returned")
 
       if (!abortController.signal.aborted) {
         setFileItems((prev) =>
           prev.map((item) =>
             item.id === fileId
-              ? { ...item, status: "success", url, progress: 100 }
+              ? { ...item, status: "success", url: uploadedImage.url, progress: 100 }
               : item
           )
         )
-        options.onSuccess?.(url)
-        return url
+        options.onSuccess?.(uploadedImage.url)
+        return uploadedImage
       }
 
       return null
@@ -158,7 +160,7 @@ function useFileUpload(options: UploadOptions) {
     }
   }
 
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
+  const uploadFiles = async (files: File[]): Promise<UploadedImage[]> => {
     if (!files || files.length === 0) {
       options.onError?.(new Error("No files to upload"))
       return []
@@ -178,7 +180,7 @@ function useFileUpload(options: UploadOptions) {
     const results = await Promise.all(uploadPromises)
 
     // Filter out null results (failed uploads)
-    return results.filter((url): url is string => url !== null)
+    return results.filter((image): image is UploadedImage => image !== null)
   }
 
   const removeFileItem = (fileId: string) => {
@@ -212,6 +214,14 @@ function useFileUpload(options: UploadOptions) {
     removeFileItem,
     clearAllFiles,
   }
+}
+
+function normalizeUploadedImage(value: string | UploadedImage) {
+  if (typeof value === "string") {
+    return value ? { url: value } : null
+  }
+
+  return value.url ? value : null
 }
 
 const CloudUploadIcon: React.FC = () => (
@@ -457,6 +467,7 @@ export const DropZoneContent: React.FC<{
 export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { accept, limit, maxSize, outputType } = props.node.attrs
   const inputRef = useRef<HTMLInputElement>(null)
+  const urlInputRef = useRef<HTMLInputElement>(null)
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const extension = props.extension
@@ -472,6 +483,12 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 
   const { fileItems, uploadFiles, removeFileItem, clearAllFiles } =
     useFileUpload(uploadOptions)
+
+  useEffect(() => {
+    requestAnimationFrame(() => {
+      urlInputRef.current?.focus({ preventScroll: true })
+    })
+  }, [])
 
   const insertNodes = (
     nodes: Array<{ type: string; attrs: Record<string, unknown> }>
@@ -507,6 +524,29 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
 
     if (!shouldSelectInsertedGallery) {
       focusNextNode(props.editor)
+    } else {
+      requestAnimationFrame(() => {
+        const insertedNode = props.editor.state.doc.nodeAt(pos)
+
+        if (insertedNode?.type.name !== "gallery") {
+          return
+        }
+
+        props.editor.view.focus()
+        props.editor.view.dispatch(
+          props.editor.state.tr.setSelection(
+            NodeSelection.create(props.editor.state.doc, pos)
+          )
+        )
+
+        requestAnimationFrame(() => {
+          props.editor.view.dom
+            .querySelector<HTMLInputElement>(
+              '.content-gallery--editor [data-gallery-url-input="true"]'
+            )
+            ?.focus({ preventScroll: true })
+        })
+      })
     }
 
     return true
@@ -530,21 +570,23 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
         src: image.src,
         alt: image.alt,
         title: image.title,
+        meta: image.meta,
       },
     }))
   }
 
   const handleUpload = async (files: File[]) => {
-    const urls = await uploadFiles(files)
+    const uploadResults = await uploadFiles(files)
 
-    if (urls.length > 0) {
-      const uploadedImages = urls.map((url, index) => {
+    if (uploadResults.length > 0) {
+      const uploadedImages = uploadResults.map((image, index) => {
         const filename =
           files[index]?.name.replace(/\.[^/.]+$/, "") || "unknown"
         return {
-          src: url,
+          src: image.url,
           alt: filename,
           title: filename,
+          meta: image.meta,
         }
       })
 
@@ -606,7 +648,6 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     <NodeViewWrapper
       className={`tiptap-image-upload tiptap-image-upload--tile${isGalleryUpload ? " tiptap-image-upload--gallery" : ""}`}
       tabIndex={0}
-      onClick={handleClick}
     >
       {(!hasFiles || isGalleryUpload || isTileUploading) && (
         <div className="tiptap-image-upload-empty">
@@ -620,7 +661,34 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
           <ImageUploadDragArea onFile={handleUpload}>
             <div
               className={`content-gallery__add-tile tiptap-image-upload-add-tile${isTileUploading ? " content-gallery__add-tile--uploading" : ""}`}
+              role="button"
+              tabIndex={0}
               aria-busy={isTileUploading}
+              aria-disabled={isTileUploading}
+              onClick={(event) => {
+                event.preventDefault()
+                event.stopPropagation()
+
+                if (isTileUploading) {
+                  return
+                }
+
+                handleClick()
+              }}
+              onKeyDown={(event) => {
+                if (event.key !== "Enter" && event.key !== " ") {
+                  return
+                }
+
+                event.preventDefault()
+                event.stopPropagation()
+
+                if (isTileUploading) {
+                  return
+                }
+
+                handleClick()
+              }}
             >
               <div className="content-gallery__add-tile-plus" aria-hidden="true">
                 {isTileUploading ? (
@@ -649,6 +717,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
             </div>
             <div className="tiptap-image-upload-url-row">
               <input
+                ref={urlInputRef}
                 type="url"
                 value={imageUrl}
                 onChange={(event) => {

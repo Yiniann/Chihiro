@@ -7,7 +7,7 @@ import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit"
-import { Image } from "@tiptap/extension-image"
+import { Image as TiptapImage } from "@tiptap/extension-image"
 import { TaskItem, TaskList } from "@tiptap/extension-list"
 import { TextAlign } from "@tiptap/extension-text-align"
 import { Typography } from "@tiptap/extension-typography"
@@ -207,6 +207,28 @@ const EMPTY_DOCUMENT: JSONContent = {
   content: [{ type: "paragraph" }],
 }
 
+const IMAGE_UPLOAD_ACCEPT = "image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp"
+
+const PhotoImage = TiptapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      caption: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-photo-caption"),
+        renderHTML: (attributes) =>
+          attributes.caption ? { "data-photo-caption": attributes.caption } : {},
+      },
+      meta: {
+        default: null,
+        parseHTML: (element) => element.getAttribute("data-photo-meta"),
+        renderHTML: (attributes) =>
+          attributes.meta ? { "data-photo-meta": attributes.meta } : {},
+      },
+    }
+  },
+})
+
 export function SimpleEditor({
   initialContent = null,
   initialContentHtml = null,
@@ -253,9 +275,9 @@ export function SimpleEditor({
       TaskList,
       TaskItem.configure({ nested: true }),
       Highlight.configure({ multicolor: true }),
-      Image,
+      PhotoImage,
       GalleryNode.configure({
-        accept: "image/*",
+        accept: IMAGE_UPLOAD_ACCEPT,
         limit: 12,
         maxSize: MAX_FILE_SIZE,
         upload: handleImageUpload,
@@ -265,7 +287,7 @@ export function SimpleEditor({
       Superscript,
       Subscript,
       ImageUploadNode.configure({
-        accept: "image/*",
+        accept: IMAGE_UPLOAD_ACCEPT,
         maxSize: MAX_FILE_SIZE,
         limit: 1,
         outputType: "image",

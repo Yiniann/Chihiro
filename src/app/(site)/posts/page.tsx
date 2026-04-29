@@ -215,41 +215,46 @@ async function PostsPageContent({
           {publishedPosts.length > 0 ? (
             paginatedPosts.map((post) => (
               <StaggerRevealItem key={post.id}>
-                <article className="border-b border-zinc-200/80 pb-6 last:border-b-0 dark:border-zinc-800/80">
-                  <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                    <Link href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}>
+                <article className="group relative -mx-3 rounded-lg border-b border-zinc-200/80 px-3 pb-6 pt-3 last:border-b-0 dark:border-zinc-800/80">
+                  <Link
+                    href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}
+                    aria-label={`Open ${post.title}`}
+                    className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  />
+                  <div className="pointer-events-none relative">
+                    <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 transition group-hover:text-primary dark:text-zinc-50">
                       {post.title}
-                    </Link>
-                  </h2>
-                  <p className="reading-copy mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-                    {post.summary ?? "No summary yet."}
-                  </p>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap gap-2">
-                      {post.category ? (
-                        <Link
-                          href={buildPostsHref({ nextCategory: post.category.slug })}
-                          className="text-xs font-medium text-primary transition hover:opacity-80"
-                        >
-                          / {post.category.name}
-                        </Link>
-                      ) : null}
-                      {post.tags.map((item) => (
-                        <Link
-                          key={item.id}
-                          href={buildPostsHref({
-                            nextTags: Array.from(new Set([...selectedTags, item.slug])),
-                          })}
-                          className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
-                        >
-                          #{item.name}
-                        </Link>
-                      ))}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                      <RelativeDate value={post.publishedAt} />
-                      <span>·</span>
-                      <span>{post.authorName ?? "Unknown author"}</span>
+                    </h2>
+                    <p className="reading-copy mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                      {post.summary ?? "No summary yet."}
+                    </p>
+                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        {post.category ? (
+                          <Link
+                            href={buildPostsHref({ nextCategory: post.category.slug })}
+                            className="pointer-events-auto relative text-xs font-medium text-primary transition hover:opacity-80"
+                          >
+                            / {post.category.name}
+                          </Link>
+                        ) : null}
+                        {post.tags.map((item) => (
+                          <Link
+                            key={item.id}
+                            href={buildPostsHref({
+                              nextTags: Array.from(new Set([...selectedTags, item.slug])),
+                            })}
+                            className="pointer-events-auto relative text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+                          >
+                            #{item.name}
+                          </Link>
+                        ))}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+                        <RelativeDate value={post.publishedAt} />
+                        <span>·</span>
+                        <span>{post.authorName ?? "Unknown author"}</span>
+                      </div>
                     </div>
                   </div>
                 </article>

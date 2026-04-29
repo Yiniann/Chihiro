@@ -641,6 +641,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
           src={src}
           alt={`${author} avatar`}
           className="h-full w-full object-cover"
+          draggable={false}
           onError={() => setShowFallback(true)}
         />
         <span className="sr-only">{author}</span>
@@ -656,6 +657,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
         width={40}
         height={40}
         className="h-full w-full object-cover"
+        draggable={false}
         onError={() => setShowFallback(true)}
       />
       <span className="sr-only">{author}</span>

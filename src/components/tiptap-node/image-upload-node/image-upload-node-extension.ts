@@ -4,11 +4,16 @@ import { ImageUploadNode as ImageUploadNodeComponent } from "@/components/tiptap
 import type { ImageUploadOutputType } from "@/components/tiptap-ui/image-upload-button"
 import type { NodeType } from "@tiptap/pm/model"
 
+export type UploadedImage = {
+  url: string
+  meta?: string
+}
+
 export type UploadFunction = (
   file: File,
   onProgress?: (event: { progress: number }) => void,
   abortSignal?: AbortSignal
-) => Promise<string>
+) => Promise<string | UploadedImage>
 
 export interface ImageUploadNodeOptions {
   /**

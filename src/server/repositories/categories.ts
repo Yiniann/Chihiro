@@ -62,20 +62,76 @@ export async function updateCategoryById(input: {
   slug: string;
   description: string | null;
 }): Promise<CategoryOption> {
-  const category = await prisma.category.update({
-    where: { id: input.id },
-    data: {
-      name: input.name,
-      slug: input.slug,
-      description: input.description,
-    },
-    include: {
-      _count: {
-        select: {
-          posts: true,
+  const category = await prisma.$transaction(async (tx) => {
+    const updatedCategory = await tx.category.update({
+      where: { id: input.id },
+      data: {
+        name: input.name,
+        slug: input.slug,
+        description: input.description,
+      },
+      include: {
+        _count: {
+          select: {
+            posts: true,
+          },
         },
       },
-    },
+    });
+
+    const posts = await tx.post.findMany({
+      where: {
+        OR: [
+          { categoryId: input.id },
+          {
+            publishedSnapshot: {
+              path: ["category", "id"],
+              equals: input.id,
+            },
+          },
+          {
+            draftSnapshot: {
+              path: ["category", "id"],
+              equals: input.id,
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        publishedSnapshot: true,
+        draftSnapshot: true,
+      },
+    });
+
+    for (const post of posts) {
+      const nextPublishedSnapshot = updateCategoryInSnapshot(post.publishedSnapshot, updatedCategory);
+      const nextDraftSnapshot = updateCategoryInSnapshot(post.draftSnapshot, updatedCategory);
+
+      if (
+        nextPublishedSnapshot === post.publishedSnapshot &&
+        nextDraftSnapshot === post.draftSnapshot
+      ) {
+        continue;
+      }
+
+      const data: Prisma.PostUpdateInput = {};
+
+      if (nextPublishedSnapshot !== post.publishedSnapshot) {
+        data.publishedSnapshot = nextPublishedSnapshot as Prisma.InputJsonValue;
+      }
+
+      if (nextDraftSnapshot !== post.draftSnapshot) {
+        data.draftSnapshot = nextDraftSnapshot as Prisma.InputJsonValue;
+      }
+
+      await tx.post.update({
+        where: { id: post.id },
+        data,
+      });
+    }
+
+    return updatedCategory;
   });
 
   return {
@@ -212,5 +268,35 @@ function stripCategoryFromSnapshot(snapshot: Prisma.JsonValue | null) {
   return {
     ...(snapshot as Record<string, unknown>),
     category: null,
+  } as Prisma.InputJsonValue;
+}
+
+function updateCategoryInSnapshot(
+  snapshot: Prisma.JsonValue | null,
+  category: { id: number; name: string; slug: string },
+) {
+  if (!snapshot || typeof snapshot !== "object" || Array.isArray(snapshot)) {
+    return snapshot;
+  }
+
+  const currentCategory = (snapshot as { category?: { id?: unknown } | null }).category;
+
+  if (
+    !currentCategory ||
+    typeof currentCategory !== "object" ||
+    Array.isArray(currentCategory) ||
+    Number((currentCategory as { id?: unknown }).id) !== category.id
+  ) {
+    return snapshot;
+  }
+
+  return {
+    ...(snapshot as Record<string, unknown>),
+    category: {
+      ...(currentCategory as Record<string, unknown>),
+      id: category.id,
+      name: category.name,
+      slug: category.slug,
+    },
   } as Prisma.InputJsonValue;
 }

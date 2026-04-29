@@ -17,7 +17,10 @@ import { Button } from "@/components/tiptap-ui-primitive/button"
 import {
   ImageUploadDragArea,
 } from "@/components/tiptap-node/image-upload-node/image-upload-node"
-import type { UploadFunction } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
+import type {
+  UploadedImage,
+  UploadFunction,
+} from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
 
 function normalizeImages(value: unknown): GalleryImage[] {
   if (!Array.isArray(value)) {
@@ -48,6 +51,14 @@ function normalizeImages(value: unknown): GalleryImage[] {
         title:
           typeof (item as { title?: unknown }).title === "string"
             ? (item as { title: string }).title
+            : undefined,
+        caption:
+          typeof (item as { caption?: unknown }).caption === "string"
+            ? (item as { caption: string }).caption
+            : undefined,
+        meta:
+          typeof (item as { meta?: unknown }).meta === "string"
+            ? (item as { meta: string }).meta
             : undefined,
       },
     ]
@@ -92,11 +103,20 @@ function getImageNameFromUrl(value: string) {
   }
 }
 
+function normalizeUploadedImage(value: string | UploadedImage) {
+  if (typeof value === "string") {
+    return value ? { url: value } : null
+  }
+
+  return value.url ? value : null
+}
+
 type PendingGalleryImage = GalleryImage | null
 
 export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   const wrapperRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const urlInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
@@ -272,6 +292,9 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
       setImageUrl("")
       setImageUrlError(null)
       setShouldScrollToEnd(true)
+      requestAnimationFrame(() => {
+        urlInputRef.current?.focus({ preventScroll: true })
+      })
     }
   }
 
@@ -305,19 +328,21 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
             }
 
             try {
-              const url = await upload(file, () => undefined, new AbortController().signal)
+              const uploadResult = await upload(file, () => undefined, new AbortController().signal)
+              const uploadedImage = normalizeUploadedImage(uploadResult)
 
-              if (!url) {
+              if (!uploadedImage) {
                 throw new Error("Upload failed: No URL returned")
               }
 
-              onSuccess?.(url)
+              onSuccess?.(uploadedImage.url)
 
               const filename = getImageNameFromFile(file)
               return {
-                src: url,
+                src: uploadedImage.url,
                 alt: filename,
                 title: filename,
+                meta: uploadedImage.meta,
               }
             } catch (error) {
               onError?.(error instanceof Error ? error : new Error("Upload failed"))
@@ -571,6 +596,8 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
               </div>
               <div className="tiptap-image-upload-url-row">
                 <input
+                  ref={urlInputRef}
+                  data-gallery-url-input="true"
                   type="url"
                   value={imageUrl}
                   disabled={isUploading}
