@@ -1,4 +1,6 @@
 import { getPostPath } from "@/lib/routes";
+import { homeSections } from "@/lib/home-sections";
+import { moreSections } from "@/lib/more-sections";
 import { canonicalUrl } from "@/lib/site";
 import {
   getPublicSiteSettings,
@@ -41,10 +43,12 @@ export async function GET() {
 
   const staticRoutes = [
     toCanonical("/"),
+    ...homeSections.map((section) => toCanonical(section.href)),
     toCanonical("/posts"),
     toCanonical("/updates"),
     toCanonical("/timeline"),
     toCanonical("/more"),
+    ...moreSections.map((section) => toCanonical(section.href)),
   ];
 
   const postRoutes = posts.map((post) =>
