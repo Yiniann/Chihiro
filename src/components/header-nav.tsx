@@ -77,6 +77,7 @@ export function HeaderNav({
             onClick={onNavigate}
             onMouseEnter={onItemEnter ? () => onItemEnter(item.href) : undefined}
             onFocus={onItemFocus ? () => onItemFocus(item.href) : undefined}
+            tabIndex={-1}
             className={`relative flex items-center gap-2 overflow-hidden rounded-none px-4 py-2 transition-colors first:rounded-l-full last:rounded-r-full ${
               active
                 ? "font-semibold text-primary"

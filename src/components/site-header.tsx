@@ -386,6 +386,7 @@ export function SiteHeader({
           href="/"
           scroll={false}
           onClick={preserveStickyOnNextNavigation}
+          tabIndex={-1}
           className={`absolute left-1/2 rounded-2xl px-3 py-1.5 text-lg font-semibold tracking-tight text-primary transition-[opacity,transform] duration-200 md:pointer-events-auto md:static md:translate-x-0 md:translate-y-0 md:justify-self-start md:opacity-100 ${
             isMobileBrandVisible
               ? "pointer-events-auto translate-x-[-50%] opacity-100"
@@ -463,7 +464,7 @@ export function SiteHeader({
           style={{ "--site-header-desktop-offset": `${desktopHeaderTranslateY}px` } as CSSProperties}
         >
           <div className="hidden md:block">
-            <ThemeModeToggle isScrolled={isScrolled} />
+            <ThemeModeToggle isScrolled={isScrolled} disableTabFocus />
           </div>
           {isAdminLoggedIn ? (
             <div
@@ -478,6 +479,7 @@ export function SiteHeader({
                 aria-expanded={isUserMenuOpen}
                 onClick={() => setIsUserMenuOpen((current) => !current)}
                 onFocus={() => setIsUserMenuOpen(true)}
+                tabIndex={-1}
                 className={`inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-zinc-800 transition ${
                   isScrolled
                     ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
@@ -504,6 +506,7 @@ export function SiteHeader({
                       <Link
                         href="/admin"
                         onClick={() => setIsUserMenuOpen(false)}
+                        tabIndex={-1}
                         className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
                       >
                         <LayoutDashboard className="h-4 w-4 shrink-0" />
@@ -513,6 +516,7 @@ export function SiteHeader({
                         <button
                           type="submit"
                           onClick={() => setIsUserMenuOpen(false)}
+                          tabIndex={-1}
                           className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
                         >
                           <LogOut className="h-4 w-4 shrink-0" />
@@ -532,6 +536,7 @@ export function SiteHeader({
                 event.preventDefault();
                 openAdminLogin(adminLoginNext);
               }}
+              tabIndex={-1}
               className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-zinc-800 transition md:h-auto md:w-auto md:px-3 md:py-1.5 ${
                 isScrolled
                   ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"

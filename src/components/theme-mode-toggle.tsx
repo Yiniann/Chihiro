@@ -15,11 +15,13 @@ import {
 type ThemeModeToggleProps = {
   isScrolled?: boolean;
   inline?: boolean;
+  disableTabFocus?: boolean;
 };
 
 export function ThemeModeToggle({
   isScrolled = false,
   inline = false,
+  disableTabFocus = false,
 }: ThemeModeToggleProps) {
   const [mode, setMode] = useState<ThemeMode>("light");
   const [preference, setPreference] = useState<ThemeModePreference>("system");
@@ -164,6 +166,7 @@ export function ThemeModeToggle({
         type="button"
         aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
         onClick={handleToggle}
+        tabIndex={disableTabFocus ? -1 : undefined}
         className={`inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
           isScrolled
             ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
@@ -186,6 +189,7 @@ export function ThemeModeToggle({
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onClick={handleFollowSystem}
+                tabIndex={disableTabFocus ? -1 : undefined}
                 className={`cursor-pointer text-xs font-medium transition ${
                   preference === "system"
                     ? "text-primary opacity-100"
