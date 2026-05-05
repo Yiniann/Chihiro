@@ -470,6 +470,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const urlInputRef = useRef<HTMLInputElement>(null)
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const extension = props.extension
 
   const uploadOptions: UploadOptions = {
@@ -478,7 +479,10 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     accept,
     upload: extension.options.upload,
     onSuccess: extension.options.onSuccess,
-    onError: extension.options.onError,
+    onError: (error: Error) => {
+      setUploadError(error.message || "上传图片时出错了。")
+      extension.options.onError?.(error)
+    },
   }
 
   const { fileItems, uploadFiles, removeFileItem, clearAllFiles } =
@@ -576,6 +580,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   }
 
   const handleUpload = async (files: File[]) => {
+    setUploadError(null)
     const uploadResults = await uploadFiles(files)
 
     if (uploadResults.length > 0) {
@@ -602,6 +607,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
       return
     }
 
+    setUploadError(null)
     const filename = getImageNameFromUrl(normalizedUrl)
     const success = insertNodes(
       buildInsertedNodes([
@@ -622,10 +628,12 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (!files || files.length === 0) {
-      extension.options.onError?.(new Error("No file selected"))
+      const error = new Error("未选择图片文件。")
+      setUploadError(error.message)
+      extension.options.onError?.(error)
       return
     }
-    handleUpload(Array.from(files))
+    void handleUpload(Array.from(files))
   }
 
   const handleClick = () => {
@@ -747,6 +755,9 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
             {imageUrlError ? (
               <div className="tiptap-image-upload-url-error">{imageUrlError}</div>
             ) : null}
+            {uploadError ? (
+              <div className="tiptap-image-upload-url-error">{uploadError}</div>
+            ) : null}
           </div>
         </div>
       )}
@@ -775,6 +786,9 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
               onRemove={() => removeFileItem(fileItem.id)}
             />
           ))}
+          {uploadError ? (
+            <div className="tiptap-image-upload-url-error">{uploadError}</div>
+          ) : null}
         </div>
       )}
 

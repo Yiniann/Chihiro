@@ -2,12 +2,62 @@
 
 import type { NodeViewRendererProps } from "@tiptap/core";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { keymap } from "@tiptap/pm/keymap";
 import { TextSelection } from "@tiptap/pm/state";
 import { CODE_LANGUAGE_OPTIONS, formatCodeLanguageLabel, syntaxLowlight } from "@/lib/code-highlighting";
 
 export const CodeBlockLowlightWithControls = CodeBlockLowlight.extend({
+  addProseMirrorPlugins() {
+    const selectCurrentCodeBlock = () => {
+      const { state, view } = this.editor;
+      const { selection } = state;
+      const { $from, $to } = selection;
+
+      if ($from.parent.type.name !== this.name || $to.parent.type.name !== this.name) {
+        return false;
+      }
+
+      const from = $from.start();
+      const to = $from.end();
+      const nextSelection = TextSelection.create(state.doc, from, to);
+
+      if (!selection.eq(nextSelection)) {
+        view.dispatch(state.tr.setSelection(nextSelection));
+      }
+
+      return true;
+    };
+
+    return [
+      keymap({
+        "Mod-a": () => selectCurrentCodeBlock(),
+      }),
+    ];
+  },
+
   addKeyboardShortcuts() {
     const parentShortcuts = this.parent?.() ?? {};
+
+    const selectCurrentCodeBlock = () => {
+      const { state, view } = this.editor;
+      const { selection } = state;
+      const { $from, $to } = selection;
+
+      if ($from.parent.type.name !== this.name || $to.parent.type.name !== this.name) {
+        return false;
+      }
+
+      const from = $from.start();
+      const to = $from.end();
+      const nextSelection = TextSelection.create(state.doc, from, to);
+
+      if (selection.eq(nextSelection)) {
+        return true;
+      }
+
+      view.dispatch(state.tr.setSelection(nextSelection));
+      return true;
+    };
 
     const insertParagraphAroundCodeBlock = (direction: "before" | "after") => {
       const { state, view } = this.editor;
@@ -41,10 +91,39 @@ export const CodeBlockLowlightWithControls = CodeBlockLowlight.extend({
       return true;
     };
 
+    const deleteEmptyCodeBlock = () => {
+      const { state, view } = this.editor;
+      const { selection, schema } = state;
+      const { $from, empty } = selection;
+
+      if (!empty || $from.parent.type.name !== this.name) {
+        return false;
+      }
+
+      if ($from.parent.content.size > 0) {
+        return false;
+      }
+
+      const paragraph = schema.nodes.paragraph?.create();
+
+      if (!paragraph) {
+        return false;
+      }
+
+      const from = $from.before();
+      const to = $from.after();
+      const tr = state.tr.deleteRange(from, to).insert(from, paragraph);
+      tr.setSelection(TextSelection.create(tr.doc, from + 1));
+      view.dispatch(tr.scrollIntoView());
+
+      return true;
+    };
+
     return {
       ...parentShortcuts,
+      "Mod-a": () => selectCurrentCodeBlock(),
       ArrowUp: () => insertParagraphAroundCodeBlock("before"),
-      Backspace: () => insertParagraphAroundCodeBlock("before"),
+      Backspace: () => deleteEmptyCodeBlock(),
       ArrowDown: () => insertParagraphAroundCodeBlock("after"),
     };
   },

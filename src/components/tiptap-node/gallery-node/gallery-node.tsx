@@ -120,6 +120,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   const [isUploading, setIsUploading] = useState(false)
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null)
   const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false)
 
@@ -279,6 +280,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
       return
     }
 
+    setUploadError(null)
     const filename = getImageNameFromUrl(normalizedUrl)
     const success = appendImages([
       {
@@ -300,7 +302,9 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
 
   const handleFiles = async (files: File[]) => {
     if (!upload) {
-      onError?.(new Error("Upload function is not defined"))
+      const error = new Error("上传功能暂时不可用。")
+      setUploadError(error.message)
+      onError?.(error)
       return
     }
 
@@ -309,11 +313,14 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
 
     if (selectedFiles.length === 0) {
       if (typeof limit === "number" && limit > 0) {
-        onError?.(new Error(`Maximum ${limit} files allowed`))
+        const error = new Error(`最多只能添加 ${limit} 张图片。`)
+        setUploadError(error.message)
+        onError?.(error)
       }
       return
     }
 
+    setUploadError(null)
     setIsUploading(true)
 
     try {
@@ -321,9 +328,9 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
         await Promise.all(
           selectedFiles.map(async (file): Promise<PendingGalleryImage> => {
             if (maxSize > 0 && file.size > maxSize) {
-              onError?.(
-                new Error(`File size exceeds maximum allowed (${maxSize / 1024 / 1024}MB)`)
-              )
+              const error = new Error(`图片不能超过 ${maxSize / 1024 / 1024}MB。`)
+              setUploadError(error.message)
+              onError?.(error)
               return null
             }
 
@@ -345,7 +352,10 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                 meta: uploadedImage.meta,
               }
             } catch (error) {
-              onError?.(error instanceof Error ? error : new Error("Upload failed"))
+              const normalizedError =
+                error instanceof Error ? error : new Error("上传图片时出错了。")
+              setUploadError(normalizedError.message)
+              onError?.(normalizedError)
               return null
             }
           })
@@ -633,6 +643,9 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
               </div>
               {imageUrlError ? (
                 <div className="tiptap-image-upload-url-error">{imageUrlError}</div>
+              ) : null}
+              {uploadError ? (
+                <div className="tiptap-image-upload-url-error">{uploadError}</div>
               ) : null}
             </div>
           </div>

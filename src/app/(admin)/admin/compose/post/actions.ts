@@ -17,6 +17,7 @@ import { siteConfig } from "@/lib/site";
 
 export type SavePostEditorState = {
   error: string | null;
+  redirectTo: string | null;
 };
 
 export async function savePostDraftAction(
@@ -25,27 +26,27 @@ export async function savePostDraftAction(
 ): Promise<SavePostEditorState> {
   await requireAdminSession();
   const intent = getOptionalString(formData, "intent") ?? "save";
-  const currentStatus = getContentStatus(formData, "currentStatus");
-
-  const title = getRequiredString(formData, "title");
-  const slugInput = getOptionalString(formData, "slug");
-  const slug = slugInput ? normalizeSlug(slugInput) : null;
-  const summary = getOptionalString(formData, "summary");
-  const content = parseRichTextContent(formData);
-  const contentHtml = getOptionalString(formData, "contentHtml");
-  const categoryId = getOptionalNumber(formData, "categoryId");
-  const publishedAtInput = getOptionalString(formData, "publishedAt");
-  const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
-  const tagIds = formData
-    .getAll("tagIds")
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.trim())
-    .filter(Boolean);
-  const postId = getOptionalPostId(formData, "postId");
-  const siteSettings = await getSiteSettings();
-  const authorName = siteSettings?.authorName ?? siteConfig.author;
 
   try {
+    const currentStatus = getContentStatus(formData, "currentStatus");
+    const title = getRequiredString(formData, "title");
+    const slugInput = getOptionalString(formData, "slug");
+    const slug = slugInput ? normalizeSlug(slugInput) : null;
+    const summary = getOptionalString(formData, "summary");
+    const content = parseRichTextContent(formData);
+    const contentHtml = getOptionalString(formData, "contentHtml");
+    const categoryId = getOptionalNumber(formData, "categoryId");
+    const publishedAtInput = getOptionalString(formData, "publishedAt");
+    const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
+    const tagIds = formData
+      .getAll("tagIds")
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const postId = getOptionalPostId(formData, "postId");
+    const siteSettings = await getSiteSettings();
+    const authorName = siteSettings?.authorName ?? siteConfig.author;
+
     const post = await savePostDraft({
       id: postId ?? undefined,
       title,
@@ -69,15 +70,24 @@ export async function savePostDraftAction(
 
     revalidatePath("/admin/workbench");
     revalidatePath("/admin/compose/post");
+
+    if (intent !== "publish" && typeof postId !== "number") {
+      return {
+        error: null,
+        redirectTo: `/admin/compose/post?id=${encodeURIComponent(post.id)}`,
+      };
+    }
   } catch (error) {
     if (isUniqueSlugError(error)) {
       return {
         error: "这个 slug 已经被占用了，请换一个。",
+        redirectTo: null,
       };
     }
 
     return {
       error: error instanceof Error ? error.message : "保存文章时出错了。",
+      redirectTo: null,
     };
   }
 
@@ -87,6 +97,7 @@ export async function savePostDraftAction(
 
   return {
     error: null,
+    redirectTo: null,
   };
 }
 
@@ -182,7 +193,7 @@ function parseRichTextContent(formData: FormData) {
   const parsed = parseStoredRichTextContent(raw);
 
   if (parsed === raw) {
-    throw new Error("请填写有效的正文内容。");
+    return null;
   }
 
   return parsed;

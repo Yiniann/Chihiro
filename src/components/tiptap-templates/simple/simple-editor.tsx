@@ -1,9 +1,12 @@
 "use client"
 
+import { Extension } from "@tiptap/core"
 import { Code2, FileCode2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import type { JSONContent } from "@tiptap/react"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
+import { keymap } from "@tiptap/pm/keymap"
+import { TextSelection } from "@tiptap/pm/state"
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit"
@@ -209,6 +212,94 @@ const EMPTY_DOCUMENT: JSONContent = {
 
 const IMAGE_UPLOAD_ACCEPT = "image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp"
 
+const InlineCodeSelectAll = Extension.create({
+  name: "inlineCodeSelectAll",
+
+  addProseMirrorPlugins() {
+    const selectCurrentInlineCode = () => {
+      const { state, view } = this.editor
+      const { selection } = state
+      const { $from, $to } = selection
+
+      if ($from.parent !== $to.parent || !$from.parent.isTextblock) {
+        return false
+      }
+
+      const parent = $from.parent
+      const fromOffset = $from.parentOffset
+      const toOffset = $to.parentOffset
+      const parentStart = $from.start()
+      let offset = 0
+      let segmentStart: number | null = null
+
+      for (let index = 0; index < parent.childCount; index += 1) {
+        const child = parent.child(index)
+        const childStart = offset
+        const childEnd = offset + child.nodeSize
+        const hasCodeMark =
+          child.isText && child.marks.some((mark) => mark.type.name === "code")
+
+        if (hasCodeMark) {
+          if (segmentStart === null) {
+            segmentStart = childStart
+          }
+        } else if (segmentStart !== null) {
+          if (
+            fromOffset >= segmentStart &&
+            fromOffset <= childStart &&
+            toOffset >= segmentStart &&
+            toOffset <= childStart
+          ) {
+            const nextSelection = TextSelection.create(
+              state.doc,
+              parentStart + segmentStart,
+              parentStart + childStart,
+            )
+
+            if (!selection.eq(nextSelection)) {
+              view.dispatch(state.tr.setSelection(nextSelection))
+            }
+
+            return true
+          }
+
+          segmentStart = null
+        }
+
+        offset = childEnd
+      }
+
+      if (
+        segmentStart !== null &&
+        fromOffset >= segmentStart &&
+        fromOffset <= offset &&
+        toOffset >= segmentStart &&
+        toOffset <= offset
+      ) {
+        const nextSelection = TextSelection.create(
+          state.doc,
+          parentStart + segmentStart,
+          parentStart + offset,
+        )
+
+        if (!selection.eq(nextSelection)) {
+          view.dispatch(state.tr.setSelection(nextSelection))
+        }
+
+        return true
+      }
+
+      return false
+    }
+
+    return [
+      keymap({
+        "Mod-a": () => selectCurrentInlineCode(),
+      }),
+    ]
+  },
+})
+
 const PhotoImage = TiptapImage.extend({
   addAttributes() {
     return {
@@ -261,6 +352,7 @@ export function SimpleEditor({
       },
     },
     extensions: [
+      InlineCodeSelectAll,
       StarterKit.configure({
         codeBlock: false,
         horizontalRule: false,

@@ -2,6 +2,7 @@
 
 import { ContentStatus } from "@prisma/client";
 import { Check } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -27,6 +28,7 @@ import type { PostItem } from "@/server/repositories/posts";
 
 const initialState: SavePostEditorState = {
   error: null,
+  redirectTo: null,
 };
 
 type PostEditorFormProps = {
@@ -45,6 +47,7 @@ type PostPreviewState = {
 };
 
 export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName }: PostEditorFormProps) {
+  const router = useRouter();
   const [state, formAction] = useActionState(savePostDraftAction, initialState);
   const editablePost = getEditablePost(post);
   const [categoryItems, setCategoryItems] = useState(() => sortCategories(categories));
@@ -72,6 +75,12 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
   const postUrlPrefix = `${siteUrlBase}/posts/${selectedCategorySlug}/`;
 
   useUnsavedChangesWarning(isEditorDirty);
+
+  useEffect(() => {
+    if (state.redirectTo) {
+      router.replace(state.redirectTo);
+    }
+  }, [router, state.redirectTo]);
 
   useEffect(() => {
     if (state.error && wasDirtyBeforeSubmitRef.current) {
@@ -436,6 +445,8 @@ function SaveButton({ hasExistingPost }: { hasExistingPost: boolean }) {
   return (
     <button
       type="submit"
+      name="intent"
+      value="save"
       disabled={pending}
       className="inline-flex h-10 w-full items-center justify-center px-1 text-sm font-medium text-primary transition hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
     >
