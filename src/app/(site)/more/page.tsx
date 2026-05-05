@@ -19,7 +19,7 @@ export default function MorePage() {
           ·
         </span>
         <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
-          更多功能
+          更多功能 
         </span>
       </h1>
 
