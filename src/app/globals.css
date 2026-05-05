@@ -414,7 +414,7 @@ html {
 .reading-copy p > img {
   width: 100%;
   max-width: 100%;
-  max-height: none;
+  max-height: min(42rem, 72vh);
 }
 
 .reading-copy figure:not(.content-gallery__item) {
@@ -430,7 +430,7 @@ html {
   margin-bottom: 0;
   width: 100%;
   max-width: 100%;
-  max-height: none;
+  max-height: min(42rem, 72vh);
   object-fit: contain;
 }
 
