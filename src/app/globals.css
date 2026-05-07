@@ -67,20 +67,22 @@ html[data-theme="dark"] {
     rgb(var(--background-tint-rgb))
   );
   color-scheme: dark;
+  background: rgb(0 0 0);
 }
 
 html[data-theme="light"] {
   color-scheme: light;
+  background: rgb(255 255 255);
 }
 
 body {
-  background: var(--background);
+  background: transparent;
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 html {
-  background: var(--background);
+  background: rgb(255 255 255);
 }
 
 * {
