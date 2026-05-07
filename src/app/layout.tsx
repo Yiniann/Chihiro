@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { CodeBlockCopyController } from "@/components/code-block-copy-controller";
 import { ImageViewerController } from "@/components/image-viewer-controller";
@@ -44,12 +44,6 @@ export async function generateMetadata(): Promise<Metadata> {
     description: siteDescription,
   };
 }
-
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  viewportFit: "cover",
-};
 
 export default function RootLayout({
   children,

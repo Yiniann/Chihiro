@@ -74,13 +74,13 @@ html[data-theme="light"] {
 }
 
 body {
-  background: transparent;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
 }
 
 html {
-  background: var(--site-canvas-background);
+  background: var(--background);
 }
 
 * {
@@ -1845,13 +1845,6 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: transparent;
-}
-
-.site-bottom-noise::before {
-  content: "";
-  position: absolute;
-  inset: 0;
   background: var(--site-canvas-background);
 }
 
@@ -1869,6 +1862,10 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
 }
 
 html[data-theme="dark"] {
+  .site-bottom-noise {
+    background: var(--site-canvas-background);
+  }
+
   .site-bottom-noise::after {
     opacity: 0.22;
     mix-blend-mode: screen;
