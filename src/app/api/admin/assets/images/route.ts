@@ -1,6 +1,9 @@
+import { AssetKind } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/server/auth";
-import { uploadImageToObjectStorage } from "@/server/object-storage";
+import { createAsset } from "@/server/repositories/assets";
+import { getObjectStorageSettings } from "@/server/repositories/object-storage";
+import { resolveImageUrlPhotoMeta, uploadImageToObjectStorage } from "@/server/object-storage";
 
 export async function POST(request: Request) {
   if (!(await isAdminAuthenticated())) {
@@ -16,10 +19,27 @@ export async function POST(request: Request) {
     }
 
     const uploadedImage = await uploadImageToObjectStorage(file);
+    const resolvedMeta =
+      uploadedImage.photoMeta ?? (await resolveImageUrlPhotoMeta(uploadedImage.url));
+    const objectStorageSettings = await getObjectStorageSettings();
+
+    if (objectStorageSettings) {
+      await createAsset({
+        provider: objectStorageSettings.provider,
+        kind: AssetKind.IMAGE,
+        storageKey: uploadedImage.storageKey,
+        bucket: objectStorageSettings.bucket,
+        url: uploadedImage.url,
+        alt: null,
+        photoMeta: resolvedMeta ?? null,
+        mimeType: file.type || null,
+        size: file.size,
+      });
+    }
 
     return NextResponse.json({
       url: uploadedImage.url,
-      meta: uploadedImage.photoMeta,
+      meta: resolvedMeta,
     });
   } catch (error) {
     return NextResponse.json(

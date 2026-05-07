@@ -76,6 +76,7 @@ model Asset {
   bucket       String?
   url          String
   alt          String?
+  photoMeta    String?
   mimeType     String?
   size         Int?
   width        Int?

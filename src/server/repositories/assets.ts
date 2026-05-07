@@ -9,6 +9,7 @@ export type AssetItem = {
   bucket: string | null;
   url: string;
   alt: string | null;
+  photoMeta: string | null;
   mimeType: string | null;
   size: number | null;
   width: number | null;
@@ -70,6 +71,7 @@ export async function createAsset(input: {
   bucket?: string | null;
   url: string;
   alt?: string | null;
+  photoMeta?: string | null;
   mimeType?: string | null;
   size?: number | null;
   width?: number | null;
@@ -84,11 +86,26 @@ export async function createAsset(input: {
       bucket: input.bucket ?? null,
       url: input.url,
       alt: input.alt ?? null,
+      photoMeta: input.photoMeta ?? null,
       mimeType: input.mimeType ?? null,
       size: input.size ?? null,
       width: input.width ?? null,
       height: input.height ?? null,
       duration: input.duration ?? null,
+    },
+  });
+
+  return mapAsset(asset);
+}
+
+export async function updateAssetAlt(input: {
+  id: string;
+  alt: string | null;
+}) {
+  const asset = await prisma.asset.update({
+    where: { id: input.id },
+    data: {
+      alt: input.alt,
     },
   });
 
@@ -108,6 +125,7 @@ function mapAsset(asset: Awaited<ReturnType<typeof prisma.asset.findUnique>> ext
     bucket: asset.bucket,
     url: asset.url,
     alt: asset.alt,
+    photoMeta: asset.photoMeta,
     mimeType: asset.mimeType,
     size: asset.size,
     width: asset.width,

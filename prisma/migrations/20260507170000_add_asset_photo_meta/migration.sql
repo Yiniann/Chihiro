@@ -1,0 +1,2 @@
+ALTER TABLE "Asset"
+ADD COLUMN "photoMeta" TEXT;

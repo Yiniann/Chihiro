@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   House,
+  Images,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -31,6 +32,9 @@ const adminNavMeta: Record<
   },
   "/admin/workbench": {
     icon: NotebookPen,
+  },
+  "/admin/assets": {
+    icon: Images,
   },
   "/admin/settings": {
     icon: Settings2,
