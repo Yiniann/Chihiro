@@ -190,7 +190,7 @@ export function ImageViewerController() {
         : [image];
       const images = imageElements.map((item) => ({
         src: item.currentSrc || item.src,
-        alt: item.alt || item.title || "图片",
+        alt: item.alt || "图片",
       }));
       const index = Math.max(0, imageElements.includes(image) ? imageElements.indexOf(image) : 0);
 
@@ -535,13 +535,23 @@ function enhancePhotoMetadata(root: ParentNode) {
     if (
       image.closest(GALLERY_SELECTOR) ||
       image.closest("[data-image-viewer]") ||
-      image.closest(IMAGE_VIEWER_DISABLED_SELECTOR) ||
-      image.closest(`.${PHOTO_META_FRAME_CLASS}`)
+      image.closest(IMAGE_VIEWER_DISABLED_SELECTOR)
     ) {
       continue;
     }
 
     const photoMetaItems = getPhotoMetaItems(image);
+    const existingFrame = image.closest<HTMLElement>(`.${PHOTO_META_FRAME_CLASS}`);
+
+    if (existingFrame) {
+      if (photoMetaItems.length === 0) {
+        existingFrame.querySelector(`:scope > .${PHOTO_META_OVERLAY_CLASS}`)?.remove();
+      } else {
+        appendPhotoMetaOverlay(existingFrame, photoMetaItems);
+      }
+
+      continue;
+    }
 
     if (photoMetaItems.length === 0) {
       continue;
@@ -580,7 +590,7 @@ function enhanceGalleryPhotoMetadata(root: ParentNode) {
       continue;
     }
 
-    const photoMetaItems = getPhotoMetaItems(image, false);
+    const photoMetaItems = getPhotoMetaItems(image);
 
     if (photoMetaItems.length === 0) {
       item.querySelector(`:scope > .${PHOTO_META_OVERLAY_CLASS}`)?.remove();
@@ -876,7 +886,6 @@ function getPhotoMetaItems(image: HTMLImageElement, includeAltFallback = true): 
   const items: Array<PhotoMetaItem | null> = [
     createPhotoMetaItem("caption", image.dataset.photoCaption),
     ...expandPhotoMetaValue(image.dataset.photoMeta),
-    ...expandPhotoMetaValue(image.getAttribute("title")),
     includeAltFallback ? createPhotoMetaItem("alt", image.getAttribute("alt")) : null,
   ];
 

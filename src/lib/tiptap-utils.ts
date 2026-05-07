@@ -446,6 +446,26 @@ export const handleImageUpload = async (
   })
 }
 
+export async function resolveImageUrlMetadata(url: string): Promise<{ meta?: string }> {
+  const response = await fetch(`/api/admin/assets/images/resolve?url=${encodeURIComponent(url)}`, {
+    method: "GET",
+    credentials: "same-origin",
+  })
+
+  const payload = (await response.json().catch(() => ({}))) as {
+    meta?: string | null
+    error?: string
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error ?? "读取图片 metadata 失败。")
+  }
+
+  return {
+    meta: payload.meta ?? undefined,
+  }
+}
+
 type ProtocolOptions = {
   /**
    * The protocol scheme to be registered.

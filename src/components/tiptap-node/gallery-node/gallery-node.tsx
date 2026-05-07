@@ -21,6 +21,7 @@ import type {
   UploadedImage,
   UploadFunction,
 } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension"
+import { resolveImageUrlMetadata } from "@/lib/tiptap-utils"
 
 function normalizeImages(value: unknown): GalleryImage[] {
   if (!Array.isArray(value)) {
@@ -121,6 +122,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isResolvingImageUrl, setIsResolvingImageUrl] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null)
   const [shouldScrollToEnd, setShouldScrollToEnd] = useState(false)
 
@@ -265,7 +267,32 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
     return success
   }
 
-  const handleImageUrlInsert = () => {
+  useEffect(() => {
+    const detail =
+      isSelected && activeImageIndex !== null && images[activeImageIndex]
+        ? {
+            pos: typeof props.getPos() === "number" ? props.getPos() : null,
+            index: activeImageIndex,
+            alt: images[activeImageIndex]?.alt ?? "",
+          }
+        : null
+
+    document.dispatchEvent(
+      new CustomEvent("chihiro:gallery-image-selection-change", {
+        detail,
+      })
+    )
+
+    return () => {
+      document.dispatchEvent(
+        new CustomEvent("chihiro:gallery-image-selection-change", {
+          detail: null,
+        })
+      )
+    }
+  }, [activeImageIndex, images, isSelected, props])
+
+  const handleImageUrlInsert = async () => {
     if (!canAddMore) {
       if (typeof limit === "number" && limit > 0) {
         setImageUrlError(`最多只能添加 ${limit} 张图片。`)
@@ -281,12 +308,25 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
     }
 
     setUploadError(null)
+    setIsResolvingImageUrl(true)
     const filename = getImageNameFromUrl(normalizedUrl)
+    let resolvedMeta: string | undefined
+
+    try {
+      const metadata = await resolveImageUrlMetadata(normalizedUrl)
+      resolvedMeta = metadata.meta
+    } catch {
+      resolvedMeta = undefined
+    } finally {
+      setIsResolvingImageUrl(false)
+    }
+
     const success = appendImages([
       {
         src: normalizedUrl,
-        alt: filename,
+        alt: undefined,
         title: filename,
+        meta: resolvedMeta,
       },
     ])
 
@@ -347,7 +387,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
               const filename = getImageNameFromFile(file)
               return {
                 src: uploadedImage.url,
-                alt: filename,
+                alt: undefined,
                 title: filename,
                 meta: uploadedImage.meta,
               }
@@ -471,8 +511,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
             </Button>
             <img
               src={image.src}
-              alt={image.alt ?? image.title ?? `图册图片 ${index + 1}`}
-              title={image.title ?? image.alt ?? `图册图片 ${index + 1}`}
+              alt={image.alt ?? `图册图片 ${index + 1}`}
               loading="lazy"
               decoding="async"
             />
@@ -525,10 +564,10 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                 {isUploading ? <span className="content-gallery__add-tile-spinner" /> : "+"}
               </div>
               <div className="content-gallery__add-tile-copy">
-                <strong>{isUploading ? "上传中…" : "继续添加"}</strong>
+                <strong>{isUploading ? "上传并解析中…" : "继续添加"}</strong>
                 <span>
                   {isUploading
-                    ? "正在添加图片到当前图册"
+                    ? "正在上传并解析图片到当前图册"
                     : `还可添加 ${remainingSlots ?? "多"} 张`}
                 </span>
               </div>
@@ -589,10 +628,10 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                     {isUploading ? <span className="content-gallery__add-tile-spinner" /> : "+"}
                   </div>
                   <div className="content-gallery__add-tile-copy">
-                    <strong>{isUploading ? "上传中…" : "继续添加"}</strong>
+                    <strong>{isUploading ? "上传并解析中…" : "继续添加"}</strong>
                     <span>
                       {isUploading
-                        ? "正在添加图片到当前图册"
+                        ? "正在上传并解析图片到当前图册"
                         : `还可添加 ${remainingSlots ?? "多"} 张`}
                     </span>
                   </div>
@@ -610,7 +649,7 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                   data-gallery-url-input="true"
                   type="url"
                   value={imageUrl}
-                  disabled={isUploading}
+                  disabled={isUploading || isResolvingImageUrl}
                   placeholder="https://img.example.com/uploads/image.webp"
                   autoComplete="off"
                   autoCorrect="off"
@@ -624,21 +663,21 @@ export const GalleryNodeView: React.FC<NodeViewProps> = (props) => {
                     if (event.key === "Enter") {
                       event.preventDefault()
                       event.stopPropagation()
-                      handleImageUrlInsert()
+                      void handleImageUrlInsert()
                     }
                   }}
                 />
                 <Button
                   type="button"
                   variant="ghost"
-                  disabled={isUploading || !canAddMore || !imageUrl.trim()}
+                  disabled={isUploading || isResolvingImageUrl || !canAddMore || !imageUrl.trim()}
                   onClick={(event) => {
                     event.preventDefault()
                     event.stopPropagation()
-                    handleImageUrlInsert()
+                    void handleImageUrlInsert()
                   }}
                 >
-                  插入
+                  {isResolvingImageUrl ? "解析中…" : "插入"}
                 </Button>
               </div>
               {imageUrlError ? (

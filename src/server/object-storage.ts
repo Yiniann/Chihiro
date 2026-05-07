@@ -79,6 +79,27 @@ export async function uploadImageToObjectStorage(file: File) {
   };
 }
 
+export async function resolveImageUrlPhotoMeta(url: string) {
+  try {
+    const response = await fetch(url, { cache: "no-store" });
+
+    if (!response.ok) {
+      return undefined;
+    }
+
+    const contentType = response.headers.get("content-type") ?? "";
+
+    if (!contentType.startsWith("image/")) {
+      return undefined;
+    }
+
+    const body = Buffer.from(await response.arrayBuffer());
+    return getPhotoMeta(body);
+  } catch {
+    return undefined;
+  }
+}
+
 function createPublicUrl(publicBaseUrl: string, storageKey: string) {
   return `${publicBaseUrl.replace(/\/+$/, "")}/${storageKey
     .split("/")

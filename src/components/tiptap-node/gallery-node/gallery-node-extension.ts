@@ -127,7 +127,7 @@ function createGalleryItem(image: GalleryImage, index: number) {
       "img",
       {
         src: image.src,
-        alt: image.alt ?? image.title ?? `图册图片 ${index + 1}`,
+        alt: image.alt ?? `图册图片 ${index + 1}`,
         ...(image.caption ? { "data-photo-caption": image.caption } : {}),
         ...(image.meta ? { "data-photo-meta": image.meta } : {}),
         loading: "lazy",

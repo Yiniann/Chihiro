@@ -67,22 +67,16 @@ html[data-theme="dark"] {
     rgb(var(--background-tint-rgb))
   );
   color-scheme: dark;
-  background: rgb(0 0 0);
 }
 
 html[data-theme="light"] {
   color-scheme: light;
-  background: rgb(255 255 255);
 }
 
 body {
-  background: transparent;
+  background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
-}
-
-html {
-  background: rgb(255 255 255);
 }
 
 * {
@@ -266,8 +260,8 @@ html {
 }
 
 .photo-meta-frame--block {
-  display: block;
-  width: 100%;
+  display: table;
+  width: auto;
   max-width: 100%;
   margin: 0.5rem auto;
 }
@@ -290,6 +284,14 @@ html {
   max-width: 100%;
   height: auto;
   max-height: none;
+}
+
+.reading-copy .photo-meta-frame--block > img,
+.reading-copy .photo-meta-host .photo-meta-frame > img {
+  width: auto;
+  max-width: 100%;
+  max-height: min(42rem, 72vh);
+  object-fit: contain;
 }
 
 .photo-meta-overlay {
@@ -553,12 +555,13 @@ html {
 
 .content-gallery__item img {
   display: block;
-  width: 100%;
-  max-width: none;
+  width: auto;
+  max-width: 100%;
   max-height: min(28rem, 64vh);
+  height: auto;
   margin: 0;
   border-radius: 0;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .content-gallery__inline-header {
@@ -799,7 +802,9 @@ html[data-theme="dark"] .content-gallery__add-panel .tiptap-image-upload-drag-ar
 }
 
 .content-gallery:not(.content-gallery--editor) .content-gallery__item {
-  flex: 0 0 calc(100% - 3.75rem);
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: calc(100% - 3.75rem);
   align-self: center;
   scroll-snap-align: none;
   border: 0;
@@ -948,12 +953,20 @@ html[data-theme="dark"] .content-gallery__nav-button:hover {
   overflow: visible;
 }
 
+.content-gallery--editor .content-gallery__track {
+  grid-auto-columns: minmax(0, auto);
+  justify-content: start;
+}
+
 .content-gallery--editor.content-gallery--single {
   width: fit-content;
   max-width: 100%;
 }
 
 .content-gallery--editor .content-gallery__item {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
   border: 0;
   background: transparent;
   box-shadow: none;

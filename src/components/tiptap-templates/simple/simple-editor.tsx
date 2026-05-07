@@ -5,6 +5,7 @@ import { Code2, FileCode2 } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import type { JSONContent } from "@tiptap/react"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
+import type { Editor } from "@tiptap/react"
 import { keymap } from "@tiptap/pm/keymap"
 import { TextSelection } from "@tiptap/pm/state"
 
@@ -195,6 +196,140 @@ const MobileToolbarContent = ({
     )}
   </>
 )
+
+const ImageAltEditor = ({ editor }: { editor: Editor }) => {
+  const [mode, setMode] = useState<"image" | "gallery" | null>(null)
+  const [altValue, setAltValue] = useState("")
+  const [gallerySelection, setGallerySelection] = useState<{
+    pos: number
+    index: number
+    alt: string
+  } | null>(null)
+
+  useEffect(() => {
+    const syncFromSelection = () => {
+      const active = editor.isActive("image")
+
+      if (!active) {
+        if (gallerySelection) {
+          setMode("gallery")
+          setAltValue(gallerySelection.alt)
+        } else {
+          setMode(null)
+          setAltValue("")
+        }
+        return
+      }
+
+      const attributes = editor.getAttributes("image")
+      setMode("image")
+      setAltValue(typeof attributes.alt === "string" ? attributes.alt : "")
+    }
+
+    const handleGallerySelectionChange = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        pos: number | null
+        index: number
+        alt: string
+      } | null>).detail
+
+      if (!detail || detail.pos === null) {
+        setGallerySelection(null)
+        if (!editor.isActive("image")) {
+          setMode(null)
+          setAltValue("")
+        }
+        return
+      }
+
+      setGallerySelection({
+        pos: detail.pos,
+        index: detail.index,
+        alt: detail.alt,
+      })
+
+      if (!editor.isActive("image")) {
+        setMode("gallery")
+        setAltValue(detail.alt)
+      }
+    }
+
+    syncFromSelection()
+    editor.on("selectionUpdate", syncFromSelection)
+    editor.on("transaction", syncFromSelection)
+    document.addEventListener("chihiro:gallery-image-selection-change", handleGallerySelectionChange)
+
+    return () => {
+      editor.off("selectionUpdate", syncFromSelection)
+      editor.off("transaction", syncFromSelection)
+      document.removeEventListener("chihiro:gallery-image-selection-change", handleGallerySelectionChange)
+    }
+  }, [editor, gallerySelection])
+
+  if (!mode) {
+    return null
+  }
+
+  return (
+    <div className="border-b border-zinc-200/80 bg-white/70 px-4 py-3 dark:border-zinc-800/80 dark:bg-zinc-950/70">
+      <label className="flex flex-col gap-2">
+        <span className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+          图片描述
+        </span>
+        <input
+          type="text"
+          value={altValue}
+          onChange={(event) => {
+            const nextValue = event.target.value
+            setAltValue(nextValue)
+
+            if (mode === "image") {
+              editor.commands.updateAttributes("image", {
+                alt: nextValue.trim() ? nextValue : null,
+              })
+              return
+            }
+
+            if (!gallerySelection) {
+              return
+            }
+
+            editor
+              .chain()
+              .command(({ tr, state }) => {
+                const node = state.doc.nodeAt(gallerySelection.pos)
+
+                if (!node || node.type.name !== "gallery") {
+                  return false
+                }
+
+                const images = Array.isArray(node.attrs.images) ? [...node.attrs.images] : []
+
+                if (!images[gallerySelection.index]) {
+                  return false
+                }
+
+                images[gallerySelection.index] = {
+                  ...images[gallerySelection.index],
+                  alt: nextValue.trim() ? nextValue : undefined,
+                }
+
+                tr.setNodeMarkup(gallerySelection.pos, undefined, {
+                  ...node.attrs,
+                  images,
+                })
+
+                return true
+              })
+              .run()
+          }}
+          placeholder="描述这张图片的内容"
+          className="h-11 rounded-2xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-600"
+        />
+      </label>
+    </div>
+  )
+}
 
 type SimpleEditorProps = {
   initialContent?: JSONContent | null
@@ -475,6 +610,8 @@ export function SimpleEditor({
               />
             ) : null}
           </Toolbar>
+
+          {!isCodeView && editor ? <ImageAltEditor editor={editor} /> : null}
 
           {isCodeView ? (
             <div className="simple-editor-code-pane">

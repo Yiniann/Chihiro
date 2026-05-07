@@ -9,7 +9,7 @@ import type { UploadedImage } from "@/components/tiptap-node/image-upload-node/i
 import { Button } from "@/components/tiptap-ui-primitive/button"
 import { CloseIcon } from "@/components/tiptap-icons/close-icon"
 import "@/components/tiptap-node/image-upload-node/image-upload-node.scss"
-import { focusNextNode, isValidPosition } from "@/lib/tiptap-utils"
+import { focusNextNode, isValidPosition, resolveImageUrlMetadata } from "@/lib/tiptap-utils"
 
 export interface FileItem {
   /**
@@ -471,6 +471,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const [imageUrl, setImageUrl] = useState("")
   const [imageUrlError, setImageUrlError] = useState<string | null>(null)
   const [uploadError, setUploadError] = useState<string | null>(null)
+  const [isResolvingImageUrl, setIsResolvingImageUrl] = useState(false)
   const extension = props.extension
 
   const uploadOptions: UploadOptions = {
@@ -589,7 +590,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
           files[index]?.name.replace(/\.[^/.]+$/, "") || "unknown"
         return {
           src: image.url,
-          alt: filename,
+          alt: undefined,
           title: filename,
           meta: image.meta,
         }
@@ -599,7 +600,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     }
   }
 
-  const handleImageUrlInsert = () => {
+  const handleImageUrlInsert = async () => {
     const normalizedUrl = normalizeImageUrl(imageUrl)
 
     if (!normalizedUrl) {
@@ -608,13 +609,26 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     }
 
     setUploadError(null)
+    setIsResolvingImageUrl(true)
     const filename = getImageNameFromUrl(normalizedUrl)
+    let resolvedMeta: string | undefined
+
+    try {
+      const metadata = await resolveImageUrlMetadata(normalizedUrl)
+      resolvedMeta = metadata.meta
+    } catch {
+      resolvedMeta = undefined
+    } finally {
+      setIsResolvingImageUrl(false)
+    }
+
     const success = insertNodes(
       buildInsertedNodes([
         {
           src: normalizedUrl,
-          alt: filename,
+          alt: undefined,
           title: filename,
+          meta: resolvedMeta,
         },
       ])
     )
@@ -649,8 +663,8 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const addTileDescription = "点击或者拖入图片添加"
   const isTileUploading = fileItems.some((fileItem) => fileItem.status === "uploading")
   const uploadingDescription = isGalleryUpload
-    ? "正在添加图片到当前图册"
-    : "正在上传图片"
+    ? "正在上传并解析图片到当前图册"
+    : "正在上传并解析图片"
 
   return (
     <NodeViewWrapper
@@ -728,6 +742,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
                 ref={urlInputRef}
                 type="url"
                 value={imageUrl}
+                disabled={isResolvingImageUrl}
                 onChange={(event) => {
                   setImageUrl(event.target.value)
                   setImageUrlError(null)
@@ -735,7 +750,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
                 onKeyDown={(event) => {
                   if (event.key === "Enter") {
                     event.preventDefault()
-                    handleImageUrlInsert()
+                    void handleImageUrlInsert()
                   }
                 }}
                 placeholder="https://img.example.com/uploads/image.webp"
@@ -746,10 +761,12 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
               <Button
                 type="button"
                 variant="ghost"
-                disabled={!imageUrl.trim()}
-                onClick={handleImageUrlInsert}
+                disabled={isResolvingImageUrl || !imageUrl.trim()}
+                onClick={() => {
+                  void handleImageUrlInsert()
+                }}
               >
-                插入
+                {isResolvingImageUrl ? "解析中…" : "插入"}
               </Button>
             </div>
             {imageUrlError ? (
