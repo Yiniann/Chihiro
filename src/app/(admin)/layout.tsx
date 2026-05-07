@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { requireAdminSession } from "@/server/auth";
 import { AdminHeader } from "@/app/(admin)/admin/admin-header";
+import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { getAdminBackendStatus, getAdminBackendStatusMessage } from "@/server/admin-backend";
 
 export const dynamic = "force-dynamic";
@@ -15,10 +16,10 @@ export default async function AdminLayout({
   if (backendStatus !== "ready") {
     const message = getAdminBackendStatusMessage(backendStatus);
 
-    return (
-      <div className="relative min-h-full bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-        <div aria-hidden="true" className="site-bottom-noise" />
-        <main className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
+      return (
+        <div className="relative min-h-full bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+          <SiteCanvasBackground />
+          <main className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
           <section className="w-full max-w-2xl rounded-[2rem] border border-zinc-200/80 bg-white/90 p-8 shadow-[0_24px_70px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-10">
             <p className="text-[0.72rem] font-medium uppercase tracking-[0.26em] text-zinc-400 dark:text-zinc-500">
               Admin
@@ -60,7 +61,7 @@ export default async function AdminLayout({
 
   return (
     <div className="relative min-h-full bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-      <div aria-hidden="true" className="site-bottom-noise" />
+      <SiteCanvasBackground />
       <AdminHeader />
       <main className="relative z-10 min-h-screen px-6 pb-6 pt-24 md:px-10 md:pb-8 md:pt-28">
         <div className="mx-auto w-full max-w-6xl">

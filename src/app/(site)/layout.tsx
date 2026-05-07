@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
+import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { siteConfig } from "@/lib/site";
@@ -45,7 +46,7 @@ export default async function SiteLayout({
     if (isPublicSiteUnavailableError(error)) {
       return (
         <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-          <div aria-hidden="true" className="site-bottom-noise" />
+          <SiteCanvasBackground />
           <div className="relative z-10 flex-1">
             <PublicSiteUnavailableScreen />
           </div>
@@ -66,7 +67,7 @@ export default async function SiteLayout({
 
   return (
     <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-      <div aria-hidden="true" className="site-bottom-noise" />
+      <SiteCanvasBackground />
       <SiteHeader
         siteName={siteName}
         isAdminLoggedIn={adminState.isAdminLoggedIn}
