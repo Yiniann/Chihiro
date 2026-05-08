@@ -10,15 +10,8 @@ type TableOfContentsSection = {
   children: TableOfContentsItem[];
 };
 
-const MAX_VISIBLE_SECTIONS = 3;
-const MAX_VISIBLE_CHILDREN = 3;
 const READING_PROGRESS_ROOT_SELECTOR = "[data-reading-progress-root]";
-
-type VisibleTocWindow<T> = {
-  hasHiddenBefore: boolean;
-  hasHiddenAfter: boolean;
-  items: T[];
-};
+const BACK_TO_TOP_SCROLL_THRESHOLD = 420;
 
 export function PostTableOfContents({ items }: { items: TableOfContentsItem[] }) {
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
@@ -27,6 +20,7 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
   const [showReadingCompleteCheck, setShowReadingCompleteCheck] = useState(false);
   const [hideReadingProgressLabel, setHideReadingProgressLabel] = useState(false);
   const [hideReadingProgressCircle, setHideReadingProgressCircle] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const navRef = useRef<HTMLElement | null>(null);
   const activeIndicatorRef = useRef<HTMLSpanElement | null>(null);
 
@@ -57,14 +51,6 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
     }
     return sections[0]?.heading.id ?? "";
   }, [sections, activeId]);
-
-  const visibleSections = useMemo(() => {
-    const activeSectionIndex = sections.findIndex(
-      (section) => section.heading.id === activeSectionId,
-    );
-
-    return getVisibleTocWindow(sections, activeSectionIndex, MAX_VISIBLE_SECTIONS);
-  }, [sections, activeSectionId]);
 
   const updateActiveIndicator = useCallback(() => {
     const nav = navRef.current;
@@ -103,7 +89,7 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
 
   useLayoutEffect(() => {
     updateActiveIndicator();
-  }, [updateActiveIndicator, visibleSections]);
+  }, [updateActiveIndicator]);
 
   useEffect(() => {
     let animationFrame = 0;
@@ -127,7 +113,7 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
         window.clearTimeout(timeoutId);
       }
     };
-  }, [activeId, updateActiveIndicator, visibleSections]);
+  }, [activeId, updateActiveIndicator]);
 
   useEffect(() => {
     const nav = navRef.current;
@@ -162,7 +148,28 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
       nav.removeEventListener("transitionend", scheduleIndicatorUpdate);
       window.removeEventListener("resize", scheduleIndicatorUpdate);
     };
-  }, [updateActiveIndicator, visibleSections]);
+  }, [updateActiveIndicator]);
+
+  useEffect(() => {
+    let animationFrame = 0;
+
+    const updateBackToTopVisibility = () => {
+      setShowBackToTop(window.scrollY > BACK_TO_TOP_SCROLL_THRESHOLD);
+    };
+
+    const scheduleBackToTopVisibilityUpdate = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updateBackToTopVisibility);
+    };
+
+    window.addEventListener("scroll", scheduleBackToTopVisibilityUpdate, { passive: true });
+    scheduleBackToTopVisibilityUpdate();
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener("scroll", scheduleBackToTopVisibilityUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     if (isReadingComplete) {
@@ -296,15 +303,9 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
           aria-hidden="true"
           className="absolute -left-5 top-0 w-[3px] rounded-full bg-primary opacity-0 shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_45%,transparent)] transition-[height,opacity,transform] duration-500 ease-out will-change-transform motion-reduce:transition-none"
         />
-        {visibleSections.hasHiddenBefore ? <BackToTopButton /> : null}
-        {visibleSections.items.map((section) => {
+        {showBackToTop ? <BackToTopButton /> : null}
+        {sections.map((section) => {
           const isOpen = section.heading.id === activeSectionId;
-          const activeChildIndex = section.children.findIndex((child) => child.id === activeId);
-          const visibleChildren = getVisibleTocWindow(
-            section.children,
-            activeChildIndex,
-            MAX_VISIBLE_CHILDREN,
-          );
 
           return (
             <div key={section.heading.id} className="flex flex-col">
@@ -322,8 +323,7 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
                   className="grid overflow-hidden"
                 >
                   <div className="flex min-h-0 flex-col">
-                    {visibleChildren.hasHiddenBefore ? <TOCEllipsis className="ml-4" /> : null}
-                    {visibleChildren.items.map((child) => (
+                    {section.children.map((child) => (
                       <TOCLink
                         key={child.id}
                         item={child}
@@ -331,14 +331,12 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
                         tabIndex={isOpen ? 0 : -1}
                       />
                     ))}
-                    {visibleChildren.hasHiddenAfter ? <TOCEllipsis className="ml-4" /> : null}
                   </div>
                 </div>
               ) : null}
             </div>
           );
         })}
-        {visibleSections.hasHiddenAfter ? <TOCEllipsis /> : null}
       </nav>
       <ReadingProgress
         value={readingProgress}
@@ -431,32 +429,6 @@ function BackToTopButton() {
       <ArrowUpIcon aria-hidden="true" className="h-3.5 w-3.5" />
       Back To Top
     </button>
-  );
-}
-
-function getVisibleTocWindow<T>(
-  items: T[],
-  activeIndex: number,
-  maxVisibleItems: number,
-): VisibleTocWindow<T> {
-  const lastStartIndex = Math.max(items.length - maxVisibleItems, 0);
-  const startIndex = Math.min(Math.max(activeIndex - 1, 0), lastStartIndex);
-
-  return {
-    hasHiddenBefore: startIndex > 0,
-    hasHiddenAfter: startIndex + maxVisibleItems < items.length,
-    items: items.slice(startIndex, startIndex + maxVisibleItems),
-  };
-}
-
-function TOCEllipsis({ className = "" }: { className?: string }) {
-  return (
-    <span
-      aria-hidden="true"
-      className={`toc-item-enter block py-[5px] leading-6 text-zinc-400 dark:text-zinc-600 ${className}`}
-    >
-      ...
-    </span>
   );
 }
 

@@ -4,7 +4,11 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
-import { addHeadingAnchors, getRenderedContentHtml } from "@/lib/content";
+import {
+  addHeadingAnchors,
+  getRenderedContentHtml,
+  normalizeHtmlForHydration,
+} from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { RelativeDate } from "@/components/relative-date";
 import {
@@ -142,7 +146,7 @@ export default async function PostPage({ params }: PostPageProps) {
     const renderedContentHtml = getRenderedContentHtml(post.contentHtml, post.content);
     const highlightedContentHtml = renderedContentHtml ? highlightCodeBlocksInHtml(renderedContentHtml) : null;
     const contentWithToc = highlightedContentHtml ? addHeadingAnchors(highlightedContentHtml) : null;
-    const postContentHtml = contentWithToc?.html ?? highlightedContentHtml ?? "";
+    const postContentHtml = normalizeHtmlForHydration(contentWithToc?.html ?? highlightedContentHtml ?? "");
     const tocItems = contentWithToc?.items ?? [];
 
     return (

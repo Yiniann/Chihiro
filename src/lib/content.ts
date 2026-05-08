@@ -124,6 +124,22 @@ export function getRenderedContentHtml(contentHtml: string | null, content: unkn
   return paragraphs.length === 0 ? null : renderParagraphsAsHtml(paragraphs);
 }
 
+export function normalizeHtmlForHydration(contentHtml: string) {
+  return contentHtml.replace(/<[^>]+>/g, (tag) =>
+    tag.replace(
+      /(\s[\w:-]+=(["']))([\s\S]*?)(\2)/g,
+      (match: string, prefix: string, quote: string, value: string, suffix: string) => {
+        const normalizedValue = value.replace(
+          /&(?!#\d+;|#x[\da-f]+;|[a-z][a-z\d]+;)/gi,
+          "&amp;",
+        );
+
+        return normalizedValue === value ? match : `${prefix}${normalizedValue}${suffix}`;
+      },
+    ),
+  );
+}
+
 export type TableOfContentsItem = {
   id: string;
   text: string;

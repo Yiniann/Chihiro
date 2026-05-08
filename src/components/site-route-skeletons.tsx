@@ -107,6 +107,81 @@ export function PostsPageContentSkeleton() {
   );
 }
 
+export function PostDetailPageSkeleton() {
+  return (
+    <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_13rem] lg:items-start lg:justify-center">
+        <article className="min-w-0">
+          <SkeletonBlock className="h-3.5 w-36" />
+          <div className="mt-5 space-y-4">
+            <SkeletonBlock className="h-10 w-[82%] rounded-2xl" />
+            <SkeletonBlock className="h-10 w-[58%] rounded-2xl" />
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-3">
+            <SkeletonBlock className="h-3.5 w-24" />
+            <SkeletonBlock className="h-3.5 w-28" />
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            <SkeletonBlock className="h-6 w-18 rounded-full" />
+            <SkeletonBlock className="h-6 w-16 rounded-full" />
+            <SkeletonBlock className="h-6 w-20 rounded-full" />
+          </div>
+          <div className="mt-7">
+            <SkeletonTextGroup
+              lines={[
+                { width: "w-full", className: "h-4" },
+                { width: "w-[90%]", className: "h-4" },
+              ]}
+            />
+          </div>
+
+          <div className="mt-12 space-y-8">
+            {Array.from({ length: 4 }, (_, sectionIndex) => (
+              <section key={sectionIndex}>
+                <SkeletonBlock
+                  className={[
+                    "h-7 rounded-2xl",
+                    sectionIndex % 2 === 0 ? "w-2/5" : "w-1/2",
+                  ].join(" ")}
+                />
+                <div className="mt-5">
+                  <SkeletonTextGroup
+                    lines={[
+                      { width: "w-full" },
+                      { width: "w-[96%]" },
+                      { width: "w-[88%]" },
+                      { width: "w-[72%]" },
+                    ]}
+                  />
+                </div>
+              </section>
+            ))}
+          </div>
+        </article>
+
+        <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block">
+          <nav aria-label="文章目录加载中" className="relative flex flex-col gap-3">
+            <span
+              aria-hidden="true"
+              className="absolute -left-5 top-0 h-20 w-[3px] rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"
+            />
+            <SkeletonBlock className="h-3.5 w-24" />
+            <SkeletonBlock className="h-3.5 w-32" />
+            <SkeletonBlock className="ml-4 h-3 w-28" />
+            <SkeletonBlock className="ml-4 h-3 w-20" />
+            <SkeletonBlock className="h-3.5 w-28" />
+            <SkeletonBlock className="h-3.5 w-36" />
+          </nav>
+          <div className="mt-7 flex items-center gap-1.5">
+            <SkeletonBlock className="h-6 w-6" />
+            <SkeletonBlock className="h-3.5 w-10" />
+          </div>
+        </aside>
+      </div>
+    </main>
+  );
+}
+
 export function UpdatesPageContentSkeleton() {
   return (
     <div className="mt-8">
