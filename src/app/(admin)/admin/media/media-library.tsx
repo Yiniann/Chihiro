@@ -23,23 +23,25 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<AssetItem["kind"] | null>(null);
   const deferredQuery = useDeferredValue(query);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const filteredAssets = useMemo(() => {
     const normalizedQuery = deferredQuery.trim().toLowerCase();
+    return assets.filter((asset) => {
+      const matchesQuery =
+        !normalizedQuery ||
+        [asset.title, asset.alt, asset.url]
+          .filter(Boolean)
+          .some((value) => value?.toLowerCase().includes(normalizedQuery));
+      const matchesType = typeFilter === null || asset.kind === typeFilter;
 
-    if (!normalizedQuery) {
-      return assets;
-    }
-
-    return assets.filter((asset) =>
-      [asset.title, asset.alt, asset.url]
-        .filter(Boolean)
-        .some((value) => value?.toLowerCase().includes(normalizedQuery)),
-    );
-  }, [assets, deferredQuery]);
+      return matchesQuery && matchesType;
+    });
+  }, [assets, deferredQuery, typeFilter]);
   const searchTerms = useMemo(() => getSearchTerms(deferredQuery.trim().toLowerCase()), [deferredQuery]);
+  const hasActiveFilters = typeFilter !== null;
 
   const selectedAsset = useMemo(
     () =>
@@ -90,7 +92,43 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
     <>
       <section className="grid gap-5">
         <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">共 {assets.length} 张图片</p>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            当前显示 {filteredAssets.length} / {assets.length} 条媒体
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 pb-2 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+          <div className="flex flex-wrap items-center gap-3">
+            {(["IMAGE", "VIDEO", "FILE"] as const).map((value) => {
+              const active = typeFilter === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setTypeFilter((current) => (current === value ? null : value))}
+                  className={`transition ${
+                    active
+                      ? "relative inline-flex items-center justify-center px-1 py-1 text-sm font-medium text-zinc-950 after:absolute after:inset-x-0 after:-bottom-2 after:h-0.5 after:rounded-full after:bg-zinc-950 dark:text-zinc-50 dark:after:bg-zinc-100"
+                      : "relative inline-flex items-center justify-center px-1 py-1 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+                  }`}
+                >
+                  {getMediaTypeLabel(value)}
+                </button>
+              );
+            })}
+            {hasActiveFilters ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setTypeFilter(null);
+                }}
+                className="text-xs uppercase tracking-[0.18em] text-primary transition hover:text-primary/80 dark:text-primary dark:hover:text-primary/80"
+              >
+                Clear
+              </button>
+            ) : null}
+          </div>
+
           <button
             type="button"
             onClick={() => setIsSearchOpen(true)}
@@ -101,9 +139,9 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
           </button>
         </div>
 
-        {assets.length > 0 ? (
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {assets.map((asset) => (
+        {filteredAssets.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {filteredAssets.map((asset) => (
               <button
                 key={asset.id}
                 type="button"
@@ -124,14 +162,14 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {asset.title?.trim() || "未命名图片"}
+                      {asset.title?.trim() || getUntitledMediaLabel(asset.kind)}
                     </p>
                     <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
                       {formatAdminDateTime(asset.createdAt)}
                     </p>
                   </div>
                   <span className="inline-flex shrink-0 items-center rounded-full border border-zinc-200/80 px-2.5 py-1 text-[0.68rem] uppercase tracking-[0.16em] text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
-                    {asset.usageSummary.totalCount > 0 ? "Used" : "Image"}
+                    {getMediaTypeLabel(asset.kind)}
                   </span>
                 </div>
               </button>
@@ -177,7 +215,7 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
                           <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
                             <span className="inline-flex items-center gap-1 rounded-full border border-zinc-200/80 px-2.5 py-1 dark:border-zinc-800/80">
                               <ImageIcon className="h-3.5 w-3.5" />
-                              图片
+                              {getMediaTypeLabel(selectedAsset.kind)}
                             </span>
                             <span>上传于 {formatAdminDateTime(selectedAsset.createdAt)}</span>
                           </div>
@@ -223,7 +261,7 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
                             description={
                               selectedAsset.usageSummary.totalCount > 0
                                 ? getMediaUsageDescription(selectedAsset.usageSummary)
-                                : "这只会删除媒体库里的记录，不会删除原始图片文件或对象存储里的内容。"
+                                : "这只会删除媒体库里的记录，不会删除原始媒体文件或对象存储里的内容。"
                             }
                             confirmLabel="确认移除"
                             confirmTone="danger"
@@ -280,7 +318,7 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
                     <Search className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                     <input
                       ref={inputRef}
-                      type="search"
+                      type="text"
                       value={query}
                       onChange={(event) => setQuery(event.target.value)}
                       placeholder="按标题、描述或 URL 查找"
@@ -320,13 +358,16 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
                               className="rounded-[1.1rem] px-3 py-3 text-left transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
                             >
                               <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                                <span>{asset.usageSummary.totalCount > 0 ? "Used" : "Image"}</span>
+                                <span>{getMediaTypeLabel(asset.kind)}</span>
                                 <span className="shrink-0 normal-case tracking-normal">
                                   {formatAdminDateTime(asset.createdAt)}
                                 </span>
                               </div>
                               <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
-                                {highlightText(asset.title?.trim() || "未命名图片", searchTerms)}
+                                {highlightText(
+                                  asset.title?.trim() || getUntitledMediaLabel(asset.kind),
+                                  searchTerms,
+                                )}
                               </p>
                               <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
                                 {highlightText(getMediaSearchPreview(asset, deferredQuery.trim()), searchTerms)}
@@ -362,7 +403,7 @@ function getMediaUsageDescription(usageSummary: AssetUsageSummary) {
     usageSummary.updateContentCount > 0 ? `${usageSummary.updateContentCount} 条动态正文或草稿` : null,
   ].filter(Boolean);
 
-  return `这张图片仍被 ${references.join("、")} 引用，暂时不能移出媒体库。`;
+  return `这条媒体仍被 ${references.join("、")} 引用，暂时不能移出媒体库。`;
 }
 
 function InfoBlock({
@@ -434,6 +475,30 @@ function getReferenceLabel(kind: AssetUsageReference["kind"]) {
   }
 
   return "动态正文";
+}
+
+function getMediaTypeLabel(kind: AssetItem["kind"]) {
+  if (kind === "VIDEO") {
+    return "Video";
+  }
+
+  if (kind === "FILE") {
+    return "File";
+  }
+
+  return "Image";
+}
+
+function getUntitledMediaLabel(kind: AssetItem["kind"]) {
+  if (kind === "VIDEO") {
+    return "Untitled video";
+  }
+
+  if (kind === "FILE") {
+    return "Untitled file";
+  }
+
+  return "Untitled image";
 }
 
 function getMediaSearchPreview(asset: MediaAssetItem, query: string) {

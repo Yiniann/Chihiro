@@ -7,7 +7,7 @@ import type { JSONContent } from "@tiptap/react"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 import type { Editor } from "@tiptap/react"
 import { keymap } from "@tiptap/pm/keymap"
-import { TextSelection } from "@tiptap/pm/state"
+import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 
 // --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit"
@@ -346,6 +346,41 @@ const EMPTY_DOCUMENT: JSONContent = {
 }
 
 const IMAGE_UPLOAD_ACCEPT = "image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp"
+const INITIAL_MEDIA_SELECTION_TYPES = new Set(["image", "gallery", "imageUpload"])
+
+function normalizeInitialMediaSelection(editor: Editor) {
+  const { state, view } = editor
+  const { doc, selection } = state
+
+  if (!(selection instanceof NodeSelection)) {
+    return false
+  }
+
+  if (!INITIAL_MEDIA_SELECTION_TYPES.has(selection.node.type.name)) {
+    return false
+  }
+
+  const candidatePositions = [
+    Math.min(selection.to, doc.content.size),
+    Math.max(selection.from - 1, 0),
+    0,
+  ]
+
+  for (const position of candidatePositions) {
+    try {
+      const nextSelection = TextSelection.near(doc.resolve(position), 1)
+
+      if (!selection.eq(nextSelection)) {
+        view.dispatch(state.tr.setSelection(nextSelection))
+        return true
+      }
+    } catch {
+      // Keep trying nearby positions until we find a valid text selection.
+    }
+  }
+
+  return false
+}
 
 const InlineCodeSelectAll = Extension.create({
   name: "inlineCodeSelectAll",
@@ -473,6 +508,7 @@ export function SimpleEditor({
   const [serializedContent, setSerializedContent] = useState("null")
   const [serializedHtml, setSerializedHtml] = useState("")
   const initialSignatureRef = useRef<string | null>(null)
+  const shouldNormalizeInitialSelectionRef = useRef(true)
   const activeMobileView = isMobile ? mobileView : "main"
 
   const editor = useEditor({
@@ -484,6 +520,20 @@ export function SimpleEditor({
         autocapitalize: "off",
         "aria-label": "Main content area, start typing to enter text.",
         class: "simple-editor",
+      },
+      handleDOMEvents: {
+        focus: () => {
+          if (!editor || !shouldNormalizeInitialSelectionRef.current) {
+            return false
+          }
+
+          queueMicrotask(() => {
+            normalizeInitialMediaSelection(editor)
+            shouldNormalizeInitialSelectionRef.current = false
+          })
+
+          return false
+        },
       },
     },
     extensions: [
@@ -531,6 +581,9 @@ export function SimpleEditor({
       setSerializedContent(nextContent)
       setSerializedHtml(nextHtml)
       onDirtyChange?.(false)
+      queueMicrotask(() => {
+        normalizeInitialMediaSelection(editor)
+      })
     },
     onUpdate({ editor }) {
       const nextContent = JSON.stringify(editor.getJSON())

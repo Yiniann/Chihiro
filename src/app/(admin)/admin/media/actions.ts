@@ -25,7 +25,7 @@ export async function saveMediaMetadataAction(
 
   if (typeof assetId !== "string" || !assetId.trim()) {
     return {
-      error: "缺少图片 ID。",
+      error: "缺少媒体 ID。",
       success: null,
     };
   }
@@ -69,7 +69,7 @@ export async function removeMediaRecordAction(formData: FormData) {
       usage.updateContentCount > 0 ? `${usage.updateContentCount} 条动态正文或草稿` : null,
     ].filter(Boolean);
 
-    throw new Error(`这张图片仍被 ${reasons.join("、")} 引用，不能移出媒体库。`);
+    throw new Error(`这条媒体仍被 ${reasons.join("、")} 引用，不能移出媒体库。`);
   }
 
   await deleteAssetRecord(assetId);

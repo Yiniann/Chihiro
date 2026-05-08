@@ -20,7 +20,7 @@ export function MediaMetadataForm({
   initialTitle: string | null;
   initialAlt: string | null;
 }) {
-  const [state, action, isPending] = useActionState(saveMediaMetadataAction, INITIAL_STATE);
+  const [state, action] = useActionState(saveMediaMetadataAction, INITIAL_STATE);
   const formId = `media-metadata-form-${assetId}`;
 
   return (
@@ -35,19 +35,19 @@ export function MediaMetadataForm({
             type="text"
             name="title"
             defaultValue={initialTitle ?? ""}
-            placeholder="给这张图片起一个标题"
+            placeholder="给这条媒体起一个标题"
             className="h-11 border-b border-zinc-200 bg-transparent px-0 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
           />
         </label>
         <label className="grid gap-2">
           <span className="text-[0.68rem] uppercase tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
-            图片描述
+            媒体描述
           </span>
           <input
             type="text"
             name="alt"
             defaultValue={initialAlt ?? ""}
-            placeholder="描述这张图片的内容"
+            placeholder="描述这条媒体的内容"
             className="h-11 border-b border-zinc-200 bg-transparent px-0 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-zinc-500 dark:border-zinc-800 dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:focus:border-zinc-600"
           />
         </label>

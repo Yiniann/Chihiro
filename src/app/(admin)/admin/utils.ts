@@ -11,6 +11,8 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/admin/settings", label: "设置" },
 ] as const;
 
+const ADMIN_TIME_ZONE = "Asia/Shanghai";
+
 export function compareAdminDates(left: string | null | undefined, right: string | null | undefined) {
   const leftTime = left ? new Date(left).getTime() : 0;
   const rightTime = right ? new Date(right).getTime() : 0;
@@ -32,6 +34,7 @@ export function formatAdminDate(value: string | null) {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: ADMIN_TIME_ZONE,
   }).format(date);
 }
 
@@ -49,6 +52,7 @@ export function formatCompactAdminDate(value: string | null) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
+    timeZone: ADMIN_TIME_ZONE,
   }).format(date);
 }
 
@@ -70,6 +74,7 @@ export function formatAdminDateTime(value: string | null) {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
+    timeZone: ADMIN_TIME_ZONE,
   }).format(date);
 }
 
