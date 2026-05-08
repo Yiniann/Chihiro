@@ -225,8 +225,8 @@ export async function getAssetUsageSummary(id: string): Promise<AssetUsageSummar
       OR COALESCE("draftSnapshot"::text, '') LIKE ${urlPattern} ESCAPE '\\'
   `);
 
-  const postContentCount = Number(postContentResult?.count ?? 0n);
-  const updateContentCount = Number(updateContentResult?.count ?? 0n);
+  const postContentCount = Number(postContentResult?.count ?? 0);
+  const updateContentCount = Number(updateContentResult?.count ?? 0);
 
   return {
     coverPostCount,
