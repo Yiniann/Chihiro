@@ -1,7 +1,7 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { extname } from "node:path";
+import { basename, extname } from "node:path";
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { parse as parseExif } from "exifr";
 import { getObjectStorageSettings } from "@/server/repositories/object-storage";
@@ -75,6 +75,7 @@ export async function uploadImageToObjectStorage(file: File) {
   return {
     url: createPublicUrl(settings.publicBaseUrl, storageKey),
     storageKey,
+    title: getAssetTitleFromFilename(file.name),
     photoMeta,
   };
 }
@@ -97,6 +98,57 @@ export async function resolveImageUrlPhotoMeta(url: string) {
     return getPhotoMeta(body);
   } catch {
     return undefined;
+  }
+}
+
+export function getStorageKeyFromPublicUrl(publicBaseUrl: string, assetUrl: string) {
+  try {
+    const baseUrl = new URL(publicBaseUrl);
+    const targetUrl = new URL(assetUrl);
+
+    if (baseUrl.origin !== targetUrl.origin) {
+      return null;
+    }
+
+    const normalizedBasePath = baseUrl.pathname.replace(/\/+$/, "");
+    const targetPath = targetUrl.pathname;
+    const prefix = normalizedBasePath ? `${normalizedBasePath}/` : "/";
+
+    if (!targetPath.startsWith(prefix)) {
+      return null;
+    }
+
+    const remainder = targetPath.slice(prefix.length);
+
+    if (!remainder) {
+      return null;
+    }
+
+    return remainder
+      .split("/")
+      .map((part) => decodeURIComponent(part))
+      .join("/");
+  } catch {
+    return null;
+  }
+}
+
+export function getAssetTitleFromFilename(filename: string) {
+  const value = basename(filename, extname(filename))
+    .replace(/[_-]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return value || "未命名图片";
+}
+
+export function getAssetTitleFromUrl(assetUrl: string) {
+  try {
+    const url = new URL(assetUrl);
+    const lastSegment = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
+    return getAssetTitleFromFilename(decodeURIComponent(lastSegment));
+  } catch {
+    return "未命名图片";
   }
 }
 

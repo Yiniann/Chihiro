@@ -42,9 +42,9 @@ export default async function AdminWorkbenchPage({
           <p className="text-[0.68rem] uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
             Write
           </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             撰写
-          </h2>
+          </h1>
         </div>
         <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
           <WriteEntry href="/admin/compose/post" eyebrow="Post" title="新文章" />
@@ -58,9 +58,9 @@ export default async function AdminWorkbenchPage({
           <p className="text-[0.68rem] uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
             Management
           </p>
-          <h2 className="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             内容管理
-          </h2>
+          </h1>
         </div>
       </section>
 

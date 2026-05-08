@@ -48,6 +48,32 @@ pnpm db:generate
 
 默认本地连接串已经写在 `.env.example` 里，对应 `docker-compose.yml` 里的数据库配置。
 
+本地开发当前统一使用：
+
+```bash
+pnpm db:push
+pnpm db:generate
+```
+
+原因是当前仓库里的 Prisma migrations 并不是从“空数据库初始化建表”开始维护的；线上迁移链路已经可以正常工作，但本地执行 `pnpm db:migrate` 时，`prisma migrate dev` 会在 shadow database 回放旧 migration，容易因为历史表结构前置条件不完整而失败。
+
+所以当前约定是：
+
+- 本地开发库：使用 `pnpm db:push`
+- 线上环境：继续使用现有正式迁移流程，不改已上线 migration 历史
+
+如果本地数据库结构落后于 `schema.prisma`，直接执行：
+
+```bash
+pnpm db:push
+```
+
+如果 Prisma Client 类型还没同步，再执行：
+
+```bash
+pnpm db:generate
+```
+
 ## 文档索引
 
 - [架构设计](./docs/architecture.md)

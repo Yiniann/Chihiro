@@ -33,7 +33,7 @@ const adminNavMeta: Record<
   "/admin/workbench": {
     icon: NotebookPen,
   },
-  "/admin/assets": {
+  "/admin/media": {
     icon: Images,
   },
   "/admin/settings": {

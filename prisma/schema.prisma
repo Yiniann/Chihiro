@@ -75,6 +75,7 @@ model Asset {
   storageKey   String        @unique
   bucket       String?
   url          String
+  title        String?
   alt          String?
   photoMeta    String?
   mimeType     String?

@@ -30,6 +30,7 @@ export async function POST(request: Request) {
         storageKey: uploadedImage.storageKey,
         bucket: objectStorageSettings.bucket,
         url: uploadedImage.url,
+        title: uploadedImage.title,
         alt: null,
         photoMeta: resolvedMeta ?? null,
         mimeType: file.type || null,

@@ -441,15 +441,19 @@ export const handleImageUpload = async (
       reject(new Error("Upload cancelled"))
     }
 
-    xhr.open("POST", "/api/admin/assets/images")
+    xhr.open("POST", "/api/admin/media/images")
     xhr.send(formData)
   })
 }
 
 export async function resolveImageUrlMetadata(url: string): Promise<{ meta?: string }> {
-  const response = await fetch(`/api/admin/assets/images/resolve?url=${encodeURIComponent(url)}`, {
-    method: "GET",
+  const response = await fetch(`/api/admin/media/images/resolve`, {
+    method: "POST",
     credentials: "same-origin",
+    headers: {
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ url }),
   })
 
   const payload = (await response.json().catch(() => ({}))) as {
