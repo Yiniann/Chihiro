@@ -20,12 +20,18 @@ export async function saveLoginCommentsSettingsAction(
     const loginRequiredToComment = getBoolean(formData, "loginRequiredToComment");
     const commentModeration = getBoolean(formData, "commentModeration");
     const githubLoginEnabled = getBoolean(formData, "githubLoginEnabled");
+    const authSecret = getOptionalString(formData, "authSecret");
+    const githubClientId = getOptionalString(formData, "githubClientId");
+    const githubClientSecret = getOptionalString(formData, "githubClientSecret");
 
     await upsertPublicInteractionSettings({
       commentsEnabled,
       loginRequiredToComment,
       commentModeration,
       githubLoginEnabled,
+      authSecret,
+      githubClientId,
+      githubClientSecret,
       googleLoginEnabled: false,
     });
   } catch (error) {
@@ -48,4 +54,15 @@ export async function saveLoginCommentsSettingsAction(
 
 function getBoolean(formData: FormData, key: string) {
   return formData.get(key) === "on";
+}
+
+function getOptionalString(formData: FormData, key: string) {
+  const value = formData.get(key);
+
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
 }

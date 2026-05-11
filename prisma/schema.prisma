@@ -137,6 +137,9 @@ model PublicInteractionSettings {
   loginRequiredToComment Boolean @default(true)
   commentModeration     Boolean  @default(true)
   githubLoginEnabled    Boolean  @default(true)
+  authSecret            String?
+  githubClientId        String?
+  githubClientSecret    String?
   googleLoginEnabled    Boolean  @default(false)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt

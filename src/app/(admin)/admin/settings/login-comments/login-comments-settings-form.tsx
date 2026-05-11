@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import type { ChangeEvent } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { EmptyPanel } from "@/app/(admin)/admin/ui";
@@ -29,40 +31,67 @@ export function LoginCommentsSettingsForm({
   authStatus,
 }: LoginCommentsSettingsFormProps) {
   const [state, formAction] = useActionState(saveLoginCommentsSettingsAction, initialState);
-  const githubReady = authStatus.authSecret && authStatus.githubId && authStatus.githubSecret;
+  const [githubLoginEnabled, setGithubLoginEnabled] = useState(defaults.githubLoginEnabled);
+  const authSecretReady = defaults.hasAuthSecret || authStatus.authSecret;
+  const githubClientIdReady = Boolean(defaults.githubClientId) || authStatus.githubId;
+  const githubClientSecretReady = defaults.hasGithubClientSecret || authStatus.githubSecret;
+  const githubReady = authSecretReady && githubClientIdReady && githubClientSecretReady;
 
   return (
     <form action={formAction} className="grid gap-8">
       <section className="grid gap-5">
-        <div className="border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+        <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            GitHub OAuth
+            GitHub 登录
           </p>
-          <div className="mt-4 grid gap-3 text-sm text-zinc-600 dark:text-zinc-300">
-            <StatusRow label="AUTH_SECRET" ready={authStatus.authSecret} />
-            <StatusRow label="AUTH_GITHUB_ID" ready={authStatus.githubId} />
-            <StatusRow label="AUTH_GITHUB_SECRET" ready={authStatus.githubSecret} />
-          </div>
-          <div className="mt-5 grid gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              Callback URL
-            </span>
-            <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-              {authStatus.callbackUrl}
-            </code>
-          </div>
-          <p className="mt-4 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
-            OAuth 密钥通过环境变量配置；这里仅检测状态，不在后台保存 secret。
-          </p>
-        </div>
-
-        <div className="grid gap-3 md:grid-cols-2">
           <SwitchField
             name="githubLoginEnabled"
             title="启用 GitHub 登录"
-            description={githubReady ? "允许访客使用 GitHub 登录。" : "环境变量未完整配置时，登录入口不会真正可用。"}
-            defaultChecked={defaults.githubLoginEnabled}
+            description={githubReady ? "允许访客使用 GitHub 登录。" : "OAuth 配置未完整时，登录入口不会真正可用。"}
+            checked={githubLoginEnabled}
+            onCheckedChange={setGithubLoginEnabled}
           />
+          {githubLoginEnabled ? (
+            <div className="grid gap-5 md:grid-cols-2">
+              <AuthSecretField
+                ready={authSecretReady}
+                placeholder={authSecretReady ? "已保存；填写新值才会覆盖" : "粘贴或生成 Auth.js secret"}
+              />
+              <OAuthField
+                label="GitHub Client ID"
+                ready={githubClientIdReady}
+                statusLabel={githubClientIdReady ? "已配置" : "未配置"}
+                name="githubClientId"
+                type="text"
+                defaultValue={defaults.githubClientId ?? ""}
+                placeholder={authStatus.githubId ? "已通过环境变量配置" : "粘贴 GitHub OAuth Client ID"}
+                description="来自 GitHub OAuth App，用来识别当前站点。"
+              />
+              <OAuthField
+                label="GitHub Client Secret"
+                ready={githubClientSecretReady}
+                statusLabel={githubClientSecretReady ? "已配置" : "未配置"}
+                name="githubClientSecret"
+                type="password"
+                placeholder={githubClientSecretReady ? "已保存；填写新值才会覆盖" : "粘贴 GitHub OAuth Client Secret"}
+                description="不会在页面回显；留空会保留已保存的值或继续使用环境变量。"
+              />
+              <div className="grid gap-2 md:col-span-2">
+                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  Callback URL
+                </span>
+                <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                  {authStatus.callbackUrl}
+                </code>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            Google 登录
+          </p>
           <SwitchField
             name="googleLoginEnabled"
             title="启用 Google 登录"
@@ -112,14 +141,119 @@ export function LoginCommentsSettingsForm({
   );
 }
 
-function StatusRow({ label, ready }: { label: string; ready: boolean }) {
+function OAuthField({
+  label,
+  ready,
+  statusLabel,
+  name,
+  type,
+  placeholder,
+  description,
+  defaultValue,
+  className = "",
+}: {
+  label: string;
+  ready: boolean;
+  statusLabel: string;
+  name: string;
+  type: "password" | "text";
+  placeholder: string;
+  description: string;
+  defaultValue?: string;
+  className?: string;
+}) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-zinc-200/70 py-2 dark:border-zinc-800/70">
-      <span className="font-mono text-xs">{label}</span>
-      <span className={ready ? "text-xs font-medium text-emerald-600 dark:text-emerald-300" : "text-xs font-medium text-zinc-400"}>
-        {ready ? "已配置" : "未配置"}
+    <label className={`grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80 ${className}`}>
+      <span className="flex items-center justify-between gap-4">
+        <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+          {label}
+        </span>
+        <span
+          className={
+            ready
+              ? "text-xs font-medium text-emerald-600 dark:text-emerald-300"
+              : "text-xs font-medium text-zinc-400"
+          }
+        >
+          {statusLabel}
+        </span>
       </span>
-    </div>
+      <input
+        name={name}
+        type={type}
+        defaultValue={defaultValue}
+        placeholder={placeholder}
+        className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+      />
+      <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">{description}</span>
+    </label>
+  );
+}
+
+function AuthSecretField({
+  ready,
+  placeholder,
+}: {
+  ready: boolean;
+  placeholder: string;
+}) {
+  const [generatedSecret, setGeneratedSecret] = useState("");
+
+  function handleGenerateSecret() {
+    if (
+      (ready || generatedSecret) &&
+      !window.confirm("重新生成 AUTH_SECRET 会让现有公开用户登录会话失效。确定要继续吗？")
+    ) {
+      return;
+    }
+
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    const secret = btoa(String.fromCharCode(...bytes))
+      .replace(/\+/g, "-")
+      .replace(/\//g, "_")
+      .replace(/=+$/g, "");
+
+    setGeneratedSecret(secret);
+  }
+
+  return (
+    <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80 md:col-span-2">
+      <span className="flex items-center justify-between gap-4">
+        <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+          AUTH_SECRET
+        </span>
+        <span
+          className={
+            ready
+              ? "text-xs font-medium text-emerald-600 dark:text-emerald-300"
+              : "text-xs font-medium text-zinc-400"
+          }
+        >
+          {ready ? "已配置" : "未配置"}
+        </span>
+      </span>
+      <span className="flex items-center gap-3">
+        <input
+          name="authSecret"
+          type="password"
+          value={generatedSecret}
+          onChange={(event) => setGeneratedSecret(event.target.value)}
+          placeholder={placeholder}
+          className="h-11 min-w-0 flex-1 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+        />
+        <button
+          type="button"
+          onClick={handleGenerateSecret}
+          className="inline-flex h-9 shrink-0 items-center justify-center rounded-md border border-zinc-200/80 px-3 text-sm font-medium text-zinc-600 transition hover:border-primary/40 hover:text-primary dark:border-zinc-800 dark:text-zinc-300"
+        >
+          {ready || generatedSecret ? "重新生成" : "生成"}
+        </button>
+      </span>
+      <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+        用于签名和加密登录会话；点击生成会创建一个随机 secret，保存后生效。
+      </span>
+    </label>
   );
 }
 
@@ -128,29 +262,49 @@ function SwitchField({
   title,
   description,
   defaultChecked,
+  checked,
+  onCheckedChange,
   disabled = false,
 }: {
   name: string;
   title: string;
   description: string;
-  defaultChecked: boolean;
+  defaultChecked?: boolean;
+  checked?: boolean;
+  onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
 }) {
+  const checkboxProps =
+    typeof checked === "boolean"
+      ? {
+          checked,
+          onChange: onCheckedChange
+            ? (event: ChangeEvent<HTMLInputElement>) => onCheckedChange(event.target.checked)
+            : undefined,
+        }
+      : {
+          defaultChecked: Boolean(defaultChecked),
+        };
+
   return (
     <label
-      className={`grid gap-4 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80 ${
+      className={`grid w-fit max-w-xl gap-2 border-b border-zinc-200/80 pb-5 pr-4 dark:border-zinc-800/80 ${
         disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer"
       }`}
     >
-      <span className="flex items-center justify-between gap-4">
+      <span className="flex w-fit items-center gap-3">
         <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</span>
-        <input
-          name={name}
-          type="checkbox"
-          defaultChecked={defaultChecked}
-          disabled={disabled}
-          className="h-4 w-4 accent-primary"
-        />
+        <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
+          <input
+            name={name}
+            type="checkbox"
+            disabled={disabled}
+            className="peer absolute inset-0 opacity-0"
+            {...checkboxProps}
+          />
+          <span className="absolute inset-0 rounded-full bg-zinc-200 transition peer-checked:bg-primary dark:bg-zinc-800" />
+          <span className="relative size-4 translate-x-0.5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-[1.125rem]" />
+        </span>
       </span>
       <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">{description}</span>
     </label>
