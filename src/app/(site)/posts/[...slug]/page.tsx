@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PostEngagement } from "@/components/post-engagement";
+import { PostSidebarActions } from "@/components/post-sidebar-actions";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
@@ -218,7 +219,13 @@ export default async function PostPage({ params }: PostPageProps) {
               <span className="h-px flex-1 border-t border-dashed border-primary/45" />
             </div>
           </article>
-          <PostTableOfContents items={tocItems} />
+          <PostTableOfContents items={tocItems}>
+            <PostSidebarActions
+              postId={post.id}
+              title={post.title}
+              initialLikeCount={post.likeCount}
+            />
+          </PostTableOfContents>
         </div>
       </main>
     );

@@ -590,7 +590,7 @@ export async function getPublishedPostLikeState(postId: number, visitorId: strin
   };
 }
 
-export async function togglePublishedPostLike(postId: number, visitorId: string) {
+export async function likePublishedPost(postId: number, visitorId: string) {
   const post = await prisma.post.findFirst({
     where: {
       id: postId,
@@ -617,13 +617,7 @@ export async function togglePublishedPostLike(postId: number, visitorId: string)
     },
   });
 
-  if (existingLike) {
-    await prisma.postLike.delete({
-      where: {
-        id: existingLike.id,
-      },
-    });
-  } else {
+  if (!existingLike) {
     await prisma.postLike.create({
       data: {
         postId,
@@ -640,7 +634,7 @@ export async function togglePublishedPostLike(postId: number, visitorId: string)
 
   return {
     ...engagement,
-    liked: !existingLike,
+    liked: true,
   };
 }
 

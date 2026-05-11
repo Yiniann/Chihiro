@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { MouseEvent } from "react";
+import type { ReactNode } from "react";
 import { ArrowUpIcon, CheckIcon } from "lucide-react";
 import type { TableOfContentsItem } from "@/lib/content";
 
@@ -13,7 +14,13 @@ type TableOfContentsSection = {
 const READING_PROGRESS_ROOT_SELECTOR = "[data-reading-progress-root]";
 const BACK_TO_TOP_SCROLL_THRESHOLD = 420;
 
-export function PostTableOfContents({ items }: { items: TableOfContentsItem[] }) {
+export function PostTableOfContents({
+  items,
+  children,
+}: {
+  items: TableOfContentsItem[];
+  children?: ReactNode;
+}) {
   const [activeId, setActiveId] = useState(items[0]?.id ?? "");
   const [readingProgress, setReadingProgress] = useState(0);
   const [isReadingComplete, setIsReadingComplete] = useState(false);
@@ -292,7 +299,11 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
   }, [items]);
 
   if (items.length === 0) {
-    return null;
+    return children ? (
+      <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block">
+        {children}
+      </aside>
+    ) : null;
   }
 
   return (
@@ -345,6 +356,7 @@ export function PostTableOfContents({ items }: { items: TableOfContentsItem[] })
         hideCircle={hideReadingProgressCircle}
         showCompleteCheck={showReadingCompleteCheck}
       />
+      {children}
     </aside>
   );
 }

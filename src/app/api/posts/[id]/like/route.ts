@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   getPublishedPostLikeState,
-  togglePublishedPostLike,
+  likePublishedPost,
 } from "@/server/repositories/posts";
 import { getOrCreateVisitorId } from "@/server/visitor";
 
@@ -40,7 +40,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
   const response = NextResponse.json({});
   const visitorId = await getOrCreateVisitorId(response);
-  const state = await togglePublishedPostLike(postId, visitorId);
+  const state = await likePublishedPost(postId, visitorId);
 
   if (!state) {
     return NextResponse.json({ error: "Post not found." }, { status: 404 });

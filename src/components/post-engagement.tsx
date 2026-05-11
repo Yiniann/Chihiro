@@ -89,6 +89,10 @@ export function PostEngagement({
   }
 
   function handleLikeClick() {
+    if (state.liked) {
+      return;
+    }
+
     startTransition(async () => {
       try {
         const response = await fetch(`/api/posts/${postId}/like`, {
@@ -115,9 +119,9 @@ export function PostEngagement({
       <button
         type="button"
         onClick={handleLikeClick}
-        disabled={isPending}
+        disabled={isPending || state.liked}
         aria-pressed={state.liked}
-        className="inline-flex items-center gap-1.5 text-zinc-500 transition-colors hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-400"
+        className="inline-flex items-center gap-1.5 text-zinc-500 transition-colors hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-zinc-400"
       >
         <Heart
           className={state.liked ? "size-4 fill-primary text-primary" : "size-4"}
