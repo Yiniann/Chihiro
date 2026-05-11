@@ -9,6 +9,11 @@ const postInclude = {
       tag: true,
     },
   },
+  _count: {
+    select: {
+      likes: true,
+    },
+  },
 } satisfies Prisma.PostInclude;
 
 type PostRecord = Prisma.PostGetPayload<{
@@ -29,6 +34,8 @@ export type PostItem = {
   publishedAt: string | null;
   createdAt: string;
   updatedAt: string;
+  viewCount: number;
+  likeCount: number;
   publishedSnapshot: PublishedPostSnapshot | null;
   draftSnapshot: DraftPostSnapshot | null;
   category: {
@@ -463,6 +470,180 @@ export async function getPublishedPostByCategoryAndSlug(
   return post;
 }
 
+export async function getPublishedPostEngagement(postId: number) {
+  const post = await prisma.post.findFirst({
+    where: {
+      id: postId,
+      status: ContentStatus.PUBLISHED,
+    },
+    select: {
+      viewCount: true,
+      _count: {
+        select: {
+          likes: true,
+        },
+      },
+    },
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  return {
+    viewCount: post.viewCount,
+    likeCount: post._count.likes,
+  };
+}
+
+export async function recordPublishedPostView(postId: number, visitorId: string) {
+  const post = await prisma.post.findFirst({
+    where: {
+      id: postId,
+      status: ContentStatus.PUBLISHED,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  let counted = false;
+
+  try {
+    await prisma.postView.create({
+      data: {
+        postId,
+        visitorId,
+        bucket: getViewBucket(),
+      },
+    });
+    counted = true;
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) {
+      throw error;
+    }
+  }
+
+  const engagement = counted
+    ? await prisma.post.update({
+        where: { id: postId },
+        data: {
+          viewCount: {
+            increment: 1,
+          },
+        },
+        select: {
+          viewCount: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      })
+    : await prisma.post.findUniqueOrThrow({
+        where: { id: postId },
+        select: {
+          viewCount: true,
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
+        },
+      });
+
+  return {
+    counted,
+    viewCount: engagement.viewCount,
+    likeCount: engagement._count.likes,
+  };
+}
+
+export async function getPublishedPostLikeState(postId: number, visitorId: string) {
+  const [engagement, like] = await Promise.all([
+    getPublishedPostEngagement(postId),
+    prisma.postLike.findUnique({
+      where: {
+        postId_visitorId: {
+          postId,
+          visitorId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    }),
+  ]);
+
+  if (!engagement) {
+    return null;
+  }
+
+  return {
+    ...engagement,
+    liked: Boolean(like),
+  };
+}
+
+export async function togglePublishedPostLike(postId: number, visitorId: string) {
+  const post = await prisma.post.findFirst({
+    where: {
+      id: postId,
+      status: ContentStatus.PUBLISHED,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!post) {
+    return null;
+  }
+
+  const existingLike = await prisma.postLike.findUnique({
+    where: {
+      postId_visitorId: {
+        postId,
+        visitorId,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (existingLike) {
+    await prisma.postLike.delete({
+      where: {
+        id: existingLike.id,
+      },
+    });
+  } else {
+    await prisma.postLike.create({
+      data: {
+        postId,
+        visitorId,
+      },
+    });
+  }
+
+  const engagement = await getPublishedPostEngagement(postId);
+
+  if (!engagement) {
+    return null;
+  }
+
+  return {
+    ...engagement,
+    liked: !existingLike,
+  };
+}
+
 export async function publishPostById(id: number): Promise<PostItem> {
   const current = await prisma.post.findUnique({
     where: { id },
@@ -736,6 +917,14 @@ function sortPublishedPosts(items: PostItem[], sort: PostListSort = "latest") {
   return nextItems;
 }
 
+function getViewBucket(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002";
+}
+
 function mapPostRecord(record: PostRecord): PostItem {
   return {
     id: record.id,
@@ -749,6 +938,8 @@ function mapPostRecord(record: PostRecord): PostItem {
     publishedAt: toIsoString(record.publishedAt),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
+    viewCount: record.viewCount,
+    likeCount: record._count.likes,
     publishedSnapshot: parsePublishedSnapshot(record.publishedSnapshot),
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
     category: record.category
@@ -795,6 +986,8 @@ function mapPublishedPostRecord(record: PostRecord): PostItem {
     publishedAt: snapshot.publishedAt,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
+    viewCount: record.viewCount,
+    likeCount: record._count.likes,
     publishedSnapshot: snapshot,
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
     category: snapshot.category,

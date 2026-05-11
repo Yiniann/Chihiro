@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { PostEngagement } from "@/components/post-engagement";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
@@ -153,10 +154,7 @@ export default async function PostPage({ params }: PostPageProps) {
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_13rem] lg:items-start lg:justify-center">
           <article className="min-w-0">
-            <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
-              {post.authorName ?? "Unknown author"}
-            </p>
-            <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
               {post.title}
             </h1>
             <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
@@ -166,23 +164,28 @@ export default async function PostPage({ params }: PostPageProps) {
                   Updated <RelativeDate value={post.updatedAt} />
                 </span>
               ) : null}
+              <PostEngagement
+                postId={post.id}
+                initialViewCount={post.viewCount}
+                initialLikeCount={post.likeCount}
+              />
             </div>
-            <div className="mt-5 flex flex-wrap gap-2">
+            <div className="mt-4 flex flex-wrap gap-3">
               {post.category ? (
                 <Link
                   href={`/posts?category=${encodeURIComponent(post.category.slug)}`}
-                  className="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary"
+                  className="text-xs font-medium text-primary transition-colors hover:text-primary/75"
                 >
-                  {post.category.name}
+                  /{post.category.name}
                 </Link>
               ) : null}
               {post.tags.map((tag) => (
                 <Link
                   key={tag.id}
                   href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
-                  className="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300"
+                  className="text-xs font-medium text-zinc-500 transition-colors hover:text-primary dark:text-zinc-400"
                 >
-                  {tag.name}
+                  #{tag.name}
                 </Link>
               ))}
             </div>
@@ -206,6 +209,14 @@ export default async function PostPage({ params }: PostPageProps) {
                 <p>暂无内容。</p>
               </div>
             )}
+            <div
+              className="mt-12 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-primary/80"
+              aria-hidden="true"
+            >
+              <span className="h-px flex-1 border-t border-dashed border-primary/45" />
+              <span>end</span>
+              <span className="h-px flex-1 border-t border-dashed border-primary/45" />
+            </div>
           </article>
           <PostTableOfContents items={tocItems} />
         </div>

@@ -43,14 +43,42 @@ model Post {
   draftSnapshot     Json?
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
+  viewCount         Int           @default(0)
   categoryId        Int?
   coverAssetId      String?
   category          Category?     @relation("PostCategory", fields: [categoryId], references: [id], onDelete: SetNull)
   coverAsset        Asset?        @relation("PostCoverAsset", fields: [coverAssetId], references: [id], onDelete: SetNull)
   tags              PostTag[]
+  views             PostView[]
+  likes             PostLike[]
 
   @@index([status, publishedAt])
   @@index([categoryId])
+}
+
+model PostView {
+  id        String   @id @default(cuid())
+  postId    Int
+  visitorId String
+  bucket    String
+  viewedAt  DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, visitorId, bucket])
+  @@index([postId])
+  @@index([visitorId])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    Int
+  visitorId String
+  createdAt DateTime @default(now())
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, visitorId])
+  @@index([postId])
+  @@index([visitorId])
 }
 
 model Update {

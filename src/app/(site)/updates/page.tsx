@@ -1,7 +1,12 @@
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
 import { Suspense } from "react";
-import { getContentPreview, getContentText } from "@/lib/content";
+import {
+  getContentPreview,
+  getContentText,
+  getRenderedContentHtml,
+  normalizeHtmlForHydration,
+} from "@/lib/content";
 import { getUpdateAnchorPath } from "@/lib/routes";
 import { SearchDialog } from "@/components/search-dialog";
 import { UpdatesPageContentSkeleton } from "@/components/site-route-skeletons";
@@ -174,7 +179,13 @@ async function UpdatesPageContent({
 
               <StaggerReveal className="grid gap-6" delayChildren={0.02} staggerChildren={0.065}>
                 {group.items.map((item) => {
-                  const preview = getContentPreview(item.contentHtml, item.content);
+                  const renderedContentHtml = getRenderedContentHtml(
+                    item.contentHtml,
+                    item.content,
+                  );
+                  const updateContentHtml = normalizeHtmlForHydration(
+                    renderedContentHtml ?? "",
+                  );
 
                   return (
                     <StaggerRevealItem key={item.id}>
@@ -192,9 +203,16 @@ async function UpdatesPageContent({
                         </div>
 
                         <div>
-                          <p className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
-                            {renderUpdatePreview(preview)}
-                          </p>
+                          {renderedContentHtml ? (
+                            <div
+                              className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300"
+                              dangerouslySetInnerHTML={{ __html: updateContentHtml }}
+                            />
+                          ) : (
+                            <p className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
+                              No preview available yet.
+                            </p>
+                          )}
                           <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
                             <span>{formatFeedTime(item.publishedAt)}</span>
                             <span>{item.authorName ?? "未署名"}</span>
@@ -369,26 +387,6 @@ function formatFeedTime(value: string | null) {
   }).format(date);
 }
 
-function renderUpdatePreview(preview: string) {
-  const trimmedPreview = preview.trimStart();
-  const leadingWhitespace = preview.slice(0, preview.length - trimmedPreview.length);
-  const [firstCharacter = "", ...restCharacters] = Array.from(trimmedPreview);
-
-  if (!firstCharacter) {
-    return preview;
-  }
-
-  return (
-    <>
-      {leadingWhitespace}
-      <span className="updates-drop-cap" aria-hidden="true">
-        {firstCharacter}
-      </span>
-      <span className="sr-only">{firstCharacter}</span>
-      {restCharacters.join("")}
-    </>
-  );
-}
 
 function getPageValue(value?: string) {
   const parsed = Number(value);

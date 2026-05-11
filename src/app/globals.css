@@ -154,6 +154,48 @@ body {
   letter-spacing: 0;
 }
 
+.home-feed-eyebrow {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+}
+
+.home-feed-title,
+.home-feed-link,
+.home-feed-date {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.home-feed-item-title {
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.home-feed-update-content {
+  font-size: 0.875rem !important;
+  line-height: 1.8 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+.home-feed-update-content > * + * {
+  margin-top: 0.65rem !important;
+}
+
+.home-feed-update-content p {
+  min-height: 0 !important;
+}
+
+.home-feed-update-content img {
+  border-radius: 0.75rem !important;
+}
+
 .updates-drop-cap {
   float: left;
   margin: 0.2em 0.1em 0 0;
@@ -161,6 +203,25 @@ body {
   line-height: 0.9;
   font-weight: 600;
   color: var(--primary);
+}
+
+.updates-copy > p:first-of-type::first-letter {
+  float: left;
+  margin: 0.2em 0.1em 0 0;
+  font-size: 1.9em;
+  line-height: 0.9;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.updates-copy img {
+  max-width: min(100%, 22rem) !important;
+  max-height: 16rem !important;
+  border-radius: 0.75rem !important;
+}
+
+.updates-copy figure:not(.content-gallery__item) {
+  max-width: min(100%, 22rem) !important;
 }
 
 .tiptap-editor {
