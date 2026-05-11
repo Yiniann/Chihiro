@@ -98,8 +98,8 @@ export function PostSidebarActions({
   }
 
   return (
-    <section className="mt-7 border-t border-zinc-200/70 pt-6 dark:border-zinc-800/70">
-      <div className="flex flex-col gap-2 [@media(max-height:720px)]:flex-row">
+    <section className="mt-5 border-t border-zinc-200/70 pt-4 dark:border-zinc-800/70">
+      <div className="flex flex-row gap-2 [@media(min-height:680px)]:flex-col">
         <div className="group relative flex w-fit items-center">
           <button
             type="button"
@@ -176,7 +176,7 @@ function ActionTooltip({ children }: { children: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute left-full top-1/2 z-10 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-zinc-950 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg shadow-zinc-950/10 transition-opacity group-hover:opacity-100 dark:bg-zinc-100 dark:text-zinc-950"
+      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-950 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg shadow-zinc-950/10 transition-opacity group-hover:opacity-100 dark:bg-zinc-100 dark:text-zinc-950 [@media(min-height:680px)]:bottom-auto [@media(min-height:680px)]:left-full [@media(min-height:680px)]:top-1/2 [@media(min-height:680px)]:mb-0 [@media(min-height:680px)]:ml-2 [@media(min-height:680px)]:-translate-x-0 [@media(min-height:680px)]:-translate-y-1/2"
     >
       {children}
     </span>

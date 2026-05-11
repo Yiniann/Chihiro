@@ -300,63 +300,65 @@ export function PostTableOfContents({
 
   if (items.length === 0) {
     return children ? (
-      <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block">
+      <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] pl-5 text-sm lg:block">
         {children}
       </aside>
     ) : null;
   }
 
   return (
-    <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block">
-      <nav ref={navRef} aria-label="文章目录" className="relative flex flex-col">
-        <span
-          ref={activeIndicatorRef}
-          aria-hidden="true"
-          className="absolute -left-5 top-0 w-[3px] rounded-full bg-primary opacity-0 shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_45%,transparent)] transition-[height,opacity,transform] duration-500 ease-out will-change-transform motion-reduce:transition-none"
-        />
-        {showBackToTop ? <BackToTopButton /> : null}
-        {sections.map((section) => {
-          const isOpen = section.heading.id === activeSectionId;
+    <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] min-h-0 pl-5 text-sm lg:flex lg:flex-col">
+      <div className="min-h-0 overflow-y-auto pr-2">
+        <nav ref={navRef} aria-label="文章目录" className="relative flex flex-col">
+          <span
+            ref={activeIndicatorRef}
+            aria-hidden="true"
+            className="absolute -left-5 top-0 w-[3px] rounded-full bg-primary opacity-0 shadow-[0_0_10px_color-mix(in_srgb,var(--primary)_45%,transparent)] transition-[height,opacity,transform] duration-500 ease-out will-change-transform motion-reduce:transition-none"
+          />
+          {showBackToTop ? <BackToTopButton /> : null}
+          {sections.map((section) => {
+            const isOpen = section.heading.id === activeSectionId;
 
-          return (
-            <div key={section.heading.id} className="flex flex-col">
-              <TOCLink item={section.heading} isActive={section.heading.id === activeId} />
-              {section.children.length > 0 ? (
-                <div
-                  aria-hidden={!isOpen}
-                  style={{
-                    gridTemplateRows: isOpen ? "1fr" : "0fr",
-                    transition:
-                      "grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease-out",
-                    opacity: isOpen ? 1 : 0,
-                    willChange: "grid-template-rows, opacity",
-                  }}
-                  className="grid overflow-hidden"
-                >
-                  <div className="flex min-h-0 flex-col">
-                    {section.children.map((child) => (
-                      <TOCLink
-                        key={child.id}
-                        item={child}
-                        isActive={child.id === activeId}
-                        tabIndex={isOpen ? 0 : -1}
-                      />
-                    ))}
+            return (
+              <div key={section.heading.id} className="flex flex-col">
+                <TOCLink item={section.heading} isActive={section.heading.id === activeId} />
+                {section.children.length > 0 ? (
+                  <div
+                    aria-hidden={!isOpen}
+                    style={{
+                      gridTemplateRows: isOpen ? "1fr" : "0fr",
+                      transition:
+                        "grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease-out",
+                      opacity: isOpen ? 1 : 0,
+                      willChange: "grid-template-rows, opacity",
+                    }}
+                    className="grid overflow-hidden"
+                  >
+                    <div className="flex min-h-0 flex-col">
+                      {section.children.map((child) => (
+                        <TOCLink
+                          key={child.id}
+                          item={child}
+                          isActive={child.id === activeId}
+                          tabIndex={isOpen ? 0 : -1}
+                        />
+                      ))}
+                    </div>
                   </div>
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </nav>
-      <ReadingProgress
-        value={readingProgress}
-        isComplete={isReadingComplete}
-        hideLabel={hideReadingProgressLabel}
-        hideCircle={hideReadingProgressCircle}
-        showCompleteCheck={showReadingCompleteCheck}
-      />
-      {children}
+                ) : null}
+              </div>
+            );
+          })}
+        </nav>
+        <ReadingProgress
+          value={readingProgress}
+          isComplete={isReadingComplete}
+          hideLabel={hideReadingProgressLabel}
+          hideCircle={hideReadingProgressCircle}
+          showCompleteCheck={showReadingCompleteCheck}
+        />
+      </div>
+      {children ? <div className="shrink-0 pr-2">{children}</div> : null}
     </aside>
   );
 }

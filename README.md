@@ -74,6 +74,24 @@ pnpm db:push
 pnpm db:generate
 ```
 
+## GitHub 登录
+
+公开用户登录使用 Auth.js + GitHub OAuth。GitHub OAuth App 的本地回调地址填写：
+
+```text
+http://localhost:3000/api/auth/callback/github
+```
+
+需要在 `.env` 中配置：
+
+```bash
+AUTH_SECRET="..."
+AUTH_GITHUB_ID="..."
+AUTH_GITHUB_SECRET="..."
+```
+
+`AUTH_SECRET` 可以用 `npx auth secret` 生成。
+
 ## 文档索引
 
 - [架构设计](./docs/architecture.md)
