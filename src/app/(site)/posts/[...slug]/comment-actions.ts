@@ -9,6 +9,7 @@ export type SubmitCommentState = {
   error: string | null;
   success: string | null;
 };
+const commentMaxLength = 512;
 
 export async function submitPostCommentAction(
   _previousState: SubmitCommentState,
@@ -142,8 +143,8 @@ function getCommentBody(formData: FormData) {
     return null;
   }
 
-  if (value.length > 2000) {
-    throw new Error("评论最多 2000 个字符。");
+  if (value.length > commentMaxLength) {
+    throw new Error(`评论最多 ${commentMaxLength} 个字符。`);
   }
 
   return value;

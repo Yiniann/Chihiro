@@ -3,6 +3,7 @@ import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import { CodeBlockCopyController } from "@/components/code-block-copy-controller";
 import { ImageViewerController } from "@/components/image-viewer-controller";
 import { ThemeModeInit } from "@/components/theme-mode-init";
+import { ToastProvider } from "@/components/toast-provider";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { getSiteSettings } from "@/server/repositories/site";
 import "./globals.css";
@@ -60,7 +61,7 @@ export default function RootLayout({
         <ThemeModeInit />
         <CodeBlockCopyController />
         <ImageViewerController />
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

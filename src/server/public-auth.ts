@@ -23,5 +23,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     session: {
       strategy: "database",
     },
+    callbacks: {
+      session({ session, user }) {
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: user.id,
+          },
+        };
+      },
+    },
   };
 });

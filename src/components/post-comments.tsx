@@ -28,39 +28,26 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
   return (
-    <section className="mt-12 grid gap-6 border-t border-zinc-200/80 pt-8 dark:border-zinc-800/80">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            Comments
-          </p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            评论
-          </h2>
-        </div>
-        <span className="text-sm text-zinc-500 dark:text-zinc-400">
-          {comments.length} 条
-        </span>
-      </div>
-
-      <div className="border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
+    <section className="mt-10 grid gap-5 border-t-0 pt-0">
+      <div>
         {canComment ? (
           <PostCommentForm
             postId={postId}
             pathname={pathname}
             showGuestFields={!user && !settings.loginRequiredToComment}
+            user={user}
           />
         ) : (
-          <div className="grid gap-3">
-            <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
-              使用 GitHub 登录后可以评论。
-            </p>
-            <PublicAuthStatus siteUrl={siteUrl} user={user} />
+          <div className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent dark:border-zinc-800/80">
+            <div className="flex min-h-28 flex-col items-center justify-center gap-2 px-3 py-6 text-center">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">登录后可评论</p>
+              <PublicAuthStatus siteUrl={siteUrl} user={user} variant="comment" />
+            </div>
           </div>
         )}
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-1">
         {comments.length > 0 ? (
           comments.map((comment) => <CommentItem key={comment.id} comment={comment} />)
         ) : (
@@ -79,19 +66,21 @@ function CommentItem({
   comment: Awaited<ReturnType<typeof listApprovedCommentsForPost>>[number];
 }) {
   return (
-    <article className="grid gap-2 border-b border-zinc-200/70 pb-4 last:border-b-0 dark:border-zinc-800/70">
-      <div className="flex items-center gap-3">
+    <article className="grid grid-cols-[2.25rem_1fr] gap-3 border-b border-zinc-200/70 py-4 first:pt-0 last:border-b-0 dark:border-zinc-800/70">
+      <div className="pt-0.5">
         {comment.author.image ? (
           <span
-            className="size-8 rounded-full bg-cover bg-center bg-no-repeat"
+            className="block size-9 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-zinc-200/80 dark:ring-zinc-800/80"
             style={{ backgroundImage: `url(${comment.author.image})` }}
           />
         ) : (
-          <span className="inline-flex size-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary ring-1 ring-primary/10">
             {comment.author.name.slice(0, 1).toUpperCase()}
           </span>
         )}
-        <div className="min-w-0">
+      </div>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
             {comment.author.name}
           </p>
@@ -99,10 +88,10 @@ function CommentItem({
             {new Date(comment.createdAt).toLocaleDateString("zh-CN")}
           </time>
         </div>
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+          {comment.body}
+        </p>
       </div>
-      <p className="whitespace-pre-wrap text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-        {comment.body}
-      </p>
     </article>
   );
 }
