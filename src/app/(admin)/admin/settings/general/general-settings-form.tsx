@@ -25,10 +25,9 @@ type GeneralSettingsFormProps = {
     summary: string;
     motto: string;
   };
-  siteUrlLocked: boolean;
 };
 
-export function GeneralSettingsForm({ defaults, siteUrlLocked }: GeneralSettingsFormProps) {
+export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
   const [state, formAction] = useActionState(saveGeneralSettingsAction, initialState);
 
   return (
@@ -83,20 +82,13 @@ export function GeneralSettingsForm({ defaults, siteUrlLocked }: GeneralSettings
             <input
               name="siteUrl"
               type="url"
-              required={!siteUrlLocked}
-              readOnly={siteUrlLocked}
+              required
               defaultValue={defaults.siteUrl}
-              className={`h-11 bg-transparent px-0 text-base outline-none transition placeholder:text-zinc-400 focus:outline-none dark:placeholder:text-zinc-600 ${
-                siteUrlLocked
-                  ? "cursor-not-allowed text-zinc-400 dark:text-zinc-500"
-                  : "text-zinc-700 dark:text-zinc-200"
-              }`}
+              className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
               placeholder="https://example.com"
             />
             <span className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">
-              {siteUrlLocked
-                ? "已由环境变量 NEXT_PUBLIC_SITE_URL 锁定；要修改请更新部署配置。"
-                : "对外的权威域名，用于 SEO / RSS / sitemap / og:url。多域名部署请把其它域名在托管层 301 跳转到这里。"}
+              对外的权威域名，用于登录回跳、SEO / RSS / sitemap / og:url。多域名部署请把其它域名在托管层 301 跳转到这里。
             </span>
           </label>
         </div>

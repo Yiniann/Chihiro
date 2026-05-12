@@ -30,12 +30,10 @@ fi
 
 if [ ! -f "$APP_DIR/.env" ]; then
   postgres_password="$(openssl rand -base64 24 | tr -d '\n' | tr '/+' '__')"
-  site_url="${NEXT_PUBLIC_SITE_URL:-https://www.xiami.dev}"
 
   cat > "$APP_DIR/.env" <<EOF
 DATABASE_URL="postgresql://chihiro:${postgres_password}@localhost:5432/chihiro?schema=public"
 DOCKER_DATABASE_URL="postgresql://chihiro:${postgres_password}@postgres:5432/chihiro?schema=public"
-NEXT_PUBLIC_SITE_URL="${site_url}"
 POSTGRES_DB="chihiro"
 POSTGRES_USER="chihiro"
 POSTGRES_PASSWORD="${postgres_password}"

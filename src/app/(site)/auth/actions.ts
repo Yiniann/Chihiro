@@ -2,7 +2,9 @@
 
 import { AuthError } from "next-auth";
 import { signIn, signOut } from "@/server/public-auth";
+import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { getPublicAuthConfig } from "@/server/repositories/public-interactions";
+import { getSiteSettings } from "@/server/repositories/site";
 
 export type PublicSignInState = {
   error: string | null;
@@ -14,6 +16,7 @@ export async function signInWithGitHubAction(
 ): Promise<PublicSignInState> {
   const config = await getPublicAuthConfig();
   const callbackUrl = getCallbackUrl(formData);
+  const redirectTo = callbackUrl ? await getPublicCallbackUrl(callbackUrl) : undefined;
 
   if (!config.githubCredentials) {
     return {
@@ -22,7 +25,7 @@ export async function signInWithGitHubAction(
   }
 
   try {
-    await signIn("github", callbackUrl ? { redirectTo: callbackUrl } : undefined);
+    await signIn("github", redirectTo ? { redirectTo } : undefined);
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
@@ -54,6 +57,17 @@ function getCallbackUrl(formData: FormData) {
   }
 
   return value.startsWith("/") ? value : null;
+}
+
+async function getPublicCallbackUrl(pathname: string) {
+  const siteSettings = await getSiteSettings();
+  const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+
+  try {
+    return new URL(pathname, siteUrl).toString();
+  } catch {
+    return pathname;
+  }
 }
 
 function isRedirectError(error: unknown) {

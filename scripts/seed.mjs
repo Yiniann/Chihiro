@@ -18,7 +18,7 @@ const prisma = new PrismaClient({ adapter });
 const siteSettings = {
   siteName: "Chihiro",
   siteDescription: "A publishing system for stories, ideas, and product notes.",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL?.trim() || "http://localhost:3000",
+  siteUrl: "http://localhost:3000",
   locale: "zh-CN",
   authorName: "Yinian",
   authorAvatarUrl: "/avatar.png",

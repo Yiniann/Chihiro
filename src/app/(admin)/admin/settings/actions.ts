@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/server/auth";
 import { getSiteSettings, upsertSiteSettings } from "@/server/repositories/site";
-import { isSiteUrlLockedByEnv, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
 
 export type SaveGeneralSettingsState = {
   error: string | null;
@@ -16,13 +16,9 @@ export async function saveGeneralSettingsAction(
 ): Promise<SaveGeneralSettingsState> {
   await requireAdminSession();
 
-  const siteUrlLocked = isSiteUrlLockedByEnv();
-
   const siteName = getRequiredString(formData, "siteName", "站点名");
   const authorName = getRequiredString(formData, "authorName", "作者");
-  const submittedSiteUrl = siteUrlLocked
-    ? null
-    : getRequiredUrl(formData, "siteUrl", "站点地址");
+  const submittedSiteUrl = getRequiredUrl(formData, "siteUrl", "站点地址");
   const email = getOptionalEmail(formData, "email", "邮箱");
   const githubUrl = getOptionalUrl(formData, "githubUrl", "GitHub");
   const authorAvatarUrl = getOptionalImageSource(formData, "authorAvatarUrl", "作者头像");
@@ -33,15 +29,10 @@ export async function saveGeneralSettingsAction(
   try {
     const currentSettings = await getSiteSettings();
 
-    const siteUrl =
-      submittedSiteUrl ??
-      currentSettings?.siteUrl ??
-      siteConfig.url;
-
     await upsertSiteSettings({
       siteName,
       siteDescription: currentSettings?.siteDescription ?? siteConfig.description,
-      siteUrl,
+      siteUrl: submittedSiteUrl,
       locale: currentSettings?.locale ?? siteConfig.locale,
       authorName,
       authorAvatarUrl,
