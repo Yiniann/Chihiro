@@ -51,7 +51,7 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
             <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
               使用 GitHub 登录后可以评论。
             </p>
-            <PublicAuthStatus />
+            <PublicAuthStatus user={user} />
           </div>
         )}
       </div>

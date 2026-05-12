@@ -1,27 +1,30 @@
+"use client";
+
 import Image from "next/image";
 import { LogIn, LogOut } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useActionState } from "react";
 import {
   signInWithGitHubAction,
   signOutPublicUserAction,
+  type PublicSignInState,
 } from "@/app/(site)/auth/actions";
-import { auth } from "@/server/public-auth";
 
-export async function PublicAuthStatus() {
-  const session = await auth();
-  const user = session?.user ?? null;
+const initialState: PublicSignInState = {
+  error: null,
+};
 
+type PublicAuthStatusProps = {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  } | null;
+};
+
+export function PublicAuthStatus({ user }: PublicAuthStatusProps) {
   if (!user) {
-    return (
-      <form action={signInWithGitHubAction}>
-        <button
-          type="submit"
-          className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-primary/10 hover:text-primary dark:text-zinc-300"
-        >
-          <LogIn className="size-4" aria-hidden="true" />
-          <span>使用 GitHub 登录</span>
-        </button>
-      </form>
-    );
+    return <PublicSignInForm />;
   }
 
   return (
@@ -48,5 +51,26 @@ export async function PublicAuthStatus() {
         </button>
       </form>
     </div>
+  );
+}
+
+function PublicSignInForm() {
+  const pathname = usePathname();
+  const [state, formAction] = useActionState(signInWithGitHubAction, initialState);
+
+  return (
+    <form action={formAction} className="grid gap-2 justify-items-start">
+      <input type="hidden" name="callbackUrl" value={pathname} />
+      <button
+        type="submit"
+        className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-primary/10 hover:text-primary dark:text-zinc-300"
+      >
+        <LogIn className="size-4" aria-hidden="true" />
+        <span>使用 GitHub 登录</span>
+      </button>
+      {state.error ? (
+        <p className="text-sm text-red-600 dark:text-red-300">{state.error}</p>
+      ) : null}
+    </form>
   );
 }
