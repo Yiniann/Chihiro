@@ -29,6 +29,12 @@ enum AssetProvider {
   LOCAL
 }
 
+enum CommentStatus {
+  PENDING
+  APPROVED
+  SPAM
+}
+
 model Post {
   id                Int           @id @default(autoincrement())
   title             String
@@ -51,6 +57,7 @@ model Post {
   tags              PostTag[]
   views             PostView[]
   likes             PostLike[]
+  comments          PostComment[]
 
   @@index([status, publishedAt])
   @@index([categoryId])
@@ -89,8 +96,26 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  comments      PostComment[]
 
   @@map("users")
+}
+
+model PostComment {
+  id          String        @id @default(cuid())
+  postId      Int
+  userId      String?
+  authorName  String?
+  authorEmail String?
+  body        String        @db.Text
+  status      CommentStatus @default(PENDING)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  post        Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([postId, status, createdAt])
+  @@index([userId])
 }
 
 model Account {

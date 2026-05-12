@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
+import { PostComments } from "@/components/post-comments";
 import { PostEngagement } from "@/components/post-engagement";
 import { PostSidebarActions } from "@/components/post-sidebar-actions";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
@@ -150,6 +151,7 @@ export default async function PostPage({ params }: PostPageProps) {
     const contentWithToc = highlightedContentHtml ? addHeadingAnchors(highlightedContentHtml) : null;
     const postContentHtml = normalizeHtmlForHydration(contentWithToc?.html ?? highlightedContentHtml ?? "");
     const tocItems = contentWithToc?.items ?? [];
+    const postPath = getPostPath({ slug: post.slug, categorySlug: post.category?.slug });
 
     return (
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
@@ -218,6 +220,7 @@ export default async function PostPage({ params }: PostPageProps) {
               <span>end</span>
               <span className="h-px flex-1 border-t border-dashed border-primary/45" />
             </div>
+            <PostComments postId={post.id} pathname={postPath} />
           </article>
           <PostTableOfContents items={tocItems}>
             <PostSidebarActions

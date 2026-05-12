@@ -1,4 +1,5 @@
 import { prisma } from "@/server/db/client";
+import { randomBytes } from "node:crypto";
 
 export type PublicInteractionSettingsRecord = {
   commentsEnabled: boolean;
@@ -90,7 +91,7 @@ export async function upsertPublicInteractionSettings(
 }
 
 export async function getPublicAuthConfig() {
-  const settings = await prisma.publicInteractionSettings.findUnique({
+  let settings = await prisma.publicInteractionSettings.findUnique({
     where: {
       id: "default",
     },
@@ -101,7 +102,30 @@ export async function getPublicAuthConfig() {
       githubClientSecret: true,
     },
   });
-  const authSecret = settings?.authSecret?.trim() || process.env.AUTH_SECRET?.trim();
+  const envAuthSecret = process.env.AUTH_SECRET?.trim();
+  let authSecret = settings?.authSecret?.trim() || envAuthSecret;
+
+  if (!authSecret) {
+    authSecret = randomBytes(32).toString("base64url");
+    settings = await prisma.publicInteractionSettings.upsert({
+      where: {
+        id: "default",
+      },
+      create: {
+        id: "default",
+        authSecret,
+      },
+      update: {
+        authSecret,
+      },
+      select: {
+        authSecret: true,
+        githubLoginEnabled: true,
+        githubClientId: true,
+        githubClientSecret: true,
+      },
+    });
+  }
 
   if (!settings?.githubLoginEnabled) {
     return {
