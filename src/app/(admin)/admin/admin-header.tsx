@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquareText,
   NotebookPen,
   Settings2,
   X,
@@ -32,6 +33,9 @@ const adminNavMeta: Record<
   },
   "/admin/workbench": {
     icon: NotebookPen,
+  },
+  "/admin/comments": {
+    icon: MessageSquareText,
   },
   "/admin/media": {
     icon: Images,

@@ -35,6 +35,7 @@ export async function submitPostCommentAction(
   }
 
   let postId;
+  let parentId;
   let body;
   let pathname;
   let authorName;
@@ -42,6 +43,7 @@ export async function submitPostCommentAction(
 
   try {
     postId = getPostId(formData);
+    parentId = getParentCommentId(formData);
     body = getCommentBody(formData);
     pathname = getOptionalString(formData, "pathname");
     authorName = getAuthorName(formData);
@@ -78,6 +80,7 @@ export async function submitPostCommentAction(
     const comment = await createCommentForPost({
       postId,
       userId,
+      parentId,
       authorName: userId ? null : authorName,
       authorEmail: userId ? null : authorEmail,
       body,
@@ -101,6 +104,11 @@ export async function submitPostCommentAction(
       success: null,
     };
   }
+}
+
+function getParentCommentId(formData: FormData) {
+  const value = getOptionalString(formData, "parentId");
+  return value ?? null;
 }
 
 function getAuthorEmail(formData: FormData) {

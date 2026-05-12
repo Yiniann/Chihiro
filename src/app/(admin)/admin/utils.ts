@@ -7,6 +7,7 @@ import type { UpdateItem } from "@/server/repositories/updates";
 export const ADMIN_NAV_ITEMS = [
   { href: "/admin", label: "概览" },
   { href: "/admin/workbench", label: "编辑台" },
+  { href: "/admin/comments", label: "评论" },
   { href: "/admin/media", label: "媒体库" },
   { href: "/admin/settings", label: "设置" },
 ] as const;

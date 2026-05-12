@@ -1,15 +1,137 @@
-import { CommentStatus, ContentStatus } from "@prisma/client";
+import { CommentStatus, ContentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db/client";
 
 export type PublicPostComment = {
   id: string;
+  parentId: string | null;
+  threadRootId: string | null;
+  parentAuthorName: string | null;
   body: string;
   createdAt: string;
   author: {
     name: string;
     image: string | null;
   };
+  replies: PublicPostComment[];
 };
+
+const adminCommentInclude = {
+  post: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+      category: {
+        select: {
+          slug: true,
+        },
+      },
+    },
+  },
+  user: {
+    select: {
+      name: true,
+      email: true,
+      image: true,
+    },
+  },
+  parent: {
+    select: {
+      id: true,
+      body: true,
+      authorName: true,
+      authorEmail: true,
+      user: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.PostCommentInclude;
+
+type AdminCommentRecord = Prisma.PostCommentGetPayload<{
+  include: typeof adminCommentInclude;
+}>;
+
+export type AdminCommentStatusFilter = "all" | "pending" | "approved" | "spam";
+
+export type AdminCommentItem = {
+  id: string;
+  parentId: string | null;
+  threadRootId: string | null;
+  body: string;
+  status: CommentStatus;
+  createdAt: string;
+  updatedAt: string;
+  author: {
+    name: string;
+    email: string | null;
+    image: string | null;
+    source: "user" | "guest";
+  };
+  post: {
+    id: number;
+    title: string;
+    href: string;
+  };
+  parent: {
+    id: string;
+    authorName: string;
+    body: string;
+  } | null;
+};
+
+export type AdminCommentStats = {
+  total: number;
+  pending: number;
+  approved: number;
+  spam: number;
+};
+
+export async function listCommentsForAdmin(
+  filter: AdminCommentStatusFilter = "all",
+): Promise<AdminCommentItem[]> {
+  const comments = await prisma.postComment.findMany({
+    where: getAdminCommentWhere(filter),
+    include: adminCommentInclude,
+    orderBy: [{ createdAt: Prisma.SortOrder.desc }],
+  });
+
+  return comments.map(mapAdminCommentRecord);
+}
+
+export async function getCommentStatsForAdmin(): Promise<AdminCommentStats> {
+  const [total, pending, approved, spam] = await Promise.all([
+    prisma.postComment.count(),
+    prisma.postComment.count({ where: { status: CommentStatus.PENDING } }),
+    prisma.postComment.count({ where: { status: CommentStatus.APPROVED } }),
+    prisma.postComment.count({ where: { status: CommentStatus.SPAM } }),
+  ]);
+
+  return {
+    total,
+    pending,
+    approved,
+    spam,
+  };
+}
+
+export async function updateCommentStatus(id: string, status: CommentStatus) {
+  return prisma.postComment.update({
+    where: { id },
+    data: { status },
+    select: { id: true },
+  });
+}
+
+export async function deleteComment(id: string) {
+  return prisma.postComment.delete({
+    where: { id },
+    select: { id: true },
+  });
+}
 
 export async function listApprovedCommentsForPost(postId: number): Promise<PublicPostComment[]> {
   const comments = await prisma.postComment.findMany({
@@ -22,9 +144,23 @@ export async function listApprovedCommentsForPost(postId: number): Promise<Publi
     },
     select: {
       id: true,
+      parentId: true,
+      threadRootId: true,
       body: true,
       createdAt: true,
       authorName: true,
+      parent: {
+        select: {
+          authorName: true,
+          authorEmail: true,
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
       user: {
         select: {
           name: true,
@@ -35,20 +171,32 @@ export async function listApprovedCommentsForPost(postId: number): Promise<Publi
     },
   });
 
-  return comments.map((comment) => ({
-    id: comment.id,
-    body: comment.body,
-    createdAt: comment.createdAt.toISOString(),
-    author: {
-      name: comment.user?.name ?? comment.user?.email ?? comment.authorName ?? "访客",
-      image: comment.user?.image ?? null,
-    },
-  }));
+  return buildCommentThreads(
+    comments.map((comment) => ({
+      id: comment.id,
+      parentId: comment.parentId,
+      threadRootId: comment.threadRootId,
+      parentAuthorName:
+        comment.parent?.user?.name ??
+        comment.parent?.user?.email ??
+        comment.parent?.authorName ??
+        comment.parent?.authorEmail ??
+        null,
+      body: comment.body,
+      createdAt: comment.createdAt.toISOString(),
+      author: {
+        name: comment.user?.name ?? comment.user?.email ?? comment.authorName ?? "访客",
+        image: comment.user?.image ?? null,
+      },
+      replies: [],
+    })),
+  );
 }
 
 export async function createCommentForPost({
   postId,
   userId,
+  parentId,
   authorName,
   authorEmail,
   body,
@@ -56,6 +204,7 @@ export async function createCommentForPost({
 }: {
   postId: number;
   userId: string | null;
+  parentId: string | null;
   authorName: string | null;
   authorEmail: string | null;
   body: string;
@@ -75,9 +224,46 @@ export async function createCommentForPost({
     throw new Error("文章不存在或尚未发布。");
   }
 
+  if (parentId) {
+    const parentComment = await prisma.postComment.findFirst({
+      where: {
+        id: parentId,
+        postId,
+      },
+      select: {
+        id: true,
+        threadRootId: true,
+      },
+    });
+
+    if (!parentComment) {
+      throw new Error("被回复的评论不存在。");
+    }
+
+    const threadRootId = parentComment.threadRootId ?? parentComment.id;
+
+    return prisma.postComment.create({
+      data: {
+        postId,
+        parentId,
+        threadRootId,
+        userId,
+        authorName,
+        authorEmail,
+        body,
+        status: requiresModeration ? CommentStatus.PENDING : CommentStatus.APPROVED,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+  }
+
   return prisma.postComment.create({
     data: {
       postId,
+      parentId,
       userId,
       authorName,
       authorEmail,
@@ -89,4 +275,81 @@ export async function createCommentForPost({
       status: true,
     },
   });
+}
+
+function getAdminCommentWhere(filter: AdminCommentStatusFilter): Prisma.PostCommentWhereInput {
+  if (filter === "pending") {
+    return { status: CommentStatus.PENDING };
+  }
+
+  if (filter === "approved") {
+    return { status: CommentStatus.APPROVED };
+  }
+
+  if (filter === "spam") {
+    return { status: CommentStatus.SPAM };
+  }
+
+  return {};
+}
+
+function mapAdminCommentRecord(comment: AdminCommentRecord): AdminCommentItem {
+  const userName = comment.user?.name ?? comment.user?.email ?? null;
+  const guestName = comment.authorName?.trim() || comment.authorEmail?.trim() || null;
+  const parentUserName = comment.parent?.user?.name ?? comment.parent?.user?.email ?? null;
+  const parentGuestName =
+    comment.parent?.authorName?.trim() || comment.parent?.authorEmail?.trim() || null;
+  const categorySlug = comment.post.category?.slug;
+
+  return {
+    id: comment.id,
+    parentId: comment.parentId,
+    threadRootId: comment.threadRootId,
+    body: comment.body,
+    status: comment.status,
+    createdAt: comment.createdAt.toISOString(),
+    updatedAt: comment.updatedAt.toISOString(),
+    author: {
+      name: userName ?? guestName ?? "访客",
+      email: comment.user?.email ?? comment.authorEmail ?? null,
+      image: comment.user?.image ?? null,
+      source: comment.userId ? "user" : "guest",
+    },
+    post: {
+      id: comment.post.id,
+      title: comment.post.title,
+      href: `/posts/${categorySlug?.trim() || "uncategorized"}/${comment.post.slug}`,
+    },
+    parent: comment.parent
+      ? {
+          id: comment.parent.id,
+          authorName: parentUserName ?? parentGuestName ?? "访客",
+          body: comment.parent.body,
+        }
+      : null,
+  };
+}
+
+function buildCommentThreads(comments: PublicPostComment[]) {
+  const roots: PublicPostComment[] = [];
+  const repliesByRootId = new Map<string, PublicPostComment[]>();
+
+  for (const comment of comments) {
+    comment.replies = [];
+
+    if (!comment.threadRootId) {
+      roots.push(comment);
+      continue;
+    }
+
+    const replies = repliesByRootId.get(comment.threadRootId) ?? [];
+    replies.push(comment);
+    repliesByRootId.set(comment.threadRootId, replies);
+  }
+
+  for (const root of roots) {
+    root.replies = repliesByRootId.get(root.id) ?? [];
+  }
+
+  return roots;
 }

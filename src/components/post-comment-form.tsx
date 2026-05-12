@@ -18,20 +18,30 @@ const commentMaxLength = 512;
 
 type PostCommentFormProps = {
   postId: number;
+  parentId?: string | null;
   pathname: string;
   showGuestFields?: boolean;
+  compact?: boolean;
+  placeholder?: string;
+  submitLabel?: string;
   user?: {
     name?: string | null;
     email?: string | null;
     image?: string | null;
   } | null;
+  onSuccess?: () => void;
 };
 
 export function PostCommentForm({
   postId,
+  parentId = null,
   pathname,
   showGuestFields = false,
+  compact = false,
+  placeholder = "写下你的想法...",
+  submitLabel = "提交评论",
   user = null,
+  onSuccess,
 }: PostCommentFormProps) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const [bodyLength, setBodyLength] = useState(0);
@@ -42,6 +52,7 @@ export function PostCommentForm({
     if (!nextState.error) {
       formRef.current?.reset();
       setBodyLength(0);
+      onSuccess?.();
     }
 
     if (nextState.error) {
@@ -56,6 +67,7 @@ export function PostCommentForm({
   return (
     <form ref={formRef} action={formAction} className="grid gap-3">
       <input type="hidden" name="postId" value={postId} />
+      {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <input type="hidden" name="pathname" value={pathname} />
       {showGuestFields ? (
         <div className="grid gap-3 sm:grid-cols-2">
@@ -96,18 +108,20 @@ export function PostCommentForm({
           <div className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent transition focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 dark:border-zinc-800/80">
             <textarea
               name="body"
-              rows={user ? 3 : 4}
+              rows={compact ? 2 : user ? 3 : 4}
               maxLength={commentMaxLength}
               required
               onChange={(event) => setBodyLength(event.currentTarget.value.length)}
-              className="block min-h-28 w-full resize-none border-0 bg-transparent px-3 py-2 text-sm leading-7 text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-600"
-              placeholder="写下你的想法..."
+              className={`block w-full resize-none border-0 bg-transparent px-3 py-2 text-sm leading-7 text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-600 ${
+                compact ? "min-h-20" : "min-h-28"
+              }`}
+              placeholder={placeholder}
             />
             <div className="flex h-9 items-center justify-end gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70">
               <span className="text-xs text-zinc-400 dark:text-zinc-500">
                 {bodyLength}/{commentMaxLength}
               </span>
-              <SubmitButton />
+              <SubmitButton label={submitLabel} />
             </div>
           </div>
         </label>
@@ -146,7 +160,7 @@ function UserAvatar({
   );
 }
 
-function SubmitButton() {
+function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
 
   return (
@@ -156,7 +170,7 @@ function SubmitButton() {
       className="inline-flex h-7 items-center justify-center gap-1.5 px-1 text-sm font-medium text-primary transition hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50"
     >
       <Send className="size-3.5" aria-hidden="true" />
-      {pending ? "提交中..." : "提交评论"}
+      {pending ? "提交中..." : label}
     </button>
   );
 }

@@ -89,10 +89,10 @@ model PostLike {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String        @id @default(cuid())
   name          String?
-  email         String?   @unique
-  emailVerified DateTime? @map("email_verified")
+  email         String?       @unique
+  emailVerified DateTime?     @map("email_verified")
   image         String?
   accounts      Account[]
   sessions      Session[]
@@ -102,19 +102,27 @@ model User {
 }
 
 model PostComment {
-  id          String        @id @default(cuid())
-  postId      Int
-  userId      String?
-  authorName  String?
-  authorEmail String?
-  body        String        @db.Text
-  status      CommentStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  post        Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
-  user        User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  id            String        @id @default(cuid())
+  postId        Int
+  parentId      String?
+  threadRootId  String?
+  userId        String?
+  authorName    String?
+  authorEmail   String?
+  body          String        @db.Text
+  status        CommentStatus @default(PENDING)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent        PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies       PostComment[] @relation("CommentReplies")
+  threadRoot    PostComment?  @relation("CommentThread", fields: [threadRootId], references: [id], onDelete: Cascade)
+  threadReplies PostComment[] @relation("CommentThread")
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([postId, status, createdAt])
+  @@index([parentId])
+  @@index([threadRootId])
   @@index([userId])
 }
 
@@ -157,17 +165,17 @@ model VerificationToken {
 }
 
 model PublicInteractionSettings {
-  id                    String   @id @default("default")
-  commentsEnabled       Boolean  @default(false)
-  loginRequiredToComment Boolean @default(true)
-  commentModeration     Boolean  @default(true)
-  githubLoginEnabled    Boolean  @default(true)
-  authSecret            String?
-  githubClientId        String?
-  githubClientSecret    String?
-  googleLoginEnabled    Boolean  @default(false)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id                     String   @id @default("default")
+  commentsEnabled        Boolean  @default(false)
+  loginRequiredToComment Boolean  @default(true)
+  commentModeration      Boolean  @default(true)
+  githubLoginEnabled     Boolean  @default(true)
+  authSecret             String?
+  githubClientId         String?
+  githubClientSecret     String?
+  googleLoginEnabled     Boolean  @default(false)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 }
 
 model Update {
@@ -186,23 +194,23 @@ model Update {
 }
 
 model Asset {
-  id           String        @id @default(cuid())
-  provider     AssetProvider
-  kind         AssetKind
-  storageKey   String        @unique
-  bucket       String?
-  url          String
-  title        String?
-  alt          String?
-  photoMeta    String?
-  mimeType     String?
-  size         Int?
-  width        Int?
-  height       Int?
-  duration     Int?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  postCovers   Post[]        @relation("PostCoverAsset")
+  id         String        @id @default(cuid())
+  provider   AssetProvider
+  kind       AssetKind
+  storageKey String        @unique
+  bucket     String?
+  url        String
+  title      String?
+  alt        String?
+  photoMeta  String?
+  mimeType   String?
+  size       Int?
+  width      Int?
+  height     Int?
+  duration   Int?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  postCovers Post[]        @relation("PostCoverAsset")
 }
 
 model ObjectStorageSettings {
@@ -235,11 +243,11 @@ model Category {
 }
 
 model Tag {
-  id        String      @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  slug      String      @unique
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   posts     PostTag[]
 }
 
