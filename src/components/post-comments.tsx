@@ -1,8 +1,10 @@
 import { PublicAuthStatus } from "@/components/public-auth-status";
 import { PostCommentForm } from "@/components/post-comment-form";
+import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { auth } from "@/server/public-auth";
 import { listApprovedCommentsForPost } from "@/server/repositories/comments";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
+import { getSiteSettings } from "@/server/repositories/site";
 
 type PostCommentsProps = {
   postId: number;
@@ -16,12 +18,14 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
     return null;
   }
 
-  const [comments, session] = await Promise.all([
+  const [comments, session, siteSettings] = await Promise.all([
     listApprovedCommentsForPost(postId),
     auth(),
+    getSiteSettings(),
   ]);
   const user = session?.user ?? null;
   const canComment = Boolean(user) || !settings.loginRequiredToComment;
+  const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
   return (
     <section className="mt-12 grid gap-6 border-t border-zinc-200/80 pt-8 dark:border-zinc-800/80">
@@ -51,7 +55,7 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
             <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
               使用 GitHub 登录后可以评论。
             </p>
-            <PublicAuthStatus user={user} />
+            <PublicAuthStatus siteUrl={siteUrl} user={user} />
           </div>
         )}
       </div>

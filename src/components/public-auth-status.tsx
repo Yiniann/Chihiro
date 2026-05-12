@@ -3,18 +3,12 @@
 import Image from "next/image";
 import { LogIn, LogOut } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useActionState } from "react";
-import {
-  signInWithGitHubAction,
-  signOutPublicUserAction,
-  type PublicSignInState,
-} from "@/app/(site)/auth/actions";
-
-const initialState: PublicSignInState = {
-  error: null,
-};
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { signOutPublicUserAction } from "@/app/(site)/auth/actions";
 
 type PublicAuthStatusProps = {
+  siteUrl: string;
   user: {
     name?: string | null;
     email?: string | null;
@@ -22,9 +16,9 @@ type PublicAuthStatusProps = {
   } | null;
 };
 
-export function PublicAuthStatus({ user }: PublicAuthStatusProps) {
+export function PublicAuthStatus({ siteUrl, user }: PublicAuthStatusProps) {
   if (!user) {
-    return <PublicSignInForm />;
+    return <PublicSignInForm siteUrl={siteUrl} />;
   }
 
   return (
@@ -54,23 +48,35 @@ export function PublicAuthStatus({ user }: PublicAuthStatusProps) {
   );
 }
 
-function PublicSignInForm() {
+function PublicSignInForm({ siteUrl }: { siteUrl: string }) {
   const pathname = usePathname();
-  const [state, formAction] = useActionState(signInWithGitHubAction, initialState);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSignIn() {
+    setError(null);
+
+    try {
+      await signIn("github", {
+        callbackUrl: new URL(pathname, siteUrl).toString(),
+      });
+    } catch {
+      setError("GitHub 登录配置有问题，请检查 Client ID、Client Secret 和 callback URL。");
+    }
+  }
 
   return (
-    <form action={formAction} className="grid gap-2 justify-items-start">
-      <input type="hidden" name="callbackUrl" value={pathname} />
+    <div className="grid gap-2 justify-items-start">
       <button
-        type="submit"
+        type="button"
+        onClick={handleSignIn}
         className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-zinc-600 transition hover:bg-primary/10 hover:text-primary dark:text-zinc-300"
       >
         <LogIn className="size-4" aria-hidden="true" />
         <span>使用 GitHub 登录</span>
       </button>
-      {state.error ? (
-        <p className="text-sm text-red-600 dark:text-red-300">{state.error}</p>
+      {error ? (
+        <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
       ) : null}
-    </form>
+    </div>
   );
 }
