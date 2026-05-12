@@ -31,24 +31,61 @@ export const config = {
 };
 
 function redirectToCanonicalHost(request: NextRequest) {
-  const canonicalHost = process.env.CANONICAL_HOST?.trim().toLowerCase();
-
-  if (!canonicalHost) {
+  if (process.env.CANONICAL_REDIRECT !== "true") {
     return null;
   }
 
-  const host = request.headers.get("host")?.toLowerCase().split(":")[0];
+  const canonicalUrl = getCanonicalUrl();
 
-  if (!host || host === canonicalHost || isLocalHost(host)) {
+  if (!canonicalUrl || isLocalHost(canonicalUrl.hostname)) {
+    return null;
+  }
+
+  const host = getRequestHost(request);
+
+  if (!host || host === canonicalUrl.hostname || isLocalHost(host)) {
     return null;
   }
 
   const target = request.nextUrl.clone();
-  target.protocol = process.env.CANONICAL_PROTOCOL?.trim() || "https:";
-  target.hostname = canonicalHost;
+  target.protocol = canonicalUrl.protocol;
+  target.hostname = canonicalUrl.hostname;
   target.port = "";
 
   return NextResponse.redirect(target, 301);
+}
+
+function getCanonicalUrl() {
+  const configuredUrl =
+    process.env.CANONICAL_URL?.trim() ||
+    getUrlFromHost(process.env.CANONICAL_HOST, process.env.CANONICAL_PROTOCOL) ||
+    process.env.NEXT_PUBLIC_SITE_URL?.trim();
+
+  if (!configuredUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(configuredUrl);
+  } catch {
+    return null;
+  }
+}
+
+function getUrlFromHost(host: string | undefined, protocol: string | undefined) {
+  const trimmedHost = host?.trim();
+
+  if (!trimmedHost) {
+    return null;
+  }
+
+  return `${protocol?.trim() || "https:"}//${trimmedHost}`;
+}
+
+function getRequestHost(request: NextRequest) {
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const host = forwardedHost?.split(",")[0] ?? request.headers.get("host");
+  return host?.toLowerCase().split(":")[0] ?? null;
 }
 
 function isLocalHost(host: string) {

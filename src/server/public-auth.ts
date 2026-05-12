@@ -10,7 +10,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
   return {
     adapter: PrismaAdapter(prisma),
     secret: publicAuthConfig.authSecret ?? undefined,
-    trustHost: process.env.AUTH_TRUST_HOST === "true",
+    trustHost: process.env.AUTH_TRUST_HOST !== "false",
     providers: publicAuthConfig.githubCredentials
       ? [GitHub(publicAuthConfig.githubCredentials)]
       : [],
