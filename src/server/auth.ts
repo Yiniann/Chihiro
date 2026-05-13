@@ -13,6 +13,7 @@ import {
 import { getAdminBackendStatus } from "@/server/admin-backend";
 import { isDatabaseUnavailableError } from "@/server/database-errors";
 import { verifyPasswordHash } from "@/server/passwords";
+import { auth as publicAuth } from "@/server/public-auth";
 import {
   countAdminUsers,
   createAdminSessionRecord,
@@ -20,6 +21,10 @@ import {
   findActiveAdminSessionByToken,
   findAdminUserByUsername,
 } from "@/server/repositories/admin-auth";
+import {
+  createPublicSessionRecord,
+  findLocalUserByUsername,
+} from "@/server/repositories/users";
 
 type AdminSignInResult =
   | {
@@ -35,7 +40,11 @@ export async function hasAdminUsers() {
 }
 
 export async function isAdminAuthenticated() {
-  return Boolean(await getCurrentAdminSession());
+  return (await isPublicAdminAuthenticated()) || Boolean(await getCurrentAdminSession());
+}
+
+export async function isOwnerAuthenticated() {
+  return (await isPublicOwnerAuthenticated()) || Boolean(await getCurrentAdminSession());
 }
 
 export async function signInAdmin(username: string, password: string): Promise<AdminSignInResult> {
@@ -95,6 +104,33 @@ export async function signInAdmin(username: string, password: string): Promise<A
     };
   }
 
+  const localUser = await findLocalUserByUsername(normalizedUsername);
+
+  if (localUser?.passwordHash) {
+    const passwordMatches = await verifyPasswordHash(normalizedPassword, localUser.passwordHash);
+
+    if (!passwordMatches) {
+      return {
+        ok: false,
+        error: "帐号或密码不正确。",
+      };
+    }
+
+    if (localUser.role !== "ADMIN" && localUser.role !== "OWNER") {
+      return {
+        ok: false,
+        error: "这个帐号没有后台权限。",
+      };
+    }
+
+    await createPublicSessionForUser(localUser.id);
+    await createAdminSessionForUser(localUser.id);
+
+    return {
+      ok: true,
+    };
+  }
+
   const user = await findAdminUserByUsername(normalizedUsername);
 
   if (!user) {
@@ -145,6 +181,20 @@ export async function requireAdminSession(nextPath = "/admin") {
   }
 }
 
+export async function requireOwnerSession(nextPath = "/admin/settings/users") {
+  try {
+    if (!(await isOwnerAuthenticated())) {
+      redirect(createSiteLoginHref(nextPath));
+    }
+  } catch (error) {
+    if (isDatabaseUnavailableError(error)) {
+      redirect("/admin");
+    }
+
+    throw error;
+  }
+}
+
 async function createAdminSession(userId: string) {
   const token = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000);
@@ -162,6 +212,21 @@ async function createAdminSession(userId: string) {
 
 export async function createAdminSessionForUser(userId: string) {
   await createAdminSession(userId);
+}
+
+async function createPublicSessionForUser(userId: string) {
+  const sessionToken = randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000);
+  await createPublicSessionRecord(userId, sessionToken, expires);
+
+  const cookieStore = await cookies();
+  cookieStore.set(getPublicSessionCookieName(), sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
+  });
 }
 
 async function getCurrentAdminSession() {
@@ -182,6 +247,16 @@ async function getCurrentAdminSession() {
   return session;
 }
 
+async function isPublicAdminAuthenticated() {
+  const session = await publicAuth();
+  return session?.user?.role === "ADMIN" || session?.user?.role === "OWNER";
+}
+
+async function isPublicOwnerAuthenticated() {
+  const session = await publicAuth();
+  return session?.user?.role === "OWNER";
+}
+
 function clearAdminSessionCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
   cookieStore.set(ADMIN_SESSION_COOKIE, "", {
     httpOnly: true,
@@ -197,4 +272,10 @@ function createSiteLoginHref(nextPath: string) {
   params.set("admin-login", "1");
   params.set("next", nextPath.startsWith("/admin") ? nextPath : "/admin");
   return `/?${params.toString()}`;
+}
+
+function getPublicSessionCookieName() {
+  return process.env.NODE_ENV === "production"
+    ? "__Secure-authjs.session-token"
+    : "authjs.session-token";
 }

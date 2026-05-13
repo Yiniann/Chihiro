@@ -5,6 +5,7 @@ import {
   clearAdminSession,
   signInAdmin,
 } from "@/server/auth";
+import { signOut } from "@/server/public-auth";
 
 export type AdminLoginState = {
   error: string | null;
@@ -30,7 +31,9 @@ export async function loginAction(
 
 export async function logoutAction() {
   await clearAdminSession();
-  redirect("/");
+  await signOut({
+    redirectTo: "/",
+  });
 }
 
 function getRequiredString(formData: FormData, key: string) {

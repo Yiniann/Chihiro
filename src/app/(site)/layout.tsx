@@ -3,8 +3,9 @@ import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailabl
 import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
-import { siteConfig } from "@/lib/site";
+import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { getInstallationState, isInstallationComplete } from "@/server/installation";
+import { auth } from "@/server/public-auth";
 import {
   getPublicAdminState,
   listPublicHeaderPostCategories,
@@ -13,6 +14,7 @@ import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
 } from "@/server/public-content";
+import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,15 +34,27 @@ export default async function SiteLayout({
   let recentUpdateItems;
   let siteSettings;
   let adminState;
+  let publicSession;
+  let interactionSettings;
 
   try {
-    [postCategories, recentArchiveItems, recentUpdateItems, siteSettings, adminState] =
+    [
+      postCategories,
+      recentArchiveItems,
+      recentUpdateItems,
+      siteSettings,
+      adminState,
+      publicSession,
+      interactionSettings,
+    ] =
       await Promise.all([
         listPublicHeaderPostCategories(),
         listPublicRecentArchiveItems(),
         listPublicRecentUpdateItems(),
         getPublicSiteSettings(),
         getPublicAdminState(),
+        auth(),
+        getPublicInteractionSettings(),
       ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
@@ -64,6 +78,11 @@ export default async function SiteLayout({
   const siteMotto = siteSettings.motto ?? siteConfig.motto;
   const siteEmail = siteSettings.email ?? siteConfig.email;
   const siteGithubUrl = siteSettings.githubUrl ?? siteConfig.github;
+  const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+  const githubAuthAvailable =
+    interactionSettings.githubLoginEnabled &&
+    (Boolean(interactionSettings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
+    (interactionSettings.hasGithubClientSecret || Boolean(process.env.AUTH_GITHUB_SECRET?.trim()));
 
   return (
     <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
@@ -73,6 +92,12 @@ export default async function SiteLayout({
         isAdminLoggedIn={adminState.isAdminLoggedIn}
         adminDisplayName={adminDisplayName}
         adminAvatarUrl={adminAvatarUrl}
+        publicUser={publicSession?.user ?? null}
+        siteUrl={siteUrl}
+        publicAuthProviders={{
+          github: githubAuthAvailable,
+          google: interactionSettings.googleLoginEnabled,
+        }}
         postCategories={postCategories}
         recentArchiveItems={recentArchiveItems}
         recentUpdateItems={recentUpdateItems}

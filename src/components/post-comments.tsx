@@ -27,6 +27,10 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
   const user = session?.user ?? null;
   const canComment = Boolean(user) || !settings.loginRequiredToComment;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+  const githubAuthAvailable =
+    settings.githubLoginEnabled &&
+    (Boolean(settings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
+    (settings.hasGithubClientSecret || Boolean(process.env.AUTH_GITHUB_SECRET?.trim()));
 
   return (
     <section className="mt-10 grid gap-5 border-t-0 pt-0">
@@ -42,7 +46,13 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
           <div className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent dark:border-zinc-800/80">
             <div className="flex min-h-28 flex-col items-center justify-center gap-2 px-3 py-6 text-center">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">登录后可评论</p>
-              <PublicAuthStatus siteUrl={siteUrl} user={user} variant="comment" />
+              <PublicAuthStatus
+                siteUrl={siteUrl}
+                githubEnabled={githubAuthAvailable}
+                googleEnabled={settings.googleLoginEnabled}
+                user={user}
+                variant="comment"
+              />
             </div>
           </div>
         )}

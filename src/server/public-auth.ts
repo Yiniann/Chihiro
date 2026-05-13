@@ -30,6 +30,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
           user: {
             ...session.user,
             id: user.id,
+            role: user.role,
           },
         };
       },

@@ -33,9 +33,9 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { AdminLoginDialog } from "@/components/admin-login-dialog";
-import { logoutAction } from "@/app/(admin)/admin/login/actions";
+import { signOutSiteUserAction } from "@/app/(site)/auth/actions";
 import { HeaderNav } from "@/components/header-nav";
+import { PublicAuthDialog } from "@/components/public-auth-dialog";
 import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { homeSections } from "@/lib/home-sections";
@@ -142,6 +142,16 @@ type SiteHeaderProps = {
   isAdminLoggedIn: boolean;
   adminDisplayName: string;
   adminAvatarUrl?: string | null;
+  publicUser: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  } | null;
+  siteUrl: string;
+  publicAuthProviders: {
+    github: boolean;
+    google: boolean;
+  };
   postCategories: SiteHeaderPostCategory[];
   recentArchiveItems: SiteHeaderRecentArchiveItem[];
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
@@ -152,6 +162,9 @@ export function SiteHeader({
   isAdminLoggedIn,
   adminDisplayName,
   adminAvatarUrl,
+  publicUser,
+  siteUrl,
+  publicAuthProviders,
   postCategories,
   recentArchiveItems,
   recentUpdateItems,
@@ -166,6 +179,7 @@ export function SiteHeader({
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [expandedMobileHref, setExpandedMobileHref] = useState<string | null>(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isPublicAuthOpen, setIsPublicAuthOpen] = useState(false);
   const [hoveredPostCategorySlug, setHoveredPostCategorySlug] = useState<string | null>(
     postCategories[0]?.slug ?? null,
   );
@@ -319,20 +333,15 @@ export function SiteHeader({
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
   const isAdminLoginOpen = searchParams.get("admin-login") === "1";
   const adminLoginNext = getSafeAdminPath(searchParams.get("next")) ?? "/admin";
+  const isPublicAuthDialogOpen = isPublicAuthOpen || isAdminLoginOpen;
+  const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
+  const headerUserAvatarUrl = publicUser ? publicUser.image : adminAvatarUrl;
+  const hasHeaderUser = Boolean(publicUser) || isAdminLoggedIn;
   const topStateWeight = 1 - stickyProgress;
   const headerTranslateY = topStateWeight * 4;
   const desktopHeaderTranslateY = topStateWeight * 10;
   const brandScale = 1 + topStateWeight * 0.08;
   const isMobileBrandVisible = !isScrolled;
-
-  const openAdminLogin = (next = "/admin") => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("admin-login", "1");
-    params.set("next", getSafeAdminPath(next) ?? "/admin");
-    setIsMobileNavOpen(false);
-    setExpandedMobileHref(null);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  };
 
   const closeAdminLogin = () => {
     const params = new URLSearchParams(searchParams.toString());
@@ -340,6 +349,14 @@ export function SiteHeader({
     params.delete("next");
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  };
+
+  const closePublicAuthDialog = () => {
+    setIsPublicAuthOpen(false);
+
+    if (isAdminLoginOpen) {
+      closeAdminLogin();
+    }
   };
 
   const preserveStickyOnNextNavigation = () => {
@@ -466,7 +483,7 @@ export function SiteHeader({
           <div className="hidden md:block">
             <ThemeModeToggle isScrolled={isScrolled} disableTabFocus />
           </div>
-          {isAdminLoggedIn ? (
+          {hasHeaderUser ? (
             <div
               ref={userMenuRef}
               className="relative"
@@ -475,7 +492,7 @@ export function SiteHeader({
             >
               <button
                 type="button"
-                aria-label={`${adminDisplayName} menu`}
+                aria-label={`${headerUserName} menu`}
                 aria-expanded={isUserMenuOpen}
                 onClick={() => setIsUserMenuOpen((current) => !current)}
                 onFocus={() => setIsUserMenuOpen(true)}
@@ -486,7 +503,7 @@ export function SiteHeader({
                     : "border border-transparent bg-transparent dark:text-zinc-200"
                 }`}
               >
-                <HeaderUserAvatar author={adminDisplayName} src={adminAvatarUrl} />
+                <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
               </button>
 
               <AnimatePresence>
@@ -503,16 +520,18 @@ export function SiteHeader({
                       className="absolute right-0 top-0 h-2.5 w-36 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                     />
                     <div className="rounded-[1.2rem] border border-zinc-200/80 bg-white/92 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.44)]">
-                      <Link
-                        href="/admin"
-                        onClick={() => setIsUserMenuOpen(false)}
-                        tabIndex={-1}
-                        className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
-                      >
-                        <LayoutDashboard className="h-4 w-4 shrink-0" />
-                        <span>控制面板</span>
-                      </Link>
-                      <form action={logoutAction}>
+                      {isAdminLoggedIn ? (
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsUserMenuOpen(false)}
+                          tabIndex={-1}
+                          className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
+                        >
+                          <LayoutDashboard className="h-4 w-4 shrink-0" />
+                          <span>控制面板</span>
+                        </Link>
+                      ) : null}
+                      <form action={signOutSiteUserAction}>
                         <button
                           type="submit"
                           onClick={() => setIsUserMenuOpen(false)}
@@ -529,13 +548,10 @@ export function SiteHeader({
               </AnimatePresence>
             </div>
           ) : (
-            <Link
-              href={adminLoginNext}
-              aria-label="Open admin login"
-              onClick={(event) => {
-                event.preventDefault();
-                openAdminLogin(adminLoginNext);
-              }}
+            <button
+              type="button"
+              aria-label="登录"
+              onClick={() => setIsPublicAuthOpen(true)}
               tabIndex={-1}
               className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-zinc-800 transition md:h-auto md:w-auto md:px-3 md:py-1.5 ${
                 isScrolled
@@ -544,15 +560,19 @@ export function SiteHeader({
               }`}
             >
               <LogIn className="h-4.5 w-4.5" />
-            </Link>
+            </button>
           )}
         </div>
       </div>
 
-      <AdminLoginDialog
-        isOpen={isAdminLoginOpen}
-        next={adminLoginNext}
-        onClose={closeAdminLogin}
+      <PublicAuthDialog
+        isOpen={isPublicAuthDialogOpen}
+        onClose={closePublicAuthDialog}
+        siteUrl={siteUrl}
+        callbackPath={isAdminLoginOpen ? adminLoginNext : pathname}
+        githubEnabled={publicAuthProviders.github}
+        googleEnabled={publicAuthProviders.google}
+        adminNext={adminLoginNext}
       />
 
       <AnimatePresence>

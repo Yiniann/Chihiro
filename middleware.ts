@@ -3,13 +3,16 @@ import { ADMIN_SESSION_COOKIE } from "@/lib/admin-auth";
 
 export async function middleware(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
-  const sessionToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const legacyAdminToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const publicSessionToken =
+    request.cookies.get("authjs.session-token")?.value ??
+    request.cookies.get("__Secure-authjs.session-token")?.value;
 
   if (pathname === "/admin/login") {
     return redirectToSiteLogin(request, "/admin");
   }
 
-  if (sessionToken) {
+  if (legacyAdminToken || publicSessionToken) {
     return NextResponse.next();
   }
 

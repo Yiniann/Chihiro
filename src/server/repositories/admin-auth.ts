@@ -1,3 +1,4 @@
+import { UserRole } from "@prisma/client";
 import { prisma } from "@/server/db/client";
 
 export async function countAdminUsers() {
@@ -11,11 +12,33 @@ export async function findAdminUserByUsername(username: string) {
 }
 
 export async function createAdminUser(username: string, passwordHash: string) {
-  return prisma.adminUser.create({
-    data: {
-      username,
-      passwordHash,
-    },
+  return prisma.$transaction(async (tx) => {
+    const adminUser = await tx.adminUser.create({
+      data: {
+        username,
+        passwordHash,
+      },
+    });
+
+    await tx.user.upsert({
+      where: {
+        id: adminUser.id,
+      },
+      create: {
+        id: adminUser.id,
+        username,
+        name: username,
+        passwordHash,
+        role: UserRole.OWNER,
+      },
+      update: {
+        username,
+        passwordHash,
+        role: UserRole.OWNER,
+      },
+    });
+
+    return adminUser;
   });
 }
 

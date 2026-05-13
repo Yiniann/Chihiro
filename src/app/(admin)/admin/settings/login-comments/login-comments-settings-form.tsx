@@ -31,7 +31,9 @@ export function LoginCommentsSettingsForm({
   authStatus,
 }: LoginCommentsSettingsFormProps) {
   const [state, formAction] = useActionState(saveLoginCommentsSettingsAction, initialState);
-  const [githubLoginEnabled, setGithubLoginEnabled] = useState(defaults.githubLoginEnabled);
+  const [watchedGithubLoginEnabled, setWatchedGithubLoginEnabled] = useState(
+    defaults.githubLoginEnabled,
+  );
   const authSecretReady = defaults.hasAuthSecret || authStatus.authSecret;
   const githubClientIdReady = Boolean(defaults.githubClientId) || authStatus.githubId;
   const githubClientSecretReady = defaults.hasGithubClientSecret || authStatus.githubSecret;
@@ -39,6 +41,27 @@ export function LoginCommentsSettingsForm({
 
   return (
     <form action={formAction} className="grid gap-8">
+      <section className="grid gap-3 md:grid-cols-3">
+        <SwitchField
+          name="commentsEnabled"
+          title="启用评论"
+          description="打开后文章页可以展示评论入口。"
+          defaultChecked={defaults.commentsEnabled}
+        />
+        <SwitchField
+          name="loginRequiredToComment"
+          title="登录后才能评论"
+          description="建议开启，避免匿名垃圾评论。"
+          defaultChecked={defaults.loginRequiredToComment}
+        />
+        <SwitchField
+          name="commentModeration"
+          title="评论需要审核"
+          description="建议开启，审核通过后再公开展示。"
+          defaultChecked={defaults.commentModeration}
+        />
+      </section>
+
       <section className="grid gap-5">
         <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
@@ -48,10 +71,10 @@ export function LoginCommentsSettingsForm({
             name="githubLoginEnabled"
             title="启用 GitHub 登录"
             description={githubReady ? "允许访客使用 GitHub 登录。" : "OAuth 配置未完整时，登录入口不会真正可用。"}
-            checked={githubLoginEnabled}
-            onCheckedChange={setGithubLoginEnabled}
+            defaultChecked={defaults.githubLoginEnabled}
+            onCheckedChange={setWatchedGithubLoginEnabled}
           />
-          {githubLoginEnabled ? (
+          {watchedGithubLoginEnabled ? (
             <div className="grid gap-5 md:grid-cols-2">
               <AuthSecretField
                 ready={authSecretReady}
@@ -100,27 +123,6 @@ export function LoginCommentsSettingsForm({
             disabled
           />
         </div>
-      </section>
-
-      <section className="grid gap-3 md:grid-cols-3">
-        <SwitchField
-          name="commentsEnabled"
-          title="启用评论"
-          description="打开后文章页可以展示评论入口。"
-          defaultChecked={defaults.commentsEnabled}
-        />
-        <SwitchField
-          name="loginRequiredToComment"
-          title="登录后才能评论"
-          description="建议开启，避免匿名垃圾评论。"
-          defaultChecked={defaults.loginRequiredToComment}
-        />
-        <SwitchField
-          name="commentModeration"
-          title="评论需要审核"
-          description="建议开启，审核通过后再公开展示。"
-          defaultChecked={defaults.commentModeration}
-        />
       </section>
 
       <section className="grid gap-3">
@@ -284,6 +286,9 @@ function SwitchField({
         }
       : {
           defaultChecked: Boolean(defaultChecked),
+          onChange: onCheckedChange
+            ? (event: ChangeEvent<HTMLInputElement>) => onCheckedChange(event.target.checked)
+            : undefined,
         };
 
   return (

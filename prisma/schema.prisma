@@ -35,6 +35,12 @@ enum CommentStatus {
   SPAM
 }
 
+enum UserRole {
+  USER
+  ADMIN
+  OWNER
+}
+
 model Post {
   id                Int           @id @default(autoincrement())
   title             String
@@ -90,10 +96,13 @@ model PostLike {
 
 model User {
   id            String        @id @default(cuid())
+  username      String?       @unique
+  passwordHash  String?
   name          String?
   email         String?       @unique
   emailVerified DateTime?     @map("email_verified")
   image         String?
+  role          UserRole      @default(USER)
   accounts      Account[]
   sessions      Session[]
   comments      PostComment[]

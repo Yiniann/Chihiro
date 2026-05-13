@@ -56,6 +56,20 @@ export default async function AdminSettingsPage() {
             检查 GitHub 登录配置，控制公开评论入口、登录要求和审核策略。
           </span>
         </Link>
+        <Link
+          href="/admin/settings/users"
+          className="grid gap-2 border-b border-zinc-200/80 py-5 text-left transition hover:text-primary dark:border-zinc-800/80"
+        >
+          <span className="text-[0.68rem] font-medium uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
+            Users
+          </span>
+          <span className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            用户与权限
+          </span>
+          <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+            管理公开登录用户角色；管理员可以进入后台，普通用户只能参与评论等公开互动。
+          </span>
+        </Link>
       </section>
     </div>
   );
