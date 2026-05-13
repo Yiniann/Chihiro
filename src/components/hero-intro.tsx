@@ -1,5 +1,6 @@
-import { Fragment } from "react";
-import type { CSSProperties } from "react";
+"use client";
+
+import { Fragment, useEffect, useState } from "react";
 import {
   splitHeroIntroParagraphs,
   tokenizeHeroIntro,
@@ -30,11 +31,7 @@ export function HeroIntro({ intro, authorName }: HeroIntroProps) {
             className={`hero-copy-body reading-copy ${marginClass} text-lg leading-9 text-zinc-600 dark:text-zinc-300 sm:text-xl`}
           >
             {tokens.map((token, tokenIndex) => (
-              <HeroIntroTokenNode
-                key={tokenIndex}
-                token={token}
-                authorName={authorName}
-              />
+              <HeroIntroTokenNode key={tokenIndex} token={token} authorName={authorName} />
             ))}
           </p>
         );
@@ -75,21 +72,81 @@ function HeroIntroTokenNode({
 
 function HeroTypewriter({ text }: { text: string }) {
   const displayText = addTypewriterVisualSpacing(text);
-  const style = {
-    "--hero-typewriter-steps": String(Math.max(displayText.length, 1)),
-  } as CSSProperties;
+  const [visibleCount, setVisibleCount] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = () => {
+      setPrefersReducedMotion(mediaQuery.matches);
+    };
+
+    updatePreference();
+    mediaQuery.addEventListener("change", updatePreference);
+
+    return () => {
+      mediaQuery.removeEventListener("change", updatePreference);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion) {
+      setVisibleCount(displayText.length);
+      return;
+    }
+
+    setVisibleCount(0);
+
+    const startDelayMs = 950;
+    const totalDurationMs = 1350;
+    const stepDurationMs = Math.max(
+      Math.floor(totalDurationMs / Math.max(displayText.length, 1)),
+      28,
+    );
+    let interval: number | null = null;
+
+    const startTimer = window.setTimeout(() => {
+      setVisibleCount(1);
+
+      if (displayText.length <= 1) {
+        return;
+      }
+
+      interval = window.setInterval(() => {
+        setVisibleCount((current) => {
+          if (current >= displayText.length) {
+            if (interval !== null) {
+              window.clearInterval(interval);
+            }
+            return current;
+          }
+
+          return current + 1;
+        });
+      }, stepDurationMs);
+    }, startDelayMs);
+
+    return () => {
+      window.clearTimeout(startTimer);
+      if (interval !== null) {
+        window.clearInterval(interval);
+      }
+    };
+  }, [displayText, prefersReducedMotion]);
+
+  const visibleText = displayText.slice(0, visibleCount);
+  const isComplete = visibleCount >= displayText.length;
 
   return (
-    <span
-      className="hero-copy-typewriter font-mono text-[0.95em] text-primary"
-      aria-label={text}
-      style={style}
-    >
+    <span className="hero-copy-typewriter font-mono text-[0.95em] text-primary" aria-label={text}>
       <span className="hero-copy-typewriter-ghost" aria-hidden="true">
         {displayText}
       </span>
       <span className="hero-copy-typewriter-text" aria-hidden="true">
-        {displayText}
+        {visibleText}
+        {!prefersReducedMotion && !isComplete ? (
+          <span className="hero-copy-typewriter-caret">_</span>
+        ) : null}
       </span>
     </span>
   );

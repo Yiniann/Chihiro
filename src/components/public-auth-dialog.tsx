@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { useToast } from "@/components/toast-provider";
 
 type PublicAuthDialogProps = {
   isOpen: boolean;
@@ -23,10 +24,9 @@ export function PublicAuthDialog({
   githubEnabled,
   googleEnabled,
 }: PublicAuthDialogProps) {
-  const [error, setError] = useState<string | null>(null);
   const [passwordLoginOpen, setPasswordLoginOpen] = useState(false);
+  const { showToast } = useToast();
   const handleClose = useCallback(() => {
-    setError(null);
     setPasswordLoginOpen(false);
     onClose();
   }, [onClose]);
@@ -54,14 +54,12 @@ export function PublicAuthDialog({
   }
 
   async function handleProviderSignIn(provider: "github" | "google") {
-    setError(null);
-
     try {
       await signIn(provider, {
         callbackUrl: new URL(callbackPath, siteUrl).toString(),
       });
     } catch {
-      setError("登录配置有问题，请检查 OAuth Client ID、Client Secret 和 callback URL。");
+      showToast("登录配置有问题，请检查 OAuth Client ID、Client Secret 和 callback URL。", "error");
     }
   }
 
@@ -142,8 +140,6 @@ export function PublicAuthDialog({
               </button>
             </>
           )}
-
-          {error ? <p className="mt-4 text-sm text-red-600 dark:text-red-300">{error}</p> : null}
         </div>
       </div>
     </div>,
@@ -160,11 +156,10 @@ function PasswordLoginForm({
   callbackPath: string;
   onBack: () => void;
 }) {
-  const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const { showToast } = useToast();
 
   async function handleSubmit(formData: FormData) {
-    setError(null);
     setPending(true);
 
     const username = formData.get("username");
@@ -179,13 +174,13 @@ function PasswordLoginForm({
       });
 
       if (!result || result.error) {
-        setError("帐号或密码不正确。");
+        showToast("帐号或密码不正确。", "error");
         return;
       }
 
       window.location.href = result.url ?? callbackPath;
     } catch {
-      setError("密码登录失败，请稍后再试。");
+      showToast("密码登录失败，请稍后再试。", "error");
     } finally {
       setPending(false);
     }
@@ -216,11 +211,6 @@ function PasswordLoginForm({
           className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100"
         />
       </label>
-      {error ? (
-        <p className="rounded-2xl border border-rose-200/80 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200">
-          {error}
-        </p>
-      ) : null}
       <PasswordSubmitButton pending={pending} />
       <button
         type="button"

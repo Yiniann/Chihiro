@@ -1772,16 +1772,6 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
   }
 }
 
-@keyframes hero-typewriter {
-  from {
-    clip-path: inset(0 100% 0 0);
-  }
-
-  to {
-    clip-path: inset(0 0 0 0);
-  }
-}
-
 @keyframes hero-caret-blink {
   0%,
   49% {
@@ -1791,16 +1781,6 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
   50%,
   100% {
     opacity: 0;
-  }
-}
-
-@keyframes hero-caret-track {
-  from {
-    left: 0;
-  }
-
-  to {
-    left: calc(100% - var(--hero-typewriter-caret-width, 0.58ch));
   }
 }
 
@@ -1829,7 +1809,6 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
 }
 
 .hero-copy-typewriter {
-  --hero-typewriter-caret-width: 0.58ch;
   position: relative;
   display: inline-grid;
   padding-right: 0.72ch;
@@ -1848,22 +1827,14 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
 
 .hero-copy-typewriter-text {
   display: inline-block;
-  width: auto;
-  overflow: visible;
   white-space: nowrap;
-  clip-path: inset(0 100% 0 0);
-  animation: hero-typewriter 1.35s steps(var(--hero-typewriter-steps, 13), end) 0.95s forwards;
 }
 
-.hero-copy-typewriter::after {
-  content: "_";
-  position: absolute;
-  left: 0;
-  bottom: -0.02em;
+.hero-copy-typewriter-caret {
+  display: inline-block;
+  margin-left: 0.04ch;
   color: rgb(var(--primary-rgb) / 0.9);
-  animation:
-    hero-caret-track 1.35s steps(var(--hero-typewriter-steps, 13), end) 0.95s forwards,
-    hero-caret-blink 900ms step-end 0.95s infinite;
+  animation: hero-caret-blink 900ms step-end infinite;
 }
 
 .hero-copy-emphasis {
@@ -1889,14 +1860,12 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
     display: none;
   }
 
-  .hero-copy-typewriter::after {
+  .hero-copy-typewriter-caret {
     display: none;
   }
 
   .hero-copy-typewriter-text {
-    width: auto;
-    overflow: visible;
-    animation: none;
+    white-space: nowrap;
   }
 }
 

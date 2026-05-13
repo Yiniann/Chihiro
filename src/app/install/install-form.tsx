@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { type InstallActionState, initializeSiteAction } from "@/app/install/actions";
+import { useToast } from "@/components/toast-provider";
 
 const initialState: InstallActionState = {
   error: null,
@@ -30,6 +31,7 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
   const [state, formAction] = useActionState(initializeSiteAction, initialState);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [siteFields, setSiteFields] = useState<SiteDefaults>(defaults);
+  const { showToast } = useToast();
   const steps = useMemo(
     () => [
       {
@@ -68,6 +70,12 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
     value: siteFields[name],
     onChange: (value: string) => updateSiteField(name, value),
   });
+
+  useEffect(() => {
+    if (state.error) {
+      showToast(state.error, "error");
+    }
+  }, [showToast, state.error]);
 
   return (
     <form action={formAction} className="grid gap-10">
@@ -172,12 +180,6 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
             </div>
           )}
         </section>
-      ) : null}
-
-      {state.error ? (
-        <p className="rounded-2xl border border-rose-200/80 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200">
-          {state.error}
-        </p>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-4 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
