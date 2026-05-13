@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
 import { setUserRoleAction } from "@/app/(admin)/admin/settings/users/actions";
 import { requireOwnerSession } from "@/server/auth";
-import { listUsersForAdmin, type AdminUserListItem } from "@/server/repositories/users";
+import { listUsersForAdmin, type UserListItem } from "@/server/repositories/users";
 
 export default async function AdminUsersSettingsPage() {
   await requireOwnerSession();
@@ -37,7 +37,7 @@ export default async function AdminUsersSettingsPage() {
   );
 }
 
-function UserRow({ user }: { user: AdminUserListItem }) {
+function UserRow({ user }: { user: UserListItem }) {
   const displayName = user.name ?? user.email ?? "未命名用户";
 
   return (

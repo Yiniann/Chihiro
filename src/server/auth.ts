@@ -4,7 +4,6 @@ import { randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
-  ADMIN_SESSION_COOKIE,
   ADMIN_SESSION_MAX_AGE_SECONDS,
   MIN_ADMIN_PASSWORD_LENGTH,
   MIN_ADMIN_USERNAME_LENGTH,
@@ -15,14 +14,7 @@ import { isDatabaseUnavailableError } from "@/server/database-errors";
 import { verifyPasswordHash } from "@/server/passwords";
 import { auth as publicAuth } from "@/server/public-auth";
 import {
-  countAdminUsers,
-  createAdminSessionRecord,
-  deleteAdminSessionByToken,
-  findActiveAdminSessionByToken,
-  findAdminUserByUsername,
-  syncAdminUsersToPublicUsers,
-} from "@/server/repositories/admin-auth";
-import {
+  countLocalAdminUsers,
   createPublicSessionRecord,
   findLocalUserByUsername,
 } from "@/server/repositories/users";
@@ -37,15 +29,15 @@ type AdminSignInResult =
     };
 
 export async function hasAdminUsers() {
-  return (await countAdminUsers()) > 0;
+  return (await countLocalAdminUsers()) > 0;
 }
 
 export async function isAdminAuthenticated() {
-  return (await isPublicAdminAuthenticated()) || Boolean(await getCurrentAdminSession());
+  return isPublicAdminAuthenticated();
 }
 
 export async function isOwnerAuthenticated() {
-  return (await isPublicOwnerAuthenticated()) || Boolean(await getCurrentAdminSession());
+  return isPublicOwnerAuthenticated();
 }
 
 export async function signInAdmin(username: string, password: string): Promise<AdminSignInResult> {
@@ -96,7 +88,7 @@ export async function signInAdmin(username: string, password: string): Promise<A
     };
   }
 
-  const existingUserCount = await countAdminUsers();
+  const existingUserCount = await countLocalAdminUsers();
 
   if (existingUserCount === 0) {
     return {
@@ -104,8 +96,6 @@ export async function signInAdmin(username: string, password: string): Promise<A
       error: "当前还没有管理员帐号，请先完成初始化。",
     };
   }
-
-  await syncAdminUsersToPublicUsers();
 
   const localUser = await findLocalUserByUsername(normalizedUsername);
 
@@ -127,47 +117,16 @@ export async function signInAdmin(username: string, password: string): Promise<A
     }
 
     await createPublicSessionForUser(localUser.id);
-    await createAdminSessionForUser(localUser.id);
 
     return {
       ok: true,
     };
   }
 
-  const user = await findAdminUserByUsername(normalizedUsername);
-
-  if (!user) {
-    return {
-      ok: false,
-      error: "帐号或密码不正确。",
-    };
-  }
-
-  const passwordMatches = await verifyPasswordHash(normalizedPassword, user.passwordHash);
-
-  if (!passwordMatches) {
-    return {
-      ok: false,
-      error: "帐号或密码不正确。",
-    };
-  }
-
-  await createAdminSessionForUser(user.id);
-
   return {
-    ok: true,
+    ok: false,
+    error: "帐号或密码不正确。",
   };
-}
-
-export async function clearAdminSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-
-  if (token) {
-    await deleteAdminSessionByToken(token);
-  }
-
-  clearAdminSessionCookie(cookieStore);
 }
 
 export async function requireAdminSession(nextPath = "/admin") {
@@ -198,26 +157,7 @@ export async function requireOwnerSession(nextPath = "/admin/settings/users") {
   }
 }
 
-async function createAdminSession(userId: string) {
-  const token = randomBytes(32).toString("hex");
-  const expiresAt = new Date(Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000);
-  await createAdminSessionRecord(userId, token, expiresAt);
-
-  const cookieStore = await cookies();
-  cookieStore.set(ADMIN_SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
-  });
-}
-
-export async function createAdminSessionForUser(userId: string) {
-  await createAdminSession(userId);
-}
-
-async function createPublicSessionForUser(userId: string) {
+export async function createPublicSessionForUser(userId: string) {
   const sessionToken = randomBytes(32).toString("hex");
   const expires = new Date(Date.now() + ADMIN_SESSION_MAX_AGE_SECONDS * 1000);
   await createPublicSessionRecord(userId, sessionToken, expires);
@@ -232,24 +172,6 @@ async function createPublicSessionForUser(userId: string) {
   });
 }
 
-async function getCurrentAdminSession() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get(ADMIN_SESSION_COOKIE)?.value;
-
-  if (!token) {
-    return null;
-  }
-
-  const session = await findActiveAdminSessionByToken(token);
-
-  if (!session) {
-    clearAdminSessionCookie(cookieStore);
-    return null;
-  }
-
-  return session;
-}
-
 async function isPublicAdminAuthenticated() {
   const session = await publicAuth();
   return session?.user?.role === "ADMIN" || session?.user?.role === "OWNER";
@@ -258,16 +180,6 @@ async function isPublicAdminAuthenticated() {
 async function isPublicOwnerAuthenticated() {
   const session = await publicAuth();
   return session?.user?.role === "OWNER";
-}
-
-function clearAdminSessionCookie(cookieStore: Awaited<ReturnType<typeof cookies>>) {
-  cookieStore.set(ADMIN_SESSION_COOKIE, "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    expires: new Date(0),
-  });
 }
 
 function createSiteLoginHref(nextPath: string) {

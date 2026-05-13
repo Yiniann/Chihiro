@@ -5,8 +5,8 @@ import {
   isDatabaseSchemaMissingError,
   isDatabaseUnavailableError,
 } from "@/server/database-errors";
-import { countAdminUsers } from "@/server/repositories/admin-auth";
 import { getSiteSettings } from "@/server/repositories/site";
+import { countLocalAdminUsers } from "@/server/repositories/users";
 
 export type InstallationStatus =
   | "missing_database"
@@ -33,7 +33,7 @@ export async function getInstallationState(): Promise<InstallationState> {
 
   try {
     const [adminUserCount, siteSettings] = await Promise.all([
-      countAdminUsers(),
+      countLocalAdminUsers(),
       getSiteSettings(),
     ]);
     const hasSiteSettings = Boolean(siteSettings);

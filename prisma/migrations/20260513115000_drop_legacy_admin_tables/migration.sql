@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS "AdminSession";
+DROP TABLE IF EXISTS "AdminUser";

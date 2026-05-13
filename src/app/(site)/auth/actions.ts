@@ -1,6 +1,5 @@
 "use server";
 
-import { clearAdminSession } from "@/server/auth";
 import { signOut } from "@/server/public-auth";
 
 export async function signOutPublicUserAction() {
@@ -8,6 +7,5 @@ export async function signOutPublicUserAction() {
 }
 
 export async function signOutSiteUserAction() {
-  await clearAdminSession();
   await signOut();
 }

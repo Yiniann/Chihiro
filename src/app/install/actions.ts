@@ -8,12 +8,15 @@ import {
   MIN_ADMIN_USERNAME_LENGTH,
   normalizeAdminUsername,
 } from "@/lib/admin-auth";
-import { createAdminSessionForUser } from "@/server/auth";
+import { createPublicSessionForUser } from "@/server/auth";
 import { isDatabaseUnavailableError } from "@/server/database-errors";
 import { getInstallationState } from "@/server/installation";
 import { hashPassword } from "@/server/passwords";
-import { createAdminUser, countAdminUsers } from "@/server/repositories/admin-auth";
 import { upsertSiteSettings } from "@/server/repositories/site";
+import {
+  countLocalAdminUsers,
+  createOwnerUser,
+} from "@/server/repositories/users";
 
 export type InstallActionState = {
   error: string | null;
@@ -82,7 +85,7 @@ export async function initializeSiteAction(
   let createdAdminId: string | null = null;
 
   try {
-    const adminUserCount = await countAdminUsers();
+    const adminUserCount = await countLocalAdminUsers();
 
     if (adminUserCount === 0) {
       const username = normalizeAdminUsername(getRequiredString(formData, "adminUsername"));
@@ -100,7 +103,7 @@ export async function initializeSiteAction(
         };
       }
 
-      const admin = await createAdminUser(username, await hashPassword(password));
+      const admin = await createOwnerUser(username, await hashPassword(password));
       createdAdminId = admin.id;
     }
 
@@ -135,7 +138,7 @@ export async function initializeSiteAction(
   }
 
   if (createdAdminId) {
-    await createAdminSessionForUser(createdAdminId);
+    await createPublicSessionForUser(createdAdminId);
   }
 
   revalidatePath("/");

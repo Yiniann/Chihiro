@@ -1,8 +1,7 @@
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/server/db/client";
-import { syncAdminUsersToPublicUsers } from "@/server/repositories/admin-auth";
 
-export type AdminUserListItem = {
+export type UserListItem = {
   id: string;
   username: string | null;
   name: string | null;
@@ -15,9 +14,7 @@ export type AdminUserListItem = {
   }>;
 };
 
-export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
-  await syncAdminUsersToPublicUsers();
-
+export async function listUsersForAdmin(): Promise<UserListItem[]> {
   return prisma.user.findMany({
     orderBy: [{ role: "desc" }, { email: "asc" }, { name: "asc" }],
     select: {
@@ -33,6 +30,33 @@ export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
           providerAccountId: true,
         },
       },
+    },
+  });
+}
+
+export async function countLocalAdminUsers() {
+  return prisma.user.count({
+    where: {
+      role: {
+        in: [UserRole.ADMIN, UserRole.OWNER],
+      },
+      passwordHash: {
+        not: null,
+      },
+    },
+  });
+}
+
+export async function createOwnerUser(username: string, passwordHash: string) {
+  return prisma.user.create({
+    data: {
+      username,
+      name: username,
+      passwordHash,
+      role: UserRole.OWNER,
+    },
+    select: {
+      id: true,
     },
   });
 }

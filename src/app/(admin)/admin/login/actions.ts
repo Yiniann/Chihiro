@@ -1,10 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import {
-  clearAdminSession,
-  signInAdmin,
-} from "@/server/auth";
+import { signInAdmin } from "@/server/auth";
 import { signOut } from "@/server/public-auth";
 
 export type AdminLoginState = {
@@ -30,7 +27,6 @@ export async function loginAction(
 }
 
 export async function logoutAction() {
-  await clearAdminSession();
   await signOut({
     redirectTo: "/",
   });
