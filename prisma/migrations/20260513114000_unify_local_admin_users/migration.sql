@@ -2,8 +2,6 @@ ALTER TABLE "users"
 ADD COLUMN IF NOT EXISTS "username" TEXT,
 ADD COLUMN IF NOT EXISTS "passwordHash" TEXT;
 
-CREATE UNIQUE INDEX IF NOT EXISTS "users_username_key" ON "users"("username");
-
 WITH ranked_admins AS (
   SELECT
     "id",

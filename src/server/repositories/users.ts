@@ -35,7 +35,7 @@ export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
 }
 
 export async function findLocalUserByUsername(username: string) {
-  return prisma.user.findUnique({
+  return prisma.user.findFirst({
     where: {
       username,
     },

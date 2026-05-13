@@ -96,7 +96,7 @@ model PostLike {
 
 model User {
   id            String        @id @default(cuid())
-  username      String?       @unique
+  username      String?
   passwordHash  String?
   name          String?
   email         String?       @unique
