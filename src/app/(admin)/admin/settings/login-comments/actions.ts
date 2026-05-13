@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdminSession } from "@/server/auth";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { upsertPublicInteractionSettings } from "@/server/repositories/public-interactions";
 
 export type SaveLoginCommentsSettingsState = {
@@ -13,7 +13,12 @@ export async function saveLoginCommentsSettingsAction(
   _previousState: SaveLoginCommentsSettingsState,
   formData: FormData,
 ): Promise<SaveLoginCommentsSettingsState> {
-  await requireAdminSession();
+  if (!(await isOwnerAuthenticated())) {
+    return {
+      error: "只有 Owner 才能修改设置。",
+      success: null,
+    };
+  }
 
   try {
     const commentsEnabled = getBoolean(formData, "commentsEnabled");

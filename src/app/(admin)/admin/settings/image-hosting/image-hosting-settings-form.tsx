@@ -25,9 +25,10 @@ type ImageHostingSettingsFormProps = {
     forcePathStyle: boolean;
     hasSecretAccessKey: boolean;
   };
+  canEdit: boolean;
 };
 
-export function ImageHostingSettingsForm({ defaults }: ImageHostingSettingsFormProps) {
+export function ImageHostingSettingsForm({ defaults, canEdit }: ImageHostingSettingsFormProps) {
   const [state, formAction] = useActionState(saveImageHostingSettingsAction, initialState);
 
   return (
@@ -180,22 +181,25 @@ export function ImageHostingSettingsForm({ defaults }: ImageHostingSettingsFormP
         ) : null}
         <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
           <div className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
-            保存后，富文本编辑器的图片上传会直接写入对象存储。
+            {canEdit
+              ? "保存后，富文本编辑器的图片上传会直接写入对象存储。"
+              : "只有 Owner 可以修改设置。"}
           </div>
-          <SaveButton />
+          <SaveButton disabled={!canEdit} />
         </div>
       </section>
     </form>
   );
 }
 
-function SaveButton() {
+function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
+  const isDisabled = pending || disabled;
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={isDisabled}
       className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
     >
       {pending ? "保存中..." : "保存图床"}

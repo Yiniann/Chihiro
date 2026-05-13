@@ -2,7 +2,7 @@
 
 import { AssetProvider } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { requireAdminSession } from "@/server/auth";
+import { isOwnerAuthenticated } from "@/server/auth";
 import {
   getObjectStorageSettings,
   upsertObjectStorageSettings,
@@ -17,7 +17,12 @@ export async function saveImageHostingSettingsAction(
   _previousState: SaveImageHostingSettingsState,
   formData: FormData,
 ): Promise<SaveImageHostingSettingsState> {
-  await requireAdminSession();
+  if (!(await isOwnerAuthenticated())) {
+    return {
+      error: "只有 Owner 才能修改设置。",
+      success: null,
+    };
+  }
 
   try {
     const currentSettings = await getObjectStorageSettings();

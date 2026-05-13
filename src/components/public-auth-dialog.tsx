@@ -3,10 +3,8 @@
 import { LogIn, X } from "lucide-react";
 import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
-import { useActionState, useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { useFormStatus } from "react-dom";
-import { loginAction, type AdminLoginState } from "@/app/(admin)/admin/login/actions";
 
 type PublicAuthDialogProps = {
   isOpen: boolean;
@@ -15,7 +13,6 @@ type PublicAuthDialogProps = {
   callbackPath: string;
   githubEnabled: boolean;
   googleEnabled: boolean;
-  adminNext?: string | null;
 };
 
 export function PublicAuthDialog({
@@ -25,7 +22,6 @@ export function PublicAuthDialog({
   callbackPath,
   githubEnabled,
   googleEnabled,
-  adminNext = null,
 }: PublicAuthDialogProps) {
   const [error, setError] = useState<string | null>(null);
   const [passwordLoginOpen, setPasswordLoginOpen] = useState(false);
@@ -103,8 +99,12 @@ export function PublicAuthDialog({
             </h2>
           </div>
 
-          {passwordLoginOpen && adminNext ? (
-            <PasswordLoginForm next={adminNext} onBack={() => setPasswordLoginOpen(false)} />
+          {passwordLoginOpen ? (
+            <PasswordLoginForm
+              siteUrl={siteUrl}
+              callbackPath={callbackPath}
+              onBack={() => setPasswordLoginOpen(false)}
+            />
           ) : (
             <>
               <div className="mt-5 grid gap-2">
@@ -133,15 +133,13 @@ export function PublicAuthDialog({
                 ) : null}
               </div>
 
-              {adminNext ? (
-                <button
-                  type="button"
-                  onClick={() => setPasswordLoginOpen(true)}
-                  className="mt-4 w-full text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
-                >
-                  使用帐号密码登录
-                </button>
-              ) : null}
+              <button
+                type="button"
+                onClick={() => setPasswordLoginOpen(true)}
+                className="mt-4 w-full text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+              >
+                使用帐号密码登录
+              </button>
             </>
           )}
 
@@ -153,16 +151,53 @@ export function PublicAuthDialog({
   );
 }
 
-const initialAdminLoginState: AdminLoginState = {
-  error: null,
-};
+function PasswordLoginForm({
+  siteUrl,
+  callbackPath,
+  onBack,
+}: {
+  siteUrl: string;
+  callbackPath: string;
+  onBack: () => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-function PasswordLoginForm({ next, onBack }: { next: string; onBack: () => void }) {
-  const [state, formAction] = useActionState(loginAction, initialAdminLoginState);
+  async function handleSubmit(formData: FormData) {
+    setError(null);
+    setPending(true);
+
+    const username = formData.get("username");
+    const password = formData.get("password");
+
+    try {
+      const result = await signIn("credentials", {
+        username: typeof username === "string" ? username : "",
+        password: typeof password === "string" ? password : "",
+        redirect: false,
+        callbackUrl: new URL(callbackPath, siteUrl).toString(),
+      });
+
+      if (!result || result.error) {
+        setError("帐号或密码不正确。");
+        return;
+      }
+
+      window.location.href = result.url ?? callbackPath;
+    } catch {
+      setError("密码登录失败，请稍后再试。");
+    } finally {
+      setPending(false);
+    }
+  }
 
   return (
-    <form action={formAction} className="mt-5 grid gap-3">
-      <input type="hidden" name="next" value={next} />
+    <form
+      action={async (formData) => {
+        await handleSubmit(formData);
+      }}
+      className="mt-5 grid gap-3"
+    >
       <label className="grid gap-1.5">
         <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">帐号</span>
         <input
@@ -181,12 +216,12 @@ function PasswordLoginForm({ next, onBack }: { next: string; onBack: () => void 
           className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100"
         />
       </label>
-      {state.error ? (
+      {error ? (
         <p className="rounded-2xl border border-rose-200/80 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200">
-          {state.error}
+          {error}
         </p>
       ) : null}
-      <PasswordSubmitButton />
+      <PasswordSubmitButton pending={pending} />
       <button
         type="button"
         onClick={onBack}
@@ -198,9 +233,7 @@ function PasswordLoginForm({ next, onBack }: { next: string; onBack: () => void 
   );
 }
 
-function PasswordSubmitButton() {
-  const { pending } = useFormStatus();
-
+function PasswordSubmitButton({ pending }: { pending: boolean }) {
   return (
     <button
       type="submit"

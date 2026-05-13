@@ -38,6 +38,7 @@ import { HeaderNav } from "@/components/header-nav";
 import { PublicAuthDialog } from "@/components/public-auth-dialog";
 import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
+import { useToast } from "@/components/toast-provider";
 import { homeSections } from "@/lib/home-sections";
 import { moreSections } from "@/lib/more-sections";
 
@@ -172,6 +173,7 @@ export function SiteHeader({
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { showToast } = useToast();
   const [isScrolled, setIsScrolled] = useState(false);
   const [stickyProgress, setStickyProgress] = useState(0);
   const [isMegaNavOpen, setIsMegaNavOpen] = useState(false);
@@ -220,6 +222,18 @@ export function SiteHeader({
       window.removeEventListener("resize", handleScroll);
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("admin-required") !== "1") {
+      return;
+    }
+
+    showToast("请先登录。", "error");
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("admin-required");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, showToast]);
 
   useEffect(() => {
     return () => {
@@ -331,9 +345,6 @@ export function SiteHeader({
     displayNavItems.find((item) => isActivePath(pathname, item.href)) ?? displayNavItems[0];
   const featuredItem =
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
-  const isAdminLoginOpen = searchParams.get("admin-login") === "1";
-  const adminLoginNext = getSafeAdminPath(searchParams.get("next")) ?? "/admin";
-  const isPublicAuthDialogOpen = isPublicAuthOpen || isAdminLoginOpen;
   const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
   const headerUserAvatarUrl = publicUser ? publicUser.image : adminAvatarUrl;
   const hasHeaderUser = Boolean(publicUser) || isAdminLoggedIn;
@@ -343,20 +354,8 @@ export function SiteHeader({
   const brandScale = 1 + topStateWeight * 0.08;
   const isMobileBrandVisible = !isScrolled;
 
-  const closeAdminLogin = () => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.delete("admin-login");
-    params.delete("next");
-    const query = params.toString();
-    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
-  };
-
   const closePublicAuthDialog = () => {
     setIsPublicAuthOpen(false);
-
-    if (isAdminLoginOpen) {
-      closeAdminLogin();
-    }
   };
 
   const preserveStickyOnNextNavigation = () => {
@@ -566,13 +565,12 @@ export function SiteHeader({
       </div>
 
       <PublicAuthDialog
-        isOpen={isPublicAuthDialogOpen}
+        isOpen={isPublicAuthOpen}
         onClose={closePublicAuthDialog}
         siteUrl={siteUrl}
-        callbackPath={isAdminLoginOpen ? adminLoginNext : pathname}
+        callbackPath={pathname}
         githubEnabled={publicAuthProviders.github}
         googleEnabled={publicAuthProviders.google}
-        adminNext={adminLoginNext}
       />
 
       <AnimatePresence>
@@ -743,14 +741,6 @@ function isActivePath(pathname: string, href: string) {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function getSafeAdminPath(value: string | null) {
-  if (!value || !value.startsWith("/admin")) {
-    return null;
-  }
-
-  return value;
 }
 
 function renderMegaNavContent(

@@ -2,13 +2,15 @@ import Link from "next/link";
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { LoginCommentsSettingsForm } from "@/app/(admin)/admin/settings/login-comments/login-comments-settings-form";
 import { resolveCanonicalSiteUrl } from "@/lib/site";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getSiteSettings } from "@/server/repositories/site";
 
 export default async function AdminLoginCommentsSettingsPage() {
-  const [settings, siteSettings] = await Promise.all([
+  const [settings, siteSettings, canEdit] = await Promise.all([
     getPublicInteractionSettings(),
     getSiteSettings(),
+    isOwnerAuthenticated(),
   ]);
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
@@ -25,6 +27,7 @@ export default async function AdminLoginCommentsSettingsPage() {
       </div>
       <LoginCommentsSettingsForm
         defaults={settings}
+        canEdit={canEdit}
         authStatus={{
           authSecret: Boolean(process.env.AUTH_SECRET?.trim()),
           githubId: Boolean(process.env.AUTH_GITHUB_ID?.trim()),

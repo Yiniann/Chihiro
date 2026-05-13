@@ -95,6 +95,7 @@ AUTH_GITHUB_SECRET="..."
 ## 文档索引
 
 - [架构设计](./docs/architecture.md)
+- [用户、角色与鉴权](./docs/auth-users.md)
 - [Docker 与 CI/CD 部署](./docs/docker-cicd.md)
 - [站点配置说明](./docs/site-settings.md)
 - [开发路线](./docs/roadmap.md)

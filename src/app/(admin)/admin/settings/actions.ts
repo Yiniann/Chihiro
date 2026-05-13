@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdminSession } from "@/server/auth";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { getSiteSettings, upsertSiteSettings } from "@/server/repositories/site";
 import { siteConfig } from "@/lib/site";
 
@@ -14,7 +14,12 @@ export async function saveGeneralSettingsAction(
   _previousState: SaveGeneralSettingsState,
   formData: FormData,
 ): Promise<SaveGeneralSettingsState> {
-  await requireAdminSession();
+  if (!(await isOwnerAuthenticated())) {
+    return {
+      error: "只有 Owner 才能修改设置。",
+      success: null,
+    };
+  }
 
   const siteName = getRequiredString(formData, "siteName", "站点名");
   const authorName = getRequiredString(formData, "authorName", "作者");

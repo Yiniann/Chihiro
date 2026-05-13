@@ -2,12 +2,14 @@ import { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
 import { setUserRoleAction } from "@/app/(admin)/admin/settings/users/actions";
-import { requireOwnerSession } from "@/server/auth";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { listUsersForAdmin, type UserListItem } from "@/server/repositories/users";
 
 export default async function AdminUsersSettingsPage() {
-  await requireOwnerSession();
-  const users = await listUsersForAdmin();
+  const [users, canManageRoles] = await Promise.all([
+    listUsersForAdmin(),
+    isOwnerAuthenticated(),
+  ]);
 
   return (
     <div className="grid gap-8">
@@ -22,12 +24,17 @@ export default async function AdminUsersSettingsPage() {
         <p className="max-w-2xl text-sm leading-7 text-zinc-500 dark:text-zinc-400">
           初始后台帐号是 Owner；管理员可以进入后台，但只有 Owner 可以授予或撤销管理员权限。
         </p>
+        {!canManageRoles ? (
+          <p className="max-w-2xl text-sm leading-7 text-zinc-400 dark:text-zinc-500">
+            当前帐号不是 Owner，以下按钮仅展示为禁用态。
+          </p>
+        ) : null}
       </div>
 
       {users.length > 0 ? (
         <section className="grid gap-0">
           {users.map((user) => (
-            <UserRow key={user.id} user={user} />
+            <UserRow key={user.id} user={user} canManageRoles={canManageRoles} />
           ))}
         </section>
       ) : (
@@ -37,7 +44,7 @@ export default async function AdminUsersSettingsPage() {
   );
 }
 
-function UserRow({ user }: { user: UserListItem }) {
+function UserRow({ user, canManageRoles }: { user: UserListItem; canManageRoles: boolean }) {
   const displayName = user.name ?? user.email ?? "未命名用户";
 
   return (
@@ -83,9 +90,19 @@ function UserRow({ user }: { user: UserListItem }) {
         {user.role === UserRole.OWNER ? (
           <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500">Owner 受保护</span>
         ) : user.role === UserRole.ADMIN ? (
-          <RoleForm userId={user.id} role={UserRole.USER} label="设为普通用户" />
+          <RoleForm
+            userId={user.id}
+            role={UserRole.USER}
+            label="设为普通用户"
+            disabled={!canManageRoles}
+          />
         ) : (
-          <RoleForm userId={user.id} role={UserRole.ADMIN} label="设为管理员" />
+          <RoleForm
+            userId={user.id}
+            role={UserRole.ADMIN}
+            label="设为管理员"
+            disabled={!canManageRoles}
+          />
         )}
       </div>
     </article>
@@ -96,10 +113,12 @@ function RoleForm({
   userId,
   role,
   label,
+  disabled,
 }: {
   userId: string;
   role: UserRole;
   label: string;
+  disabled: boolean;
 }) {
   return (
     <form action={setUserRoleAction}>
@@ -107,7 +126,8 @@ function RoleForm({
       <input type="hidden" name="role" value={role} />
       <button
         type="submit"
-        className="border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+        disabled={disabled}
+        className="border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
       >
         {label}
       </button>

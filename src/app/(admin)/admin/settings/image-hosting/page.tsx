@@ -2,10 +2,14 @@ import Link from "next/link";
 import { AssetProvider } from "@prisma/client";
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { ImageHostingSettingsForm } from "@/app/(admin)/admin/settings/image-hosting/image-hosting-settings-form";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { getObjectStorageSettings } from "@/server/repositories/object-storage";
 
 export default async function AdminImageHostingSettingsPage() {
-  const settings = await getObjectStorageSettings();
+  const [settings, canEdit] = await Promise.all([
+    getObjectStorageSettings(),
+    isOwnerAuthenticated(),
+  ]);
   const defaults = {
     provider: settings?.provider ?? AssetProvider.R2,
     endpoint: settings?.endpoint ?? "",
@@ -29,7 +33,7 @@ export default async function AdminImageHostingSettingsPage() {
         </Link>
         <AdminPageHeader eyebrow="图床" title="图床设置" />
       </div>
-      <ImageHostingSettingsForm defaults={defaults} />
+      <ImageHostingSettingsForm defaults={defaults} canEdit={canEdit} />
     </div>
   );
 }

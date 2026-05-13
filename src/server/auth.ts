@@ -5,28 +5,11 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   ADMIN_SESSION_MAX_AGE_SECONDS,
-  MIN_ADMIN_PASSWORD_LENGTH,
-  MIN_ADMIN_USERNAME_LENGTH,
-  normalizeAdminUsername,
 } from "@/lib/admin-auth";
 import { getAdminBackendStatus } from "@/server/admin-backend";
 import { isDatabaseUnavailableError } from "@/server/database-errors";
-import { verifyPasswordHash } from "@/server/passwords";
 import { auth as publicAuth } from "@/server/public-auth";
-import {
-  countLocalAdminUsers,
-  createPublicSessionRecord,
-  findLocalUserByUsername,
-} from "@/server/repositories/users";
-
-type AdminSignInResult =
-  | {
-      ok: true;
-    }
-  | {
-      ok: false;
-      error: string;
-    };
+import { countLocalAdminUsers, createPublicSessionRecord } from "@/server/repositories/users";
 
 export async function hasAdminUsers() {
   return (await countLocalAdminUsers()) > 0;
@@ -40,99 +23,10 @@ export async function isOwnerAuthenticated() {
   return isPublicOwnerAuthenticated();
 }
 
-export async function signInAdmin(username: string, password: string): Promise<AdminSignInResult> {
-  const normalizedUsername = normalizeAdminUsername(username);
-  const normalizedPassword = password.trim();
-
-  if (normalizedUsername.length < MIN_ADMIN_USERNAME_LENGTH) {
-    return {
-      ok: false,
-      error: `帐号至少需要 ${MIN_ADMIN_USERNAME_LENGTH} 个字符。`,
-    };
-  }
-
-  if (normalizedPassword.length < MIN_ADMIN_PASSWORD_LENGTH) {
-    return {
-      ok: false,
-      error: `密码至少需要 ${MIN_ADMIN_PASSWORD_LENGTH} 个字符。`,
-    };
-  }
-
-  const backendStatus = await getAdminBackendStatus();
-
-  if (backendStatus === "missing_database") {
-    return {
-      ok: false,
-      error: "后台还没有连接数据库，请先完成初始化。",
-    };
-  }
-
-  if (backendStatus === "database_unavailable") {
-    return {
-      ok: false,
-      error: "数据库当前不可用，请检查连接后再试。",
-    };
-  }
-
-  if (backendStatus === "schema_missing") {
-    return {
-      ok: false,
-      error: "数据库表结构尚未初始化，请先运行 pnpm db:push。",
-    };
-  }
-
-  if (backendStatus === "needs_installation") {
-    return {
-      ok: false,
-      error: "后台尚未完成初始化，请先前往 /install 创建站点信息和首个管理员。",
-    };
-  }
-
-  const existingUserCount = await countLocalAdminUsers();
-
-  if (existingUserCount === 0) {
-    return {
-      ok: false,
-      error: "当前还没有管理员帐号，请先完成初始化。",
-    };
-  }
-
-  const localUser = await findLocalUserByUsername(normalizedUsername);
-
-  if (localUser?.passwordHash) {
-    const passwordMatches = await verifyPasswordHash(normalizedPassword, localUser.passwordHash);
-
-    if (!passwordMatches) {
-      return {
-        ok: false,
-        error: "帐号或密码不正确。",
-      };
-    }
-
-    if (localUser.role !== "ADMIN" && localUser.role !== "OWNER") {
-      return {
-        ok: false,
-        error: "这个帐号没有后台权限。",
-      };
-    }
-
-    await createPublicSessionForUser(localUser.id);
-
-    return {
-      ok: true,
-    };
-  }
-
-  return {
-    ok: false,
-    error: "帐号或密码不正确。",
-  };
-}
-
 export async function requireAdminSession(nextPath = "/admin") {
   try {
     if (!(await isAdminAuthenticated())) {
-      redirect(createSiteLoginHref(nextPath));
+      redirect(createSiteLoginRedirectHref());
     }
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -146,7 +40,7 @@ export async function requireAdminSession(nextPath = "/admin") {
 export async function requireOwnerSession(nextPath = "/admin/settings/users") {
   try {
     if (!(await isOwnerAuthenticated())) {
-      redirect(createSiteLoginHref(nextPath));
+      redirect(createSiteLoginRedirectHref());
     }
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -182,10 +76,9 @@ async function isPublicOwnerAuthenticated() {
   return session?.user?.role === "OWNER";
 }
 
-function createSiteLoginHref(nextPath: string) {
+function createSiteLoginRedirectHref() {
   const params = new URLSearchParams();
-  params.set("admin-login", "1");
-  params.set("next", nextPath.startsWith("/admin") ? nextPath : "/admin");
+  params.set("admin-required", "1");
   return `/?${params.toString()}`;
 }
 

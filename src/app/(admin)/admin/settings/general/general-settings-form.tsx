@@ -25,9 +25,10 @@ type GeneralSettingsFormProps = {
     summary: string;
     motto: string;
   };
+  canEdit: boolean;
 };
 
-export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
+export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormProps) {
   const [state, formAction] = useActionState(saveGeneralSettingsAction, initialState);
 
   return (
@@ -177,22 +178,25 @@ export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
         ) : null}
         <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
           <div className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
-            保存后会同步更新公开站点和后台默认信息。
+            {canEdit
+              ? "保存后会同步更新公开站点和后台默认信息。"
+              : "只有 Owner 可以修改设置。"}
           </div>
-          <SaveButton />
+          <SaveButton disabled={!canEdit} />
         </div>
       </section>
     </form>
   );
 }
 
-function SaveButton() {
+function SaveButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
+  const isDisabled = pending || disabled;
 
   return (
     <button
       type="submit"
-      disabled={pending}
+      disabled={isDisabled}
       className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
     >
       {pending ? "保存中..." : "保存设置"}

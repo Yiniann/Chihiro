@@ -2,11 +2,13 @@
 
 import { UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
-import { requireOwnerSession } from "@/server/auth";
+import { isOwnerAuthenticated } from "@/server/auth";
 import { findUserRole, updateUserRole } from "@/server/repositories/users";
 
 export async function setUserRoleAction(formData: FormData) {
-  await requireOwnerSession();
+  if (!(await isOwnerAuthenticated())) {
+    throw new Error("只有 Owner 才能修改用户权限。");
+  }
 
   const userId = formData.get("userId");
   const role = formData.get("role");

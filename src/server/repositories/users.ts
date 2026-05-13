@@ -74,6 +74,25 @@ export async function findLocalUserByUsername(username: string) {
   });
 }
 
+export async function findPasswordUserByUsername(username: string) {
+  return prisma.user.findFirst({
+    where: {
+      username,
+      passwordHash: {
+        not: null,
+      },
+    },
+    select: {
+      id: true,
+      passwordHash: true,
+      role: true,
+      name: true,
+      email: true,
+      image: true,
+    },
+  });
+}
+
 export async function createPublicSessionRecord(userId: string, sessionToken: string, expires: Date) {
   return prisma.session.create({
     data: {
