@@ -93,16 +93,6 @@ export async function findPasswordUserByUsername(username: string) {
   });
 }
 
-export async function createPublicSessionRecord(userId: string, sessionToken: string, expires: Date) {
-  return prisma.session.create({
-    data: {
-      userId,
-      sessionToken,
-      expires,
-    },
-  });
-}
-
 export async function findUserRole(userId: string) {
   return prisma.user.findUnique({
     where: {

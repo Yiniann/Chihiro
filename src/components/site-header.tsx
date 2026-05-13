@@ -347,6 +347,7 @@ export function SiteHeader({
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
   const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
   const headerUserAvatarUrl = publicUser ? publicUser.image : adminAvatarUrl;
+  const headerUserEmail = publicUser?.email ?? null;
   const hasHeaderUser = Boolean(publicUser) || isAdminLoggedIn;
   const topStateWeight = 1 - stickyProgress;
   const headerTranslateY = topStateWeight * 4;
@@ -512,13 +513,26 @@ export function SiteHeader({
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.98 }}
                     transition={{ duration: 0.16, ease: "easeOut" }}
-                    className="absolute right-0 top-full z-50 w-36 pt-2.5 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
+                    className="absolute right-0 top-full z-50 w-64 pt-2.5 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                   >
                     <div
                       aria-hidden="true"
-                      className="absolute right-0 top-0 h-2.5 w-36 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
+                      className="absolute right-0 top-0 h-2.5 w-64 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                     />
                     <div className="rounded-[1.2rem] border border-zinc-200/80 bg-white/92 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.44)]">
+                      <div className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5">
+                        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
+                          <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                            {headerUserName}
+                          </p>
+                          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                            {headerUserEmail ?? "本地帐号"}
+                          </p>
+                        </div>
+                      </div>
                       {isAdminLoggedIn ? (
                         <Link
                           href="/admin"

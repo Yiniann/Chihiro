@@ -8,7 +8,7 @@ import {
   MIN_ADMIN_USERNAME_LENGTH,
   normalizeAdminUsername,
 } from "@/lib/admin-auth";
-import { createPublicSessionForUser } from "@/server/auth";
+import { signIn } from "@/server/public-auth";
 import { isDatabaseUnavailableError } from "@/server/database-errors";
 import { getInstallationState } from "@/server/installation";
 import { hashPassword } from "@/server/passwords";
@@ -82,7 +82,7 @@ export async function initializeSiteAction(
     };
   }
 
-  let createdAdminId: string | null = null;
+  let createdAdminCredentials: { username: string; password: string } | null = null;
 
   try {
     const adminUserCount = await countLocalAdminUsers();
@@ -104,7 +104,10 @@ export async function initializeSiteAction(
       }
 
       const admin = await createOwnerUser(username, await hashPassword(password));
-      createdAdminId = admin.id;
+      createdAdminCredentials = {
+        username,
+        password,
+      };
     }
 
     await upsertSiteSettings({
@@ -137,8 +140,12 @@ export async function initializeSiteAction(
     throw error;
   }
 
-  if (createdAdminId) {
-    await createPublicSessionForUser(createdAdminId);
+  if (createdAdminCredentials) {
+    await signIn("credentials", {
+      username: createdAdminCredentials.username,
+      password: createdAdminCredentials.password,
+      redirectTo: "/admin",
+    });
   }
 
   revalidatePath("/");

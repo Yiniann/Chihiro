@@ -1,62 +1,49 @@
-import { randomUUID } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/server/db/client";
+import { hashPassword } from "@/server/passwords";
+import { signIn } from "@/server/public-auth";
 
 const devUserEmail = "dev-reader@example.local";
 const devUserImage = "https://avatars.githubusercontent.com/u/583231?v=4";
 const devUserName = "Dev Octocat";
+const devUsername = "dev-reader";
+const devPassword = "dev-reader-password";
 
 export async function GET(request: NextRequest) {
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 
-  const user = await prisma.user.upsert({
+  const devPasswordHash = await hashPassword(devPassword);
+
+  await prisma.user.upsert({
     where: {
       email: devUserEmail,
     },
     create: {
+      username: devUsername,
+      passwordHash: devPasswordHash,
       name: devUserName,
       email: devUserEmail,
       image: devUserImage,
     },
     update: {
+      username: devUsername,
+      passwordHash: devPasswordHash,
       name: devUserName,
       image: devUserImage,
-    },
-    select: {
-      id: true,
-    },
-  });
-  const expires = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
-  const sessionToken = randomUUID();
-  await prisma.session.create({
-    data: {
-      sessionToken,
-      userId: user.id,
-      expires,
     },
   });
 
   const redirectTo = getSafeRedirect(request);
-  const response = NextResponse.redirect(redirectTo);
-  const cookieOptions = {
-    expires,
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-  } as const;
-
-  response.cookies.set("authjs.session-token", sessionToken, {
-    ...cookieOptions,
-    secure: false,
-  });
-  response.cookies.set("__Secure-authjs.session-token", sessionToken, {
-    ...cookieOptions,
-    secure: true,
+  const redirectUrl = await signIn("credentials", {
+    username: devUsername,
+    password: devPassword,
+    redirect: false,
+    redirectTo: redirectTo.pathname + redirectTo.search,
   });
 
-  return response;
+  return NextResponse.redirect(new URL(redirectUrl, request.url));
 }
 
 function getSafeRedirect(request: NextRequest) {
