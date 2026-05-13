@@ -74,11 +74,10 @@ function HeroIntroTokenNode({
 }
 
 function HeroTypewriter({ text }: { text: string }) {
+  const displayText = addTypewriterVisualSpacing(text);
   const style = {
-    "--hero-typewriter-steps": String(Math.max(text.length, 1)),
+    "--hero-typewriter-steps": String(Math.max(displayText.length, 1)),
   } as CSSProperties;
-
-  const nodes = renderTypewriterContent(text);
 
   return (
     <span
@@ -87,48 +86,15 @@ function HeroTypewriter({ text }: { text: string }) {
       style={style}
     >
       <span className="hero-copy-typewriter-ghost" aria-hidden="true">
-        {nodes}
+        {displayText}
       </span>
       <span className="hero-copy-typewriter-text" aria-hidden="true">
-        {nodes}
+        {displayText}
       </span>
     </span>
   );
 }
 
-function renderTypewriterContent(text: string) {
-  const parts: Array<string | { key: string; value: string }> = [];
-  let buffer = "";
-
-  for (let index = 0; index < text.length; index += 1) {
-    const char = text[index];
-    const previous = text[index - 1];
-
-    if (char === ">" && previous === "/") {
-      if (buffer) {
-        parts.push(buffer);
-        buffer = "";
-      }
-      parts.push({ key: `gap-${index}`, value: char });
-      continue;
-    }
-
-    buffer += char;
-  }
-
-  if (buffer) {
-    parts.push(buffer);
-  }
-
-  return parts.map((part, index) => {
-    if (typeof part === "string") {
-      return <Fragment key={`t-${index}`}>{part}</Fragment>;
-    }
-
-    return (
-      <span key={part.key} style={{ marginLeft: "0.08ch" }}>
-        {part.value}
-      </span>
-    );
-  });
+function addTypewriterVisualSpacing(text: string) {
+  return text.replace(/\/>/g, "/\u2009>");
 }

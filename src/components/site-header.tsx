@@ -25,7 +25,6 @@ import {
   GalleryVerticalEnd,
   Handshake,
   LayoutDashboard,
-  LogIn,
   LogOut,
   Menu,
   MessageCircle,
@@ -572,7 +571,7 @@ export function SiteHeader({
                   : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
               }`}
             >
-              <LogIn className="h-4.5 w-4.5" />
+              <UserRound className="h-4.5 w-4.5" />
             </button>
           )}
         </div>

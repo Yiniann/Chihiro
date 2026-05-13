@@ -1855,10 +1855,6 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
   animation: hero-typewriter 1.35s steps(var(--hero-typewriter-steps, 13), end) 0.95s forwards;
 }
 
-.hero-copy-typewriter-angle {
-  margin-left: 0.08ch;
-}
-
 .hero-copy-typewriter::after {
   content: "_";
   position: absolute;

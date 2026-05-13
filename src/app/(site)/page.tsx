@@ -2,7 +2,12 @@ import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailabl
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { HeroIntro } from "@/components/hero-intro";
 import { RelativeDate } from "@/components/relative-date";
-import { getRenderedContentHtml, normalizeHtmlForHydration } from "@/lib/content";
+import {
+  getContentText,
+  getRenderedContentHtml,
+  normalizeHtmlForHydration,
+  stripMediaFromHtml,
+} from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { siteConfig } from "@/lib/site";
 import {
@@ -39,10 +44,15 @@ export default async function HomePage() {
   const recentPosts = posts.slice(0, 5);
   const latestUpdate = updates[0] ?? null;
   const latestUpdateHtml = latestUpdate
-    ? normalizeHtmlForHydration(
-        getRenderedContentHtml(latestUpdate.contentHtml, latestUpdate.content) ?? "",
-      )
+    ? getRenderedContentHtml(latestUpdate.contentHtml, latestUpdate.content) ?? ""
+    : "";
+  const latestUpdateText = latestUpdate
+    ? getContentText(latestUpdate.contentHtml, latestUpdate.content)
+    : "";
+  const latestUpdateDisplayHtml = latestUpdateHtml
+    ? normalizeHtmlForHydration(stripMediaFromHtml(latestUpdateHtml))
     : null;
+  const shouldClampLatestUpdate = latestUpdateText.length > 520;
 
   return (
     <main className="relative w-full px-6 sm:px-12 lg:px-24">
@@ -103,11 +113,29 @@ export default async function HomePage() {
         >
           {latestUpdate ? (
             <article className="border-b border-zinc-200/80 py-4 dark:border-zinc-800/80">
-              {latestUpdateHtml ? (
-                <div
-                  className="home-feed-update-content text-zinc-900 dark:text-zinc-100"
-                  dangerouslySetInnerHTML={{ __html: latestUpdateHtml }}
-                />
+              {latestUpdateDisplayHtml ? (
+                <div className="grid gap-3">
+                  <div
+                    className={
+                      shouldClampLatestUpdate
+                        ? "relative max-h-[22rem] overflow-hidden after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-16 after:bg-gradient-to-t after:from-white after:to-transparent dark:after:from-zinc-950"
+                        : undefined
+                    }
+                  >
+                    <div
+                      className="home-feed-update-content text-zinc-900 dark:text-zinc-100"
+                      dangerouslySetInnerHTML={{ __html: latestUpdateDisplayHtml }}
+                    />
+                  </div>
+                  {shouldClampLatestUpdate ? (
+                    <Link
+                      href="/updates"
+                      className="w-fit text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+                    >
+                      查看更多动态
+                    </Link>
+                  ) : null}
+                </div>
               ) : (
                 <p className="home-feed-item-title text-zinc-900 dark:text-zinc-100">
                   {latestUpdate.title}

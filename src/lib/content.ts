@@ -140,6 +140,21 @@ export function normalizeHtmlForHydration(contentHtml: string) {
   );
 }
 
+export function stripMediaFromHtml(contentHtml: string) {
+  return contentHtml
+    .replace(
+      /<figure\b[^>]*>[\s\S]*?<\/figure>/gi,
+      (match) => (/<(img|picture|video|iframe)\b/i.test(match) ? "" : match),
+    )
+    .replace(/<picture\b[^>]*>[\s\S]*?<\/picture>/gi, "")
+    .replace(/<video\b[^>]*>[\s\S]*?<\/video>/gi, "")
+    .replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, "")
+    .replace(/<img\b[^>]*\/?>/gi, "")
+    .replace(/<p\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/p>/gi, "")
+    .replace(/<div\b[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/div>/gi, "")
+    .trim();
+}
+
 export type TableOfContentsItem = {
   id: string;
   text: string;

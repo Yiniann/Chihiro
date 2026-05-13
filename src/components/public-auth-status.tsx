@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { LogIn, LogOut } from "lucide-react";
+import { LogOut, UserRound } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { signOutSiteUserAction } from "@/app/(site)/auth/actions";
@@ -88,7 +88,7 @@ function PublicSignInForm({
           className="inline-flex size-9 items-center justify-center rounded-full text-primary transition hover:bg-primary/10 hover:opacity-90"
           title="登录"
         >
-          <LogIn className="size-4" aria-hidden="true" />
+          <UserRound className="size-4" aria-hidden="true" />
           <span className="sr-only">登录</span>
         </button>
       </div>

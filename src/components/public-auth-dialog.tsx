@@ -1,6 +1,6 @@
 "use client";
 
-import { LogIn, X } from "lucide-react";
+import { UserRound, X } from "lucide-react";
 import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
@@ -127,7 +127,7 @@ export function PublicAuthDialog({
                     href={`/api/dev/public-login?next=${encodeURIComponent(callbackPath)}`}
                     className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
                   >
-                    <LogIn className="size-5" aria-hidden="true" />
+                    <UserRound className="size-5" aria-hidden="true" />
                     <span>开发登录</span>
                   </a>
                 ) : null}
