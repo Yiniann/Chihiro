@@ -11,6 +11,48 @@ export async function findAdminUserByUsername(username: string) {
   });
 }
 
+export async function syncAdminUsersToPublicUsers() {
+  await prisma.$transaction(async (tx) => {
+    const adminUsers = await tx.adminUser.findMany({
+      orderBy: [
+        {
+          createdAt: "asc",
+        },
+        {
+          id: "asc",
+        },
+      ],
+      select: {
+        id: true,
+        username: true,
+        passwordHash: true,
+      },
+    });
+
+    for (const [index, adminUser] of adminUsers.entries()) {
+      const role = index === 0 ? UserRole.OWNER : UserRole.ADMIN;
+
+      await tx.user.upsert({
+        where: {
+          id: adminUser.id,
+        },
+        create: {
+          id: adminUser.id,
+          username: adminUser.username,
+          name: adminUser.username,
+          passwordHash: adminUser.passwordHash,
+          role,
+        },
+        update: {
+          username: adminUser.username,
+          passwordHash: adminUser.passwordHash,
+          role,
+        },
+      });
+    }
+  });
+}
+
 export async function createAdminUser(username: string, passwordHash: string) {
   return prisma.$transaction(async (tx) => {
     const adminUser = await tx.adminUser.create({

@@ -1,5 +1,6 @@
 import { UserRole } from "@prisma/client";
 import { prisma } from "@/server/db/client";
+import { syncAdminUsersToPublicUsers } from "@/server/repositories/admin-auth";
 
 export type AdminUserListItem = {
   id: string;
@@ -15,6 +16,8 @@ export type AdminUserListItem = {
 };
 
 export async function listUsersForAdmin(): Promise<AdminUserListItem[]> {
+  await syncAdminUsersToPublicUsers();
+
   return prisma.user.findMany({
     orderBy: [{ role: "desc" }, { email: "asc" }, { name: "asc" }],
     select: {

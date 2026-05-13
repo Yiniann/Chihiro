@@ -20,6 +20,7 @@ import {
   deleteAdminSessionByToken,
   findActiveAdminSessionByToken,
   findAdminUserByUsername,
+  syncAdminUsersToPublicUsers,
 } from "@/server/repositories/admin-auth";
 import {
   createPublicSessionRecord,
@@ -103,6 +104,8 @@ export async function signInAdmin(username: string, password: string): Promise<A
       error: "当前还没有管理员帐号，请先完成初始化。",
     };
   }
+
+  await syncAdminUsersToPublicUsers();
 
   const localUser = await findLocalUserByUsername(normalizedUsername);
 
