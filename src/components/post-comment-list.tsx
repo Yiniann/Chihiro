@@ -1,6 +1,8 @@
 "use client";
 
 import { MessageCircle, X } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { useMemo, useState } from "react";
 import { PostCommentForm } from "@/components/post-comment-form";
 import type { PublicPostComment } from "@/server/repositories/comments";
@@ -132,9 +134,7 @@ function CommentItem({
             回复 {comment.parentAuthorName}
           </p>
         ) : null}
-        <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-          {comment.body}
-        </p>
+        <CommentBody body={comment.body} />
 
         {canComment ? (
           <button
@@ -181,6 +181,94 @@ function CommentItem({
         ) : null}
       </div>
     </article>
+  );
+}
+
+function CommentBody({ body }: { body: string }) {
+  return (
+    <div className="mt-2 overflow-x-auto text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        skipHtml
+        allowedElements={[
+          "p",
+          "br",
+          "strong",
+          "em",
+          "del",
+          "code",
+          "pre",
+          "blockquote",
+          "ul",
+          "ol",
+          "li",
+          "a",
+          "hr",
+          "table",
+          "thead",
+          "tbody",
+          "tr",
+          "th",
+          "td",
+        ]}
+        components={{
+          p: ({ children }) => <p className="whitespace-pre-wrap">{children}</p>,
+          a: ({ href, children }) => (
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer nofollow noopener"
+              className="text-primary underline decoration-primary/30 underline-offset-4 transition hover:decoration-primary"
+            >
+              {children}
+            </a>
+          ),
+          code: ({ className, children }) => {
+            const isBlock = Boolean(className);
+
+            if (isBlock) {
+              return (
+                <code className="block overflow-x-auto rounded-md bg-zinc-100 px-3 py-2 font-mono text-[13px] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                  {children}
+                </code>
+              );
+            }
+
+            return (
+              <code className="rounded bg-zinc-100 px-1.5 py-0.5 font-mono text-[13px] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                {children}
+              </code>
+            );
+          },
+          pre: ({ children }) => <pre className="my-3">{children}</pre>,
+          blockquote: ({ children }) => (
+            <blockquote className="my-3 border-l-2 border-zinc-200 pl-3 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400">
+              {children}
+            </blockquote>
+          ),
+          ul: ({ children }) => <ul className="my-3 list-disc space-y-1 pl-5">{children}</ul>,
+          ol: ({ children }) => <ol className="my-3 list-decimal space-y-1 pl-5">{children}</ol>,
+          hr: () => <hr className="my-4 border-zinc-200 dark:border-zinc-800" />,
+          table: ({ children }) => (
+            <div className="my-3 overflow-x-auto">
+              <table className="min-w-full border-collapse text-left text-[13px]">{children}</table>
+            </div>
+          ),
+          th: ({ children }) => (
+            <th className="border-b border-zinc-200 px-2 py-1.5 font-medium text-zinc-700 dark:border-zinc-800 dark:text-zinc-200">
+              {children}
+            </th>
+          ),
+          td: ({ children }) => (
+            <td className="border-b border-zinc-100 px-2 py-1.5 dark:border-zinc-900">
+              {children}
+            </td>
+          ),
+        }}
+      >
+        {body}
+      </ReactMarkdown>
+    </div>
   );
 }
 

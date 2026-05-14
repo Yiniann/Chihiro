@@ -55,6 +55,8 @@
     "react-day-picker": "^9.14.0",
     "react-dom": "19.2.4",
     "react-hotkeys-hook": "^5.2.4",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "slate": "^0.124.0",
     "slate-history": "^0.113.1",
     "slate-react": "^0.124.0"

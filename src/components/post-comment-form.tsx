@@ -118,6 +118,9 @@ export function PostCommentForm({
               placeholder={placeholder}
             />
             <div className="flex h-9 items-center justify-end gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70">
+              <span className="mr-auto text-xs text-zinc-400 dark:text-zinc-500">
+                支持 Markdown / GFM
+              </span>
               <span className="text-xs text-zinc-400 dark:text-zinc-500">
                 {bodyLength}/{commentMaxLength}
               </span>
