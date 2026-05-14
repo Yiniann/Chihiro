@@ -122,6 +122,17 @@ export async function updateUserRole(userId: string, role: UserRole) {
   });
 }
 
+export async function deleteUser(userId: string) {
+  return prisma.user.delete({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+    },
+  });
+}
+
 export async function getUserAuthMethods(userId: string): Promise<UserAuthMethods | null> {
   const user = await prisma.user.findUnique({
     where: {
@@ -147,4 +158,13 @@ export async function getUserAuthMethods(userId: string): Promise<UserAuthMethod
     hasPasswordLogin: Boolean(user.passwordHash),
     providers: Array.from(new Set(user.accounts.map((account) => account.provider))).sort(),
   };
+}
+
+export async function unlinkUserProviderAccount(userId: string, provider: string) {
+  return prisma.account.deleteMany({
+    where: {
+      userId,
+      provider,
+    },
+  });
 }

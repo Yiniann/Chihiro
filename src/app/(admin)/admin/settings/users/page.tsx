@@ -5,7 +5,7 @@ import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
 import { ClearLinkIntent } from "@/app/(site)/auth/error/clear-link-intent";
 import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { getProviderLabel } from "@/lib/account-linking";
-import { setUserRoleAction } from "@/app/(admin)/admin/settings/users/actions";
+import { deleteUserAction, setUserRoleAction, unlinkOwnerProviderAction } from "@/app/(admin)/admin/settings/users/actions";
 import { auth } from "@/server/public-auth";
 import { isOwnerAuthenticated } from "@/server/auth";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
@@ -191,9 +191,20 @@ function ProviderLinkRow({
         </p>
       </div>
       {linked ? (
-        <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
-          已绑定
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+            已绑定
+          </span>
+          <form action={unlinkOwnerProviderAction}>
+            <input type="hidden" name="provider" value={provider} />
+            <button
+              type="submit"
+              className="text-sm font-medium text-rose-600 transition hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300"
+            >
+              解除绑定
+            </button>
+          </form>
+        </div>
       ) : enabled ? (
         <AccountLinkButton provider={provider} label={label} siteUrl={siteUrl} />
       ) : (
@@ -251,19 +262,25 @@ function UserRow({ user, canManageRoles }: { user: UserListItem; canManageRoles:
         {user.role === UserRole.OWNER ? (
           <span className="text-xs font-medium text-zinc-400 dark:text-zinc-500">Owner 受保护</span>
         ) : user.role === UserRole.ADMIN ? (
-          <RoleForm
-            userId={user.id}
-            role={UserRole.USER}
-            label="设为普通用户"
-            disabled={!canManageRoles}
-          />
+          <>
+            <RoleForm
+              userId={user.id}
+              role={UserRole.USER}
+              label="设为普通用户"
+              disabled={!canManageRoles}
+            />
+            <DeleteUserForm userId={user.id} disabled={!canManageRoles} />
+          </>
         ) : (
-          <RoleForm
-            userId={user.id}
-            role={UserRole.ADMIN}
-            label="设为管理员"
-            disabled={!canManageRoles}
-          />
+          <>
+            <RoleForm
+              userId={user.id}
+              role={UserRole.ADMIN}
+              label="设为管理员"
+              disabled={!canManageRoles}
+            />
+            <DeleteUserForm userId={user.id} disabled={!canManageRoles} />
+          </>
         )}
       </div>
     </article>
@@ -291,6 +308,21 @@ function RoleForm({
         className="border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-45 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
       >
         {label}
+      </button>
+    </form>
+  );
+}
+
+function DeleteUserForm({ userId, disabled }: { userId: string; disabled: boolean }) {
+  return (
+    <form action={deleteUserAction}>
+      <input type="hidden" name="userId" value={userId} />
+      <button
+        type="submit"
+        disabled={disabled}
+        className="border-b border-transparent px-0 py-1 text-xs font-medium text-rose-600 transition hover:border-rose-200 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-45 dark:text-rose-400 dark:hover:border-rose-900 dark:hover:text-rose-300"
+      >
+        删除用户
       </button>
     </form>
   );
