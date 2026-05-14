@@ -530,9 +530,11 @@ export function SiteHeader({
                           <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
                             {headerUserName}
                           </p>
-                          <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
-                            {headerUserEmail ?? "本地帐号"}
-                          </p>
+                          {headerUserEmail ? (
+                            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                              {headerUserEmail}
+                            </p>
+                          ) : null}
                         </div>
                       </div>
                       {isAdminLoggedIn ? (

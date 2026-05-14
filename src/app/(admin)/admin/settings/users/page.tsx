@@ -1,8 +1,9 @@
 import { UserRole } from "@prisma/client";
 import Link from "next/link";
 import { AccountLinkButton } from "@/app/(admin)/admin/settings/users/account-link-button";
+import { AccountLinkToast } from "@/app/(admin)/admin/settings/users/account-link-toast";
+import { OwnerSecurityForms } from "@/app/(admin)/admin/settings/users/owner-security-forms";
 import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
-import { ClearLinkIntent } from "@/app/(site)/auth/error/clear-link-intent";
 import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { getProviderLabel } from "@/lib/account-linking";
 import { deleteUserAction, setUserRoleAction, unlinkOwnerProviderAction } from "@/app/(admin)/admin/settings/users/actions";
@@ -115,12 +116,7 @@ function OwnerAccountBindingPanel({
 
   return (
     <section className="grid gap-5 border-b border-zinc-200/80 pb-8 dark:border-zinc-800/80">
-      <ClearLinkIntent />
-      {linkedProvider ? (
-        <div className="rounded-[1.25rem] border border-emerald-200/80 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
-          {getProviderLabel(linkedProvider)} 已绑定到当前 Owner 帐号。
-        </div>
-      ) : null}
+      <AccountLinkToast linkedProvider={linkedProvider} />
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         <div className="min-w-0">
@@ -145,6 +141,11 @@ function OwnerAccountBindingPanel({
               ) : null}
             </div>
           </div>
+
+          <OwnerSecurityForms
+            defaultEmail={ownerUser?.email ?? ""}
+            hasPasswordLogin={authMethods.hasPasswordLogin}
+          />
         </div>
 
         <div className="grid gap-3">

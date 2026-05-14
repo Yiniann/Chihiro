@@ -20,9 +20,16 @@ export type UserAuthMethods = {
   providers: string[];
 };
 
+export type UserSecurityProfile = {
+  id: string;
+  username: string | null;
+  email: string | null;
+  passwordHash: string | null;
+};
+
 export async function listUsersForAdmin(): Promise<UserListItem[]> {
-  return prisma.user.findMany({
-    orderBy: [{ role: "desc" }, { email: "asc" }, { name: "asc" }],
+  const users = await prisma.user.findMany({
+    orderBy: [{ email: "asc" }, { name: "asc" }],
     select: {
       id: true,
       username: true,
@@ -37,6 +44,25 @@ export async function listUsersForAdmin(): Promise<UserListItem[]> {
         },
       },
     },
+  });
+
+  const roleOrder: Record<UserRole, number> = {
+    OWNER: 0,
+    ADMIN: 1,
+    USER: 2,
+  };
+
+  return users.sort((left, right) => {
+    const roleDifference = roleOrder[left.role] - roleOrder[right.role];
+
+    if (roleDifference !== 0) {
+      return roleDifference;
+    }
+
+    const leftLabel = left.email ?? left.name ?? left.username ?? "";
+    const rightLabel = right.email ?? right.name ?? right.username ?? "";
+
+    return leftLabel.localeCompare(rightLabel, "zh-Hans-CN");
   });
 }
 
@@ -165,6 +191,51 @@ export async function unlinkUserProviderAccount(userId: string, provider: string
     where: {
       userId,
       provider,
+    },
+  });
+}
+
+export async function findUserSecurityProfileById(userId: string): Promise<UserSecurityProfile | null> {
+  return prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      username: true,
+      email: true,
+      passwordHash: true,
+    },
+  });
+}
+
+export async function updateUserEmail(userId: string, email: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      email,
+      emailVerified: new Date(),
+    },
+    select: {
+      id: true,
+      email: true,
+      emailVerified: true,
+    },
+  });
+}
+
+export async function updateUserPasswordHash(userId: string, passwordHash: string) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      passwordHash,
+    },
+    select: {
+      id: true,
     },
   });
 }
