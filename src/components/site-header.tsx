@@ -146,6 +146,7 @@ type SiteHeaderProps = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    role?: "USER" | "ADMIN" | "OWNER";
   } | null;
   siteUrl: string;
   publicAuthProviders: {
@@ -345,7 +346,9 @@ export function SiteHeader({
   const featuredItem =
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
   const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
-  const headerUserAvatarUrl = publicUser ? publicUser.image : adminAvatarUrl;
+  const headerUserAvatarUrl =
+    publicUser?.image ??
+    (publicUser?.role === "OWNER" || (!publicUser && isAdminLoggedIn) ? adminAvatarUrl : null);
   const headerUserEmail = publicUser?.email ?? null;
   const hasHeaderUser = Boolean(publicUser) || isAdminLoggedIn;
   const topStateWeight = 1 - stickyProgress;

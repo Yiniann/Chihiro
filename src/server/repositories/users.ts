@@ -14,6 +14,12 @@ export type UserListItem = {
   }>;
 };
 
+export type UserAuthMethods = {
+  username: string | null;
+  hasPasswordLogin: boolean;
+  providers: string[];
+};
+
 export async function listUsersForAdmin(): Promise<UserListItem[]> {
   return prisma.user.findMany({
     orderBy: [{ role: "desc" }, { email: "asc" }, { name: "asc" }],
@@ -62,7 +68,7 @@ export async function createOwnerUser(username: string, passwordHash: string) {
 }
 
 export async function findLocalUserByUsername(username: string) {
-  return prisma.user.findFirst({
+  return prisma.user.findUnique({
     where: {
       username,
     },
@@ -75,12 +81,9 @@ export async function findLocalUserByUsername(username: string) {
 }
 
 export async function findPasswordUserByUsername(username: string) {
-  return prisma.user.findFirst({
+  return prisma.user.findUnique({
     where: {
       username,
-      passwordHash: {
-        not: null,
-      },
     },
     select: {
       id: true,
@@ -117,4 +120,31 @@ export async function updateUserRole(userId: string, role: UserRole) {
       role: true,
     },
   });
+}
+
+export async function getUserAuthMethods(userId: string): Promise<UserAuthMethods | null> {
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      username: true,
+      passwordHash: true,
+      accounts: {
+        select: {
+          provider: true,
+        },
+      },
+    },
+  });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    username: user.username,
+    hasPasswordLogin: Boolean(user.passwordHash),
+    providers: Array.from(new Set(user.accounts.map((account) => account.provider))).sort(),
+  };
 }

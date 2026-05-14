@@ -15,6 +15,8 @@ users
 - name
 - image
 - role
+
+其中 `username` 作为本地密码登录标识，必须唯一。
 ```
 
 登录方式和用户身份分离：

@@ -83,6 +83,7 @@ function CommentItem({
           <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
             {comment.author.name}
           </p>
+          <CommentAuthorBadge role={comment.author.role} />
           <time className="text-xs text-zinc-400 dark:text-zinc-500" dateTime={comment.createdAt}>
             {new Date(comment.createdAt).toLocaleDateString("zh-CN")}
           </time>
@@ -159,4 +160,28 @@ function CommentAvatar({ comment }: { comment: PublicPostComment }) {
       {comment.author.name.slice(0, 1).toUpperCase()}
     </span>
   );
+}
+
+function CommentAuthorBadge({
+  role,
+}: {
+  role: PublicPostComment["author"]["role"];
+}) {
+  if (role === "OWNER") {
+    return (
+      <span className="inline-flex rounded-full bg-zinc-950 px-2 py-0.5 text-[11px] font-medium text-white dark:bg-zinc-100 dark:text-zinc-950">
+        站长
+      </span>
+    );
+  }
+
+  if (role === "ADMIN") {
+    return (
+      <span className="inline-flex rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-medium text-primary">
+        管理员
+      </span>
+    );
+  }
+
+  return null;
 }

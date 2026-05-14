@@ -2,6 +2,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import type { NextRequest } from "next/server";
+import { ACCOUNT_LINK_INTENT_COOKIE } from "@/lib/account-linking";
 import { prisma } from "@/server/db/client";
 import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { normalizeAdminUsername } from "@/lib/admin-auth";
@@ -10,12 +12,17 @@ import { getPublicAuthConfig } from "@/server/repositories/public-interactions";
 import { getSiteSettings } from "@/server/repositories/site";
 import { findPasswordUserByUsername } from "@/server/repositories/users";
 
-export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
+const SESSION_COOKIE_NAMES = ["authjs.session-token", "__Secure-authjs.session-token"];
+
+export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
   const [publicAuthConfig, siteSettings] = await Promise.all([
     getPublicAuthConfig(),
     getSiteSettings(),
   ]);
   process.env.AUTH_URL = resolveCanonicalSiteUrl(siteSettings);
+  const requestCookies = getRequestCookies(request);
+  const hasSessionCookie = SESSION_COOKIE_NAMES.some((name) => Boolean(requestCookies[name]));
+  const accountLinkIntent = requestCookies[ACCOUNT_LINK_INTENT_COOKIE] ?? null;
 
   return {
     adapter: PrismaAdapter(prisma),
@@ -72,7 +79,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     session: {
       strategy: "jwt",
     },
+    pages: {
+      error: "/auth/error",
+    },
     callbacks: {
+      signIn({ account }) {
+        if (!account || (account.type !== "oauth" && account.type !== "oidc")) {
+          return true;
+        }
+
+        if (!hasSessionCookie) {
+          return true;
+        }
+
+        if (accountLinkIntent === account.provider) {
+          return true;
+        }
+
+        return "/auth/error?error=AccountLinkIntentRequired";
+      },
       jwt({ token, user }) {
         if (user) {
           token.id = user.id;
@@ -97,3 +122,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async () => {
     },
   };
 });
+
+function getRequestCookies(request: NextRequest | Request | undefined) {
+  const cookieHeader = request?.headers.get("cookie");
+
+  if (!cookieHeader) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    cookieHeader
+      .split(";")
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const separatorIndex = entry.indexOf("=");
+        const key = separatorIndex >= 0 ? entry.slice(0, separatorIndex) : entry;
+        const value = separatorIndex >= 0 ? entry.slice(separatorIndex + 1) : "";
+        return [key, decodeURIComponent(value)];
+      }),
+  );
+}

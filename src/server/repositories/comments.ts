@@ -11,6 +11,7 @@ export type PublicPostComment = {
   author: {
     name: string;
     image: string | null;
+    role: "OWNER" | "ADMIN" | "USER" | null;
   };
   replies: PublicPostComment[];
 };
@@ -166,6 +167,7 @@ export async function listApprovedCommentsForPost(postId: number): Promise<Publi
           name: true,
           email: true,
           image: true,
+          role: true,
         },
       },
     },
@@ -187,6 +189,7 @@ export async function listApprovedCommentsForPost(postId: number): Promise<Publi
       author: {
         name: comment.user?.name ?? comment.user?.email ?? comment.authorName ?? "访客",
         image: comment.user?.image ?? null,
+        role: comment.user?.role ?? null,
       },
       replies: [],
     })),
