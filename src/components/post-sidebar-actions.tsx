@@ -97,6 +97,28 @@ export function PostSidebarActions({
     });
   }
 
+  function handleCommentClick() {
+    const commentTarget =
+      document.getElementById("post-comment-form") ?? document.getElementById("post-comments");
+
+    if (!commentTarget) {
+      return;
+    }
+
+    const targetRect = commentTarget.getBoundingClientRect();
+    const top = window.scrollY + targetRect.top - window.innerHeight * 0.35;
+
+    window.scrollTo({
+      top: Math.max(top, 0),
+      behavior: "smooth",
+    });
+
+    if (commentTarget instanceof HTMLFormElement) {
+      const textarea = commentTarget.querySelector("textarea");
+      window.setTimeout(() => textarea?.focus({ preventScroll: true }), 220);
+    }
+  }
+
   return (
     <section className="mt-5 border-t border-zinc-200/70 pt-4 dark:border-zinc-800/70">
       <div className="flex flex-row gap-2 [@media(min-height:680px)]:flex-col">
@@ -146,9 +168,9 @@ export function PostSidebarActions({
         <div className="group relative flex w-fit items-center">
           <button
             type="button"
-            disabled
-            title="评论即将开放"
-            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-zinc-700"
+            onClick={handleCommentClick}
+            title="评论"
+            className="inline-flex size-9 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-zinc-400"
           >
             <MessageCircle className="size-4" aria-hidden="true" />
             <span className="sr-only">评论</span>

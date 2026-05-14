@@ -33,17 +33,21 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
     (settings.hasGithubClientSecret || Boolean(process.env.AUTH_GITHUB_SECRET?.trim()));
 
   return (
-    <section className="mt-10 grid gap-5 border-t-0 pt-0">
+    <section id="post-comments" className="mt-10 grid gap-5 border-t-0 pt-0">
       <div>
         {canComment ? (
           <PostCommentForm
             postId={postId}
             pathname={pathname}
+            formId="post-comment-form"
             showGuestFields={!user && !settings.loginRequiredToComment}
             user={user}
           />
         ) : (
-          <div className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent dark:border-zinc-800/80">
+          <div
+            id="post-comment-form"
+            className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent dark:border-zinc-800/80"
+          >
             <div className="flex min-h-28 flex-col items-center justify-center gap-2 px-3 py-6 text-center">
               <p className="text-sm text-zinc-500 dark:text-zinc-400">登录后可评论</p>
               <PublicAuthStatus
