@@ -157,7 +157,7 @@ AdminSession
 
 ## 部署注意
 
-当前 Docker 部署链路可能使用 `prisma db push`。因此用户体系改动避免依赖只在 migration SQL 中执行的数据迁移。
+生产环境建议使用 `prisma migrate deploy`。如果数据库曾长期通过 `db push` 演进，再切回 migration 链路时，需要先确认 `_prisma_migrations` 历史和真实 schema 已经对齐。
 
 上线前建议：
 

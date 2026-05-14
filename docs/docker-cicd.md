@@ -31,7 +31,8 @@ POSTGRES_HOST="127.0.0.1"
 POSTGRES_PORT="5432"
 APP_PORT="3000"
 RUN_MIGRATIONS="true"
-PRISMA_DEPLOY_MODE="push"
+PRISMA_DEPLOY_MODE="migrate"
+COMPOSE_PROJECT_NAME="chihiro"
 ```
 
 如果数据库也跑在这份 compose 里，容器内连接串 `DOCKER_DATABASE_URL` 的 host 使用 `postgres`。`DATABASE_URL` 留给服务器本机上的手动 Prisma 命令使用，所以默认 host 是 `localhost`。
@@ -65,13 +66,29 @@ PRISMA_DEPLOY_MODE="push"
 5. 执行 `docker load -i chihiro-image.tar`
 6. 执行 `docker compose up -d --remove-orphans`
 
-容器启动入口在 `docker/entrypoint.sh`，默认会跑：
+容器启动入口在 `docker/entrypoint.sh`。当 `.env` 里设置 `PRISMA_DEPLOY_MODE="migrate"` 时，会执行：
 
 ```bash
-pnpm exec prisma db push
+pnpm exec prisma migrate deploy
 ```
 
-当前仓库的 migrations 不是从空数据库初始化开始的，所以 Docker 新库默认用 `db push` 按当前 Prisma schema 建表。若你后续整理出完整生产迁移链路，可以在 `.env` 设置 `PRISMA_DEPLOY_MODE="migrate"` 切回 `migrate deploy`。
+生产环境建议固定使用 `migrate deploy`，不要再回退到 `db push`。否则数据库真实结构和 `_prisma_migrations` 历史容易再次分叉，后续切回 migration 链路时会反复遇到 `P3009` / `P3018`。
+
+`COMPOSE_PROJECT_NAME` 也建议在服务器 `.env` 明确写死，例如：
+
+```bash
+COMPOSE_PROJECT_NAME="chihiro"
+```
+
+这样 Docker Compose 会持续复用同一组容器和 volume，避免因为目录名或运行环境变化，意外创建出第二份空数据库 volume。
+
+如果你确实是在全新空库上首次部署，而当前迁移链路不能从零初始化，再临时改回：
+
+```bash
+PRISMA_DEPLOY_MODE="push"
+```
+
+完成初始化后，建议尽快切回 `migrate`，并保证后续线上发布都沿用 migration 链路。
 
 如需临时跳过迁移，可以在服务器 `.env` 设置：
 
@@ -97,6 +114,12 @@ docker compose ps
 docker compose logs -f app
 docker compose logs -f postgres
 docker compose exec postgres psql -U chihiro -d chihiro
+```
+
+如果需要确认当前 compose 正在使用哪份数据库 volume，可以执行：
+
+```bash
+docker inspect chihiro-postgres --format '{{json .Mounts}}'
 ```
 
 ## 从 PM2 切换
