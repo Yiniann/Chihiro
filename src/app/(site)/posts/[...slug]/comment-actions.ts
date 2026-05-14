@@ -26,6 +26,7 @@ export async function submitPostCommentAction(
 
   const session = await auth();
   const userId = session?.user?.id ?? null;
+  const bypassModeration = session?.user?.role === "OWNER" || session?.user?.role === "ADMIN";
 
   if (settings.loginRequiredToComment && !userId) {
     return {
@@ -84,7 +85,7 @@ export async function submitPostCommentAction(
       authorName: userId ? null : authorName,
       authorEmail: userId ? null : authorEmail,
       body,
-      requiresModeration: settings.commentModeration,
+      requiresModeration: settings.commentModeration && !bypassModeration,
     });
 
     if (pathname) {
