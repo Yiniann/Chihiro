@@ -1,7 +1,9 @@
 import { UserRole } from "@prisma/client";
 import Link from "next/link";
+import { AccountLinkButton } from "@/app/(admin)/admin/settings/users/account-link-button";
 import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
 import { ClearLinkIntent } from "@/app/(site)/auth/error/clear-link-intent";
+import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { getProviderLabel } from "@/lib/account-linking";
 import { setUserRoleAction } from "@/app/(admin)/admin/settings/users/actions";
 import { auth } from "@/server/public-auth";
@@ -41,6 +43,7 @@ export default async function AdminUsersSettingsPage({ searchParams }: AdminUser
   const ownerUser = users.find((user) => user.id === currentUserId) ?? users.find((user) => user.role === UserRole.OWNER) ?? null;
   const managedUsers = users.filter((user) => user.role !== UserRole.OWNER);
   const ownerAvatarUrl = ownerUser?.image ?? siteSettings?.authorAvatarUrl ?? null;
+  const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
   return (
     <div className="grid gap-8">
@@ -67,6 +70,7 @@ export default async function AdminUsersSettingsPage({ searchParams }: AdminUser
           linkedProvider={linkedProvider}
           githubEnabled={githubEnabled}
           googleEnabled={googleEnabled}
+          siteUrl={siteUrl}
         />
       ) : null}
 
@@ -90,6 +94,7 @@ function OwnerAccountBindingPanel({
   linkedProvider,
   githubEnabled,
   googleEnabled,
+  siteUrl,
 }: {
   ownerUser: UserListItem | null;
   ownerAvatarUrl: string | null;
@@ -97,6 +102,7 @@ function OwnerAccountBindingPanel({
   linkedProvider: string | null;
   githubEnabled: boolean;
   googleEnabled: boolean;
+  siteUrl: string;
 }) {
   const displayName =
     ownerUser?.name ?? ownerUser?.email ?? authMethods.username ?? "Owner";
@@ -148,11 +154,13 @@ function OwnerAccountBindingPanel({
               provider="github"
               enabled={githubEnabled}
               linked={authMethods.providers.includes("github")}
+              siteUrl={siteUrl}
             />
             <ProviderLinkRow
               provider="google"
               enabled={googleEnabled}
               linked={authMethods.providers.includes("google")}
+              siteUrl={siteUrl}
             />
           </div>
         </div>
@@ -165,10 +173,12 @@ function ProviderLinkRow({
   provider,
   enabled,
   linked,
+  siteUrl,
 }: {
   provider: "github" | "google";
   enabled: boolean;
   linked: boolean;
+  siteUrl: string;
 }) {
   const label = getProviderLabel(provider);
 
@@ -185,12 +195,7 @@ function ProviderLinkRow({
           已绑定
         </span>
       ) : enabled ? (
-        <Link
-          href={`/auth/link/${provider}?next=${encodeURIComponent("/admin/settings/users")}`}
-          className="inline-flex items-center justify-center rounded-2xl bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
-        >
-          绑定 {label}
-        </Link>
+        <AccountLinkButton provider={provider} label={label} siteUrl={siteUrl} />
       ) : (
         <span className="rounded-full bg-zinc-100 px-3 py-1.5 text-xs font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
           未启用
