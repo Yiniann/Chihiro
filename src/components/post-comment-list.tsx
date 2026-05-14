@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageCircle, X } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PostCommentForm } from "@/components/post-comment-form";
 import type { PublicPostComment } from "@/server/repositories/comments";
 
@@ -26,6 +26,13 @@ export function PostCommentList({
   showGuestFields,
   user,
 }: PostCommentListProps) {
+  const [sortOrder, setSortOrder] = useState<"latest" | "earliest">("latest");
+  const totalComments = useMemo(() => countComments(comments), [comments]);
+  const sortedComments = useMemo(
+    () => sortComments(comments, sortOrder),
+    [comments, sortOrder],
+  );
+
   if (comments.length === 0) {
     return (
       <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
@@ -35,8 +42,39 @@ export function PostCommentList({
   }
 
   return (
-    <div className="grid gap-1">
-      {comments.map((comment) => (
+    <div className="grid gap-4">
+      <div className="flex items-center justify-between gap-4">
+        <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+          共 {totalComments} 条评论
+        </p>
+        <div className="flex items-center gap-3 text-sm">
+          <button
+            type="button"
+            onClick={() => setSortOrder("latest")}
+            className={`border-b border-transparent px-0 py-1 transition ${
+              sortOrder === "latest"
+                ? "text-zinc-950 dark:text-zinc-50"
+                : "text-zinc-400 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            最新
+          </button>
+          <button
+            type="button"
+            onClick={() => setSortOrder("earliest")}
+            className={`border-b border-transparent px-0 py-1 transition ${
+              sortOrder === "earliest"
+                ? "text-zinc-950 dark:text-zinc-50"
+                : "text-zinc-400 hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-700 dark:hover:text-zinc-300"
+            }`}
+          >
+            最早
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-1">
+        {sortedComments.map((comment) => (
         <CommentItem
           key={comment.id}
           comment={comment}
@@ -47,7 +85,8 @@ export function PostCommentList({
           showGuestFields={showGuestFields}
           user={user}
         />
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -143,6 +182,26 @@ function CommentItem({
       </div>
     </article>
   );
+}
+
+function countComments(comments: PublicPostComment[]) {
+  return comments.reduce((total, comment) => total + 1 + comment.replies.length, 0);
+}
+
+function sortComments(
+  comments: PublicPostComment[],
+  sortOrder: "latest" | "earliest",
+): PublicPostComment[] {
+  const direction = sortOrder === "latest" ? -1 : 1;
+  const compare = (left: PublicPostComment, right: PublicPostComment) =>
+    (new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime()) * direction;
+
+  return comments
+    .map((comment) => ({
+      ...comment,
+      replies: [...comment.replies].sort(compare),
+    }))
+    .sort(compare);
 }
 
 function CommentAvatar({ comment }: { comment: PublicPostComment }) {
