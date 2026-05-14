@@ -1,9 +1,9 @@
 "use client";
 
 import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
-import { Send } from "lucide-react";
+import { Send, Smile } from "lucide-react";
 import Image from "next/image";
-import { useActionState, useRef, useState, type CSSProperties } from "react";
+import { useActionState, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useFormStatus } from "react-dom";
 import {
   submitPostCommentAction,
@@ -364,6 +364,16 @@ const KAOMOJI_LIST = [
   "(◕‿◕✿)",
 ];
 
+function getStableKaomojiTriggerLabel(seed: string) {
+  let hash = 0;
+
+  for (let index = 0; index < seed.length; index += 1) {
+    hash = (hash * 31 + seed.charCodeAt(index)) >>> 0;
+  }
+
+  return KAOMOJI_LIST[hash % KAOMOJI_LIST.length] ?? "(//ω//)";
+}
+
 type PostCommentFormProps = {
   postId: number;
   parentId?: string | null;
@@ -396,6 +406,10 @@ export function PostCommentForm({
   const formRef = useRef<HTMLFormElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [bodyLength, setBodyLength] = useState(0);
+  const stableKaomojiTriggerLabel = getStableKaomojiTriggerLabel(
+    `${postId}:${parentId ?? "root"}:${pathname}:${compact ? "compact" : "default"}`,
+  );
+  const [kaomojiTriggerLabel, setKaomojiTriggerLabel] = useState(stableKaomojiTriggerLabel);
   const { showToast } = useToast();
   const [, formAction] = useActionState(async (previousState: SubmitCommentState, formData: FormData) => {
     const nextState = await submitPostCommentAction(previousState, formData);
@@ -414,6 +428,12 @@ export function PostCommentForm({
 
     return nextState;
   }, initialState);
+
+  useEffect(() => {
+    setKaomojiTriggerLabel(
+      KAOMOJI_LIST[Math.floor(Math.random() * KAOMOJI_LIST.length)] ?? stableKaomojiTriggerLabel,
+    );
+  }, [stableKaomojiTriggerLabel]);
 
   function insertText(text: string) {
     const textarea = textareaRef.current;
@@ -491,22 +511,26 @@ export function PostCommentForm({
               }`}
               placeholder={placeholder}
             />
-            <div className="flex h-9 items-center justify-end gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70">
-              <div className="mr-auto flex items-center gap-3 text-xs text-zinc-400 dark:text-zinc-500">
+            <div className="grid h-9 grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70">
+              <div className="flex items-center gap-3 text-xs text-primary/80 dark:text-primary/75">
                 <EmojiInsertPopover onSelect={insertText} />
                 <CommentInsertPopover
-                  label="颜文字"
+                  label={kaomojiTriggerLabel}
                   items={KAOMOJI_LIST}
                   onSelect={insertText}
                   itemClassName="text-xs"
                   widthClassName="w-80"
                 />
-                <span>支持 Markdown / GFM</span>
               </div>
-              <span className="text-xs text-zinc-400 dark:text-zinc-500">
-                {bodyLength}/{commentMaxLength}
+              <span className="justify-self-center text-xs text-primary/80 dark:text-primary/75">
+                支持 Markdown / GFM
               </span>
-              <SubmitButton label={submitLabel} />
+              <div className="flex items-center justify-end gap-3">
+                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                  {bodyLength}/{commentMaxLength}
+                </span>
+                <SubmitButton label={submitLabel} />
+              </div>
             </div>
           </div>
         </label>
@@ -526,9 +550,10 @@ function EmojiInsertPopover({ onSelect }: { onSelect: (value: string) => void })
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="border-b border-transparent px-0 py-0 text-xs text-zinc-400 transition hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-700 dark:hover:text-zinc-300"
+          className="border-b border-transparent px-0 py-0 text-xs text-primary/80 transition hover:border-primary/35 hover:text-primary dark:text-primary/75 dark:hover:border-primary/35 dark:hover:text-primary"
+          aria-label="Emoji"
         >
-          表情
+          <Smile className="size-3.5" aria-hidden="true" />
         </button>
       </PopoverTrigger>
       <PopoverContent
@@ -570,7 +595,7 @@ function CommentInsertPopover({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="border-b border-transparent px-0 py-0 text-xs text-zinc-400 transition hover:border-zinc-300 hover:text-zinc-700 dark:text-zinc-500 dark:hover:border-zinc-700 dark:hover:text-zinc-300"
+          className="border-b border-transparent px-0 py-0 text-xs text-primary/80 transition hover:border-primary/35 hover:text-primary dark:text-primary/75 dark:hover:border-primary/35 dark:hover:text-primary"
         >
           {label}
         </button>
