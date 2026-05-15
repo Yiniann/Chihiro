@@ -16,12 +16,16 @@ type ThemeModeToggleProps = {
   isScrolled?: boolean;
   inline?: boolean;
   disableTabFocus?: boolean;
+  minimal?: boolean;
+  hintPlacement?: "top" | "bottom";
 };
 
 export function ThemeModeToggle({
   isScrolled = false,
   inline = false,
   disableTabFocus = false,
+  minimal = false,
+  hintPlacement = "bottom",
 }: ThemeModeToggleProps) {
   const [mode, setMode] = useState<ThemeMode>("light");
   const [preference, setPreference] = useState<ThemeModePreference>("system");
@@ -168,7 +172,9 @@ export function ThemeModeToggle({
         onClick={handleToggle}
         tabIndex={disableTabFocus ? -1 : undefined}
         className={`inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
-          isScrolled
+          minimal
+            ? "border border-transparent bg-transparent hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white"
+            : isScrolled
             ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
             : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
         }`}
@@ -180,9 +186,15 @@ export function ThemeModeToggle({
         <>
           <div
             aria-hidden="true"
-            className="absolute left-1/2 top-full h-3 w-40 -translate-x-1/2"
+            className={`absolute left-1/2 h-3 w-40 -translate-x-1/2 ${
+              hintPlacement === "top" ? "bottom-full" : "top-full"
+            }`}
           />
-          <div className="absolute left-1/2 top-[calc(100%+0.7rem)] w-48 -translate-x-1/2 rounded-[1rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_14px_40px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.88)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.42)]">
+          <div
+            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-[1rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_14px_40px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.88)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.42)] ${
+              hintPlacement === "top" ? "bottom-[calc(100%+0.7rem)]" : "top-[calc(100%+0.7rem)]"
+            }`}
+          >
             <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
               Click the icon to switch mode, or{" "}
               <button

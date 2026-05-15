@@ -44,20 +44,19 @@ export default async function AdminCommentsPage({
 
   return (
     <div className="grid gap-10">
-      <section className="border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80">
-        <p className="text-[0.68rem] uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
-          Discussion
-        </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          评论管理
-        </h1>
-      </section>
-
-      <section className="grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="全部评论" value={stats.total} />
-        <StatCard label="待审核" value={stats.pending} tone="muted" />
-        <StatCard label="已公开" value={stats.approved} tone="success" />
-        <StatCard label="垃圾评论" value={stats.spam} tone="neutral" />
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <BoardStat>
+          <StatCard label="全部评论" value={stats.total} />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="待审核" value={stats.pending} tone="muted" />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="已公开" value={stats.approved} tone="success" />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="垃圾评论" value={stats.spam} tone="neutral" />
+        </BoardStat>
       </section>
 
       <section className="grid gap-5">
@@ -90,6 +89,10 @@ export default async function AdminCommentsPage({
       </section>
     </div>
   );
+}
+
+function BoardStat({ children }: { children: React.ReactNode }) {
+  return <div className="min-w-0 px-5 py-4">{children}</div>;
 }
 
 function CommentRow({ comment }: { comment: AdminCommentItem }) {

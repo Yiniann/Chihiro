@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  FileText,
   House,
   Images,
   LayoutDashboard,
@@ -9,16 +10,19 @@ import {
   Menu,
   MessageSquareText,
   NotebookPen,
+  PanelLeftClose,
+  PanelLeftOpen,
   Settings2,
+  Tags,
+  Trash2,
   X,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { logoutAction } from "@/app/(admin)/admin/login/actions";
 import { ADMIN_NAV_ITEMS } from "@/app/(admin)/admin/utils";
-import { HeaderNav } from "@/components/header-nav";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { siteConfig } from "@/lib/site";
 
@@ -31,14 +35,26 @@ const adminNavMeta: Record<
   "/admin": {
     icon: LayoutDashboard,
   },
-  "/admin/workbench": {
+  "/admin/posts": {
     icon: NotebookPen,
+  },
+  "/admin/updates": {
+    icon: MessageSquareText,
+  },
+  "/admin/pages": {
+    icon: FileText,
+  },
+  "/admin/categories": {
+    icon: Tags,
   },
   "/admin/comments": {
     icon: MessageSquareText,
   },
   "/admin/media": {
     icon: Images,
+  },
+  "/admin/trash": {
+    icon: Trash2,
   },
   "/admin/settings": {
     icon: Settings2,
@@ -47,50 +63,11 @@ const adminNavMeta: Record<
 
 export function AdminHeader() {
   const pathname = usePathname();
-  const isLoginPage = pathname === "/admin/login";
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileBrandVisible, setIsMobileBrandVisible] = useState(true);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
-  const lastScrollTopRef = useRef(0);
-  const deferredIsScrolled = useDeferredValue(isScrolled);
-
-  useEffect(() => {
-    const getScrollTop = () =>
-      window.scrollY ||
-      window.pageYOffset ||
-      document.documentElement.scrollTop ||
-      document.body.scrollTop ||
-      0;
-
-    const handleScroll = () => {
-      const nextScrollTop = getScrollTop();
-
-      setIsScrolled(nextScrollTop > 20);
-
-      if (nextScrollTop <= 20 || isMobileNavOpen) {
-        setIsMobileBrandVisible(true);
-      } else if (nextScrollTop > lastScrollTopRef.current) {
-        setIsMobileBrandVisible(false);
-      } else if (nextScrollTop < lastScrollTopRef.current) {
-        setIsMobileBrandVisible(true);
-      }
-
-      lastScrollTopRef.current = nextScrollTop;
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    document.addEventListener("scroll", handleScroll, { passive: true });
-    window.addEventListener("resize", handleScroll);
-
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-      document.removeEventListener("scroll", handleScroll);
-      window.removeEventListener("resize", handleScroll);
-    };
-  }, [isMobileNavOpen]);
+  const activeItem = getActiveAdminItem(pathname);
 
   useEffect(() => {
     if (!isMobileNavOpen) {
@@ -118,148 +95,202 @@ export function AdminHeader() {
   }, [isMobileNavOpen]);
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 px-3 py-3 sm:px-6">
-      <div className="pointer-events-none relative mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 transition-all duration-300 md:grid md:grid-cols-[1fr_auto_1fr] md:justify-normal sm:px-6">
-        <button
-          ref={mobileMenuButtonRef}
-          type="button"
-          aria-label={isMobileNavOpen ? "Close admin navigation" : "Open admin navigation"}
-          aria-expanded={isMobileNavOpen}
-          onClick={() => setIsMobileNavOpen((current) => !current)}
-          className={`pointer-events-auto inline-flex shrink-0 items-center justify-center px-3 py-1.5 text-zinc-700 transition dark:text-zinc-200 md:hidden ${
-            isLoginPage
-              ? "invisible"
-              : isScrolled
-              ? "rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-              : "bg-transparent"
-          }`}
-        >
-          {isMobileNavOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
-        </button>
+    <>
+      <div className="flex items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/90 px-4 py-3 backdrop-blur-xl dark:border-white/8 dark:bg-black/60 md:hidden">
+        <div className="min-w-0">
+          <p className="text-[0.65rem] uppercase tracking-[0.24em] text-primary/70 dark:text-primary/70">Admin</p>
+          <p className="truncate text-sm font-semibold text-zinc-950 dark:text-zinc-100">
+            {activeItem?.label ?? siteConfig.name}
+          </p>
+        </div>
 
-        <Link
-          href="/admin"
-          className={`absolute left-1/2 inline-flex items-center gap-2 rounded-2xl px-3 py-1.5 text-lg font-semibold tracking-tight text-primary transition-[opacity,transform] duration-200 md:pointer-events-auto md:static md:translate-x-0 md:translate-y-0 md:justify-self-start md:opacity-100 ${
-            isMobileNavOpen || isMobileBrandVisible
-              ? "pointer-events-auto translate-x-[-50%] opacity-100"
-              : "pointer-events-none translate-x-[-50%] -translate-y-2 opacity-0"
-          } ${
-            isScrolled
-              ? "border border-transparent bg-transparent shadow-none md:border-zinc-200/80 md:bg-white/80 md:shadow-sm dark:md:border-zinc-800/70 dark:md:bg-zinc-950/65 dark:md:backdrop-blur-xl dark:md:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-              : "border border-transparent bg-transparent"
-          }`}
-        >
-          <span>{siteConfig.name}</span>
-          <span className="hidden rounded-full border border-primary/20 bg-primary/10 px-2.5 py-1 text-[0.68rem] font-medium uppercase tracking-[0.22em] text-primary md:inline-flex">
-            Admin
-          </span>
-        </Link>
-
-        {isLoginPage ? (
-          <div className="hidden md:block" />
-        ) : (
-          <HeaderNav
-            pathname={pathname}
-            isScrolled={isScrolled}
-            deferredIsScrolled={deferredIsScrolled}
-            items={ADMIN_NAV_ITEMS.map((item) => ({
-              ...item,
-              icon: adminNavMeta[item.href].icon,
-            }))}
-            layoutId="admin-nav-indicator"
-            className="pointer-events-auto hidden md:flex md:justify-self-center"
-            isActivePath={isActiveAdminPath}
-          />
-        )}
-
-        <div className="pointer-events-auto flex shrink-0 items-center gap-2 md:justify-self-end">
+        <div className="flex items-center gap-2">
           <Link
             href="/"
             aria-label="View site"
-            className={`inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
-              isScrolled
-                ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-                : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
-            }`}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white text-zinc-600 transition hover:border-primary/25 hover:bg-primary/6 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-primary/20 dark:hover:bg-primary/10 dark:hover:text-primary"
           >
             <House className="h-4.5 w-4.5" />
           </Link>
-          <div className="hidden md:block">
-            <ThemeModeToggle isScrolled={isScrolled} />
-          </div>
-          {!isLoginPage ? (
-            <form action={logoutAction}>
-              <button
-                type="submit"
-                aria-label="Sign out"
-                className={`inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
-                  isScrolled
-                    ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-                    : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
-                }`}
-              >
-                <LogOut className="h-4.5 w-4.5" />
-              </button>
-            </form>
-          ) : null}
+          <button
+            ref={mobileMenuButtonRef}
+            type="button"
+            aria-label={isMobileNavOpen ? "Close admin navigation" : "Open admin navigation"}
+            aria-expanded={isMobileNavOpen}
+            onClick={() => setIsMobileNavOpen((current) => !current)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white text-zinc-700 transition hover:border-primary/25 hover:bg-primary/6 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-primary/20 dark:hover:bg-primary/10 dark:hover:text-primary"
+          >
+            {isMobileNavOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
+          </button>
         </div>
       </div>
 
+      <aside
+        className={`hidden md:flex md:h-screen md:flex-col md:border-r md:border-zinc-200/80 md:bg-zinc-100 dark:md:border-white/8 dark:md:bg-[#050505] ${
+          isDesktopCollapsed ? "md:w-[4.75rem]" : "md:w-[14rem]"
+        }`}
+      >
+        <SidebarContent
+          pathname={pathname}
+          isCollapsed={isDesktopCollapsed}
+          onToggleCollapse={() => setIsDesktopCollapsed((current) => !current)}
+        />
+      </aside>
+
       <AnimatePresence>
-        {isMobileNavOpen && !isLoginPage ? (
+        {isMobileNavOpen ? (
           <motion.div
-            ref={mobileMenuPanelRef}
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="pointer-events-auto mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm dark:bg-black/70 md:hidden"
           >
-            <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_18px_50px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.44)]">
-              <nav className="grid gap-2">
-                {ADMIN_NAV_ITEMS.map((item) => {
-                  const isActive = isActiveAdminPath(pathname, item.href);
-                  const { icon: Icon } = adminNavMeta[item.href];
-
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setIsMobileNavOpen(false)}
-                      className={`flex items-center gap-3 rounded-[1.1rem] px-3 py-3 transition ${
-                        isActive
-                          ? "bg-primary/8 text-primary dark:bg-primary/15"
-                          : "bg-zinc-50/80 text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:bg-zinc-800/80"
-                      }`}
-                    >
-                      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-zinc-600 shadow-sm dark:bg-zinc-800 dark:text-zinc-300">
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <span className="min-w-0 flex-1 text-sm font-medium">{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="mt-3 grid gap-3">
-                <ThemeModeToggle inline />
-                <form action={logoutAction}>
-                  <button
-                    type="submit"
-                    className="inline-flex w-full items-center justify-center rounded-[1.1rem] border border-zinc-200/80 bg-zinc-50/80 px-4 py-3 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
-                  >
-                    退出登录
-                  </button>
-                </form>
-              </div>
-            </div>
+            <motion.div
+              ref={mobileMenuPanelRef}
+              initial={{ x: -24, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -24, opacity: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="flex h-full w-[min(82vw,18rem)] flex-col border-r border-zinc-200/80 bg-zinc-100 dark:border-white/8 dark:bg-[#050505]"
+            >
+              <SidebarContent
+                pathname={pathname}
+                onNavigate={() => setIsMobileNavOpen(false)}
+                isMobile
+              />
+            </motion.div>
           </motion.div>
         ) : null}
       </AnimatePresence>
-    </header>
+    </>
   );
 }
 
+function SidebarContent({
+  pathname,
+  isCollapsed = false,
+  isMobile = false,
+  onNavigate,
+  onToggleCollapse,
+}: {
+  pathname: string;
+  isCollapsed?: boolean;
+  isMobile?: boolean;
+  onNavigate?: () => void;
+  onToggleCollapse?: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col px-3 pb-4 pt-4">
+      <div
+        className={`flex px-2 py-2 ${
+          isCollapsed ? "flex-col items-center gap-1.5" : "items-center gap-2.5"
+        }`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={siteConfig.avatar}
+          alt={`${siteConfig.name} avatar`}
+          className="h-8 w-8 rounded-[1.1rem] object-cover ring-1 ring-primary/15 dark:ring-primary/20"
+        />
+        {!isCollapsed ? (
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.92rem] font-bold text-primary">{siteConfig.name}</p>
+            <p className="mt-0.5 text-xs font-semibold text-primary/70 dark:text-primary/70">Admin</p>
+          </div>
+        ) : null}
+        {!isMobile ? (
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-xl text-zinc-400 transition hover:bg-primary/8 hover:text-primary dark:text-zinc-500 dark:hover:bg-primary/10 dark:hover:text-primary"
+          >
+            {isCollapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
+          </button>
+        ) : null}
+      </div>
+
+      <div className="mt-3 flex-1">
+        <nav className="grid gap-1">
+          {ADMIN_NAV_ITEMS.map((item) => {
+            const isActive = isActiveAdminPath(pathname, item.href);
+            const { icon: Icon } = adminNavMeta[item.href];
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onNavigate}
+                className={`group flex items-center rounded-[0.85rem] px-2 py-1.5 transition ${
+                  isActive
+                    ? "bg-primary/8 text-primary dark:bg-primary/10 dark:text-primary"
+                    : "text-zinc-500 hover:bg-primary/6 hover:text-primary dark:text-zinc-400 dark:hover:bg-primary/8 dark:hover:text-primary"
+                } ${isCollapsed ? "justify-center" : "gap-3"}`}
+                aria-label={isCollapsed ? item.label : undefined}
+                title={isCollapsed ? item.label : undefined}
+              >
+                <span
+                  className={`flex h-7.5 w-7.5 shrink-0 items-center justify-center rounded-xl transition ${
+                    isActive
+                      ? "text-primary"
+                      : "text-zinc-400 group-hover:text-primary dark:text-zinc-500 dark:group-hover:text-primary"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
+                {!isCollapsed ? (
+                  <span className="min-w-0 flex-1 text-[0.88rem] font-medium">{item.label}</span>
+                ) : null}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {!isCollapsed ? (
+        <div className="mt-auto grid gap-2 pt-3">
+          <div className="flex items-center justify-between gap-1 px-1">
+            <Link
+              href="/"
+              onClick={onNavigate}
+              className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-primary/8 hover:text-primary dark:text-zinc-400 dark:hover:bg-primary/10 dark:hover:text-primary"
+              aria-label="查看站点"
+              title="查看站点"
+            >
+              <House className="h-4 w-4" />
+            </Link>
+            <ThemeModeToggle minimal hintPlacement="top" />
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="inline-flex h-7.5 w-7.5 items-center justify-center rounded-xl text-zinc-500 transition hover:bg-primary/8 hover:text-primary dark:text-zinc-400 dark:hover:bg-primary/10 dark:hover:text-primary"
+                aria-label="退出登录"
+                title="退出登录"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </form>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function getActiveAdminItem(pathname: string) {
+  return ADMIN_NAV_ITEMS.find((item) => isActiveAdminPath(pathname, item.href)) ?? null;
+}
+
 function isActiveAdminPath(pathname: string, href: string) {
+  if (href === "/admin/categories") {
+    return (
+      pathname === href ||
+      pathname.startsWith("/admin/categories/") ||
+      pathname === "/admin/tags" ||
+      pathname.startsWith("/admin/tags/")
+    );
+  }
+
   return pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`));
 }

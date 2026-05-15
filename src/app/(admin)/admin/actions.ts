@@ -6,12 +6,16 @@ import { getPostPath } from "@/lib/routes";
 import { requireAdminSession } from "@/server/auth";
 import {
   deletePostById,
+  movePostToTrashById,
   publishPostById,
+  restorePostFromTrashById,
   unpublishPostById,
 } from "@/server/repositories/posts";
 import {
   deleteUpdateById,
+  moveUpdateToTrashById,
   publishUpdateById,
+  restoreUpdateFromTrashById,
   unpublishUpdateById,
 } from "@/server/repositories/updates";
 
@@ -21,7 +25,19 @@ export async function publishPostAction(formData: FormData) {
   const post = await publishPostById(id);
 
   revalidatePostSurface(post.slug, post.category?.slug);
-  redirect("/admin/workbench?tab=posts");
+  redirect("/admin/posts");
+}
+
+export async function publishPostsBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一篇文章。");
+
+  for (const id of ids) {
+    const post = await publishPostById(id);
+    revalidatePostSurface(post.slug, post.category?.slug);
+  }
+
+  redirect("/admin/posts");
 }
 
 export async function unpublishPostAction(formData: FormData) {
@@ -30,16 +46,122 @@ export async function unpublishPostAction(formData: FormData) {
   const post = await unpublishPostById(id);
 
   revalidatePostSurface(post.slug, post.category?.slug);
-  redirect("/admin/workbench?tab=posts");
+  redirect("/admin/posts");
+}
+
+export async function unpublishPostsBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一篇文章。");
+
+  for (const id of ids) {
+    const post = await unpublishPostById(id);
+    revalidatePostSurface(post.slug, post.category?.slug);
+  }
+
+  redirect("/admin/posts");
 }
 
 export async function deletePostAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredPostId(formData, "id");
+  const post = await movePostToTrashById(id);
+
+  revalidatePostSurface(post.slug, post.category?.slug);
+  redirect("/admin/posts");
+}
+
+export async function restorePostAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredPostId(formData, "id");
+  const post = await restorePostFromTrashById(id);
+
+  revalidatePostSurface(post.slug, post.category?.slug);
+  redirect("/admin/trash");
+}
+
+export async function permanentlyDeletePostAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredPostId(formData, "id");
   const post = await deletePostById(id);
 
   revalidatePostSurface(post.slug, post.category?.slug);
-  redirect("/admin/workbench?tab=posts");
+  redirect("/admin/trash");
+}
+
+export async function restoreTrashItemAction(formData: FormData) {
+  await requireAdminSession();
+  const entry = getRequiredTrashEntry(formData, "item");
+
+  if (entry.kind === "post") {
+    const post = await restorePostFromTrashById(entry.id);
+    revalidatePostSurface(post.slug, post.category?.slug);
+  } else {
+    await restoreUpdateFromTrashById(entry.id);
+    revalidateUpdateSurface();
+  }
+
+  redirect("/admin/trash");
+}
+
+export async function restoreTrashItemsBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const entries = getRequiredTrashEntries(formData, "items", "请至少选择一项内容。");
+
+  for (const entry of entries) {
+    if (entry.kind === "post") {
+      const post = await restorePostFromTrashById(entry.id);
+      revalidatePostSurface(post.slug, post.category?.slug);
+    } else {
+      await restoreUpdateFromTrashById(entry.id);
+      revalidateUpdateSurface();
+    }
+  }
+
+  redirect("/admin/trash");
+}
+
+export async function permanentlyDeleteTrashItemAction(formData: FormData) {
+  await requireAdminSession();
+  const entry = getRequiredTrashEntry(formData, "item");
+
+  if (entry.kind === "post") {
+    const post = await deletePostById(entry.id);
+    revalidatePostSurface(post.slug, post.category?.slug);
+  } else {
+    await deleteUpdateById(entry.id);
+    revalidateUpdateSurface();
+  }
+
+  redirect("/admin/trash");
+}
+
+export async function permanentlyDeleteTrashItemsBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const entries = getRequiredTrashEntries(formData, "items", "请至少选择一项内容。");
+
+  for (const entry of entries) {
+    if (entry.kind === "post") {
+      const post = await deletePostById(entry.id);
+      revalidatePostSurface(post.slug, post.category?.slug);
+    } else {
+      await deleteUpdateById(entry.id);
+      revalidateUpdateSurface();
+    }
+  }
+
+  redirect("/admin/trash");
+}
+
+export async function deletePostsBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一篇文章。");
+
+  for (const id of ids) {
+    const post = await movePostToTrashById(id);
+    revalidatePostSurface(post.slug, post.category?.slug);
+  }
+
+  redirect("/admin/posts");
 }
 
 export async function publishUpdateAction(formData: FormData) {
@@ -48,7 +170,19 @@ export async function publishUpdateAction(formData: FormData) {
   await publishUpdateById(id);
 
   revalidateUpdateSurface();
-  redirect("/admin/workbench?tab=updates");
+  redirect("/admin/updates");
+}
+
+export async function publishUpdatesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一条动态。");
+
+  for (const id of ids) {
+    await publishUpdateById(id);
+  }
+
+  revalidateUpdateSurface();
+  redirect("/admin/updates");
 }
 
 export async function unpublishUpdateAction(formData: FormData) {
@@ -57,21 +191,66 @@ export async function unpublishUpdateAction(formData: FormData) {
   await unpublishUpdateById(id);
 
   revalidateUpdateSurface();
-  redirect("/admin/workbench?tab=updates");
+  redirect("/admin/updates");
+}
+
+export async function unpublishUpdatesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一条动态。");
+
+  for (const id of ids) {
+    await unpublishUpdateById(id);
+  }
+
+  revalidateUpdateSurface();
+  redirect("/admin/updates");
 }
 
 export async function deleteUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
+  await moveUpdateToTrashById(id);
+
+  revalidateUpdateSurface();
+  redirect("/admin/updates");
+}
+
+export async function restoreUpdateAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  await restoreUpdateFromTrashById(id);
+
+  revalidateUpdateSurface();
+  redirect("/admin/trash");
+}
+
+export async function permanentlyDeleteUpdateAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
   await deleteUpdateById(id);
 
   revalidateUpdateSurface();
-  redirect("/admin/workbench?tab=updates");
+  redirect("/admin/trash");
+}
+
+export async function deleteUpdatesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一条动态。");
+
+  for (const id of ids) {
+    await moveUpdateToTrashById(id);
+  }
+
+  revalidateUpdateSurface();
+  redirect("/admin/updates");
 }
 
 function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/posts");
+  revalidatePath("/admin/trash");
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/tags");
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/posts");
@@ -83,7 +262,8 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
 
 function revalidateUpdateSurface() {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/updates");
+  revalidatePath("/admin/trash");
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/updates");
@@ -119,4 +299,55 @@ function getRequiredId(formData: FormData, key: string) {
   }
 
   return Number(value);
+}
+
+function getRequiredIds(formData: FormData, key: string, message: string) {
+  const values = formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === "string" && /^\d+$/.test(value))
+    .map((value) => Number(value));
+
+  if (values.length === 0) {
+    throw new Error(message);
+  }
+
+  return Array.from(new Set(values));
+}
+
+function getRequiredTrashEntry(formData: FormData, key: string) {
+  const value = getRequiredString(formData, key);
+  const entry = parseTrashEntry(value);
+
+  if (!entry) {
+    throw new Error("请填写有效的回收站内容。");
+  }
+
+  return entry;
+}
+
+function getRequiredTrashEntries(formData: FormData, key: string, message: string) {
+  const entries = formData
+    .getAll(key)
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => parseTrashEntry(value))
+    .filter((value): value is NonNullable<ReturnType<typeof parseTrashEntry>> => Boolean(value));
+
+  if (entries.length === 0) {
+    throw new Error(message);
+  }
+
+  return Array.from(new Map(entries.map((entry) => [`${entry.kind}:${entry.id}`, entry])).values());
+}
+
+function parseTrashEntry(value: string) {
+  const match = value.match(/^(post|update):(\d+)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    kind: match[1] as "post" | "update",
+    id: Number(match[2]),
+  };
 }

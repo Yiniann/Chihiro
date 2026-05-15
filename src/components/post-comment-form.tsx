@@ -15,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/tiptap-ui-primitive/popover/popover";
 import { useToast } from "@/components/toast-provider";
+import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
 
 const initialState: SubmitCommentState = {
   error: null,
@@ -405,6 +406,7 @@ export function PostCommentForm({
 }: PostCommentFormProps) {
   const formRef = useRef<HTMLFormElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const isMobile = useIsBreakpoint();
   const [bodyLength, setBodyLength] = useState(0);
   const stableKaomojiTriggerLabel = getStableKaomojiTriggerLabel(
     `${postId}:${parentId ?? "root"}:${pathname}:${compact ? "compact" : "default"}`,
@@ -511,7 +513,11 @@ export function PostCommentForm({
               }`}
               placeholder={placeholder}
             />
-            <div className="grid h-9 grid-cols-[1fr_auto_1fr] items-center gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70">
+            <div
+              className={`grid h-9 items-center gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70 ${
+                isMobile ? "grid-cols-[1fr_auto]" : "grid-cols-[1fr_auto_1fr]"
+              }`}
+            >
               <div className="flex items-center gap-3 text-xs text-primary/80 dark:text-primary/75">
                 <EmojiInsertPopover onSelect={insertText} />
                 <CommentInsertPopover
@@ -522,10 +528,12 @@ export function PostCommentForm({
                   widthClassName="w-80"
                 />
               </div>
-              <span className="justify-self-center text-xs text-primary/80 dark:text-primary/75">
-                支持 Markdown / GFM
-              </span>
-              <div className="flex items-center justify-end gap-3">
+              {isMobile ? null : (
+                <span className="justify-self-center text-xs text-primary/80 dark:text-primary/75">
+                  支持 Markdown / GFM
+                </span>
+              )}
+              <div className="flex items-center justify-end gap-3 justify-self-end">
                 <span className="text-xs text-zinc-400 dark:text-zinc-500">
                   {bodyLength}/{commentMaxLength}
                 </span>

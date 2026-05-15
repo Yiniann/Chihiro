@@ -51,13 +51,13 @@ export async function saveUpdateAction(
       revalidateUpdateSurface();
     }
 
-    revalidatePath("/admin/workbench");
-    revalidatePath("/admin/compose/update");
+    revalidatePath("/admin/updates");
+    revalidatePath("/admin/updates/new");
 
     if (intent !== "publish" && typeof updateId !== "number") {
       return {
         error: null,
-        redirectTo: `/admin/compose/update?id=${encodeURIComponent(update.id)}`,
+        redirectTo: `/admin/updates/${encodeURIComponent(update.id)}`,
       };
     }
   } catch (error) {
@@ -75,7 +75,7 @@ export async function saveUpdateAction(
   }
 
   if (intent === "publish") {
-    redirect("/admin/workbench?tab=updates");
+    redirect("/admin/updates");
   }
 
   return {
@@ -100,10 +100,10 @@ export async function discardUpdateRevisionAction(formData: FormData) {
   const restoredUpdate = await discardUpdateRevisionById(updateId);
 
   revalidateUpdateSurface();
-  revalidatePath("/admin/workbench");
-  revalidatePath("/admin/compose/update");
+  revalidatePath("/admin/updates");
+  revalidatePath("/admin/updates/new");
 
-  redirect(`/admin/compose/update?id=${encodeURIComponent(restoredUpdate.id)}`);
+  redirect(`/admin/updates/${encodeURIComponent(restoredUpdate.id)}`);
 }
 
 function getOptionalString(formData: FormData, key: string) {
@@ -197,7 +197,7 @@ function isUniqueConstraintError(error: unknown) {
 
 function revalidateUpdateSurface() {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/updates");
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/updates");

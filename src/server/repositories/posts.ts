@@ -12,6 +12,7 @@ const postInclude = {
   _count: {
     select: {
       likes: true,
+      comments: true,
     },
   },
 } satisfies Prisma.PostInclude;
@@ -36,6 +37,7 @@ export type PostItem = {
   updatedAt: string;
   viewCount: number;
   likeCount: number;
+  commentCount: number;
   publishedSnapshot: PublishedPostSnapshot | null;
   draftSnapshot: DraftPostSnapshot | null;
   category: {
@@ -812,6 +814,30 @@ export async function deletePostById(id: number): Promise<PostItem> {
   return mapPostRecord(post);
 }
 
+export async function movePostToTrashById(id: number): Promise<PostItem> {
+  const post = await prisma.post.update({
+    where: { id },
+    data: {
+      status: ContentStatus.ARCHIVED,
+    },
+    include: postInclude,
+  });
+
+  return mapPostRecord(post);
+}
+
+export async function restorePostFromTrashById(id: number): Promise<PostItem> {
+  const post = await prisma.post.update({
+    where: { id },
+    data: {
+      status: ContentStatus.DRAFT,
+    },
+    include: postInclude,
+  });
+
+  return mapPostRecord(post);
+}
+
 export async function unpublishPostById(id: number): Promise<PostItem> {
   const post = await prisma.post.update({
     where: { id },
@@ -934,6 +960,7 @@ function mapPostRecord(record: PostRecord): PostItem {
     updatedAt: record.updatedAt.toISOString(),
     viewCount: record.viewCount,
     likeCount: record._count.likes,
+    commentCount: record._count.comments,
     publishedSnapshot: parsePublishedSnapshot(record.publishedSnapshot),
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
     category: record.category
@@ -982,6 +1009,7 @@ function mapPublishedPostRecord(record: PostRecord): PostItem {
     updatedAt: record.updatedAt.toISOString(),
     viewCount: record.viewCount,
     likeCount: record._count.likes,
+    commentCount: record._count.comments,
     publishedSnapshot: snapshot,
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
     category: snapshot.category,

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { requireAdminSession } from "@/server/auth";
 import { AdminHeader } from "@/app/(admin)/admin/admin-header";
-import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { getAdminBackendStatus, getAdminBackendStatusMessage } from "@/server/admin-backend";
 
 export const dynamic = "force-dynamic";
@@ -16,11 +15,10 @@ export default async function AdminLayout({
   if (backendStatus !== "ready") {
     const message = getAdminBackendStatusMessage(backendStatus);
 
-      return (
-        <div className="relative min-h-full bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-          <SiteCanvasBackground />
-          <main className="relative z-10 flex min-h-screen items-center justify-center px-6 py-16">
-          <section className="w-full max-w-2xl rounded-[2rem] border border-zinc-200/80 bg-white/90 p-8 shadow-[0_24px_70px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/70 dark:shadow-[0_24px_80px_rgba(0,0,0,0.42)] sm:p-10">
+    return (
+      <div className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-[#050505] dark:text-zinc-100">
+        <main className="flex min-h-screen items-center justify-center px-6 py-16">
+          <section className="w-full max-w-2xl rounded-[2rem] border border-zinc-200/80 bg-white p-8 shadow-[0_24px_70px_rgba(24,24,27,0.12)] dark:border-white/10 dark:bg-[#111111] dark:shadow-[0_30px_90px_rgba(0,0,0,0.4)] sm:p-10">
             <p className="text-[0.72rem] font-medium uppercase tracking-[0.26em] text-zinc-400 dark:text-zinc-500">
               Admin
             </p>
@@ -42,12 +40,12 @@ export default async function AdminLayout({
               backendStatus === "needs_installation" ? (
                 <Link
                   href="/install"
-                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white px-5 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:text-zinc-50"
+                  className="inline-flex h-11 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white px-5 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/8 dark:hover:text-white"
                 >
                   前往初始化
                 </Link>
               ) : null}
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="text-sm text-zinc-500 dark:text-zinc-500">
                 数据库恢复后，刷新页面即可继续登录后台。
               </p>
             </div>
@@ -60,14 +58,15 @@ export default async function AdminLayout({
   await requireAdminSession();
 
   return (
-    <div className="relative min-h-full bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
-      <SiteCanvasBackground />
-      <AdminHeader />
-      <main className="relative z-10 min-h-screen px-6 pb-6 pt-24 md:px-10 md:pb-8 md:pt-28">
-        <div className="mx-auto w-full max-w-6xl">
-          <section className="min-w-0">{children}</section>
-        </div>
-      </main>
+    <div className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-[#050505] dark:text-zinc-100 md:h-screen md:overflow-hidden">
+      <div className="md:flex md:h-screen">
+        <AdminHeader />
+        <main className="min-w-0 flex-1 px-4 pb-4 pt-4 md:h-screen md:overflow-y-auto md:px-6 md:py-6">
+          <section className="mx-auto min-h-[calc(100vh-5.5rem)] min-w-0 max-w-7xl md:min-h-full">
+            {children}
+          </section>
+        </main>
+      </div>
     </div>
   );
 }

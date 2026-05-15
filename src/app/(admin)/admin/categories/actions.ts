@@ -53,7 +53,7 @@ export async function saveCategoryAction(
 
   return {
     error: null,
-    redirectTo: "/admin/workbench?tab=categories",
+    redirectTo: "/admin/categories",
     createdCategory: null,
   };
 }
@@ -102,7 +102,7 @@ export async function createCategoryAction(
 
   return {
     error: null,
-    redirectTo: "/admin/workbench?tab=categories",
+    redirectTo: "/admin/categories",
     createdCategory: null,
   };
 }
@@ -113,12 +113,13 @@ export async function deleteCategoryAction(formData: FormData) {
   const category = await deleteCategoryById(id);
 
   revalidateCategorySurfaces(category.id, category.slug);
-  redirect(`/admin/workbench?tab=categories&deletedCategory=${encodeURIComponent(category.id)}`);
+  redirect(`/admin/categories?deletedCategory=${encodeURIComponent(category.id)}`);
 }
 
 function revalidateCategorySurfaces(id: number, slug: string) {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/posts");
+  revalidatePath("/admin/categories");
   revalidatePath(`/admin/categories/${id}`);
   revalidatePath("/");
   revalidatePath("/posts");

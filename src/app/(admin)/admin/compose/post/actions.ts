@@ -68,13 +68,13 @@ export async function savePostDraftAction(
       revalidatePostSurface(publishedPost.slug, publishedPost.category?.slug);
     }
 
-    revalidatePath("/admin/workbench");
-    revalidatePath("/admin/compose/post");
+    revalidatePath("/admin/posts");
+    revalidatePath("/admin/posts/new");
 
     if (intent !== "publish" && typeof postId !== "number") {
       return {
         error: null,
-        redirectTo: `/admin/compose/post?id=${encodeURIComponent(post.id)}`,
+        redirectTo: `/admin/posts/${encodeURIComponent(post.id)}`,
       };
     }
   } catch (error) {
@@ -92,7 +92,7 @@ export async function savePostDraftAction(
   }
 
   if (intent === "publish") {
-    redirect("/admin/workbench?tab=posts");
+    redirect("/admin/posts");
   }
 
   return {
@@ -118,10 +118,10 @@ export async function discardPostRevisionAction(formData: FormData) {
 
   revalidatePostSurface(currentPost.slug, currentPost.category?.slug);
   revalidatePostSurface(restoredPost.slug, restoredPost.category?.slug);
-  revalidatePath("/admin/workbench");
-  revalidatePath("/admin/compose/post");
+  revalidatePath("/admin/posts");
+  revalidatePath("/admin/posts/new");
 
-  redirect(`/admin/compose/post?id=${encodeURIComponent(restoredPost.id)}`);
+  redirect(`/admin/posts/${encodeURIComponent(restoredPost.id)}`);
 }
 
 function getRequiredString(formData: FormData, key: string) {
@@ -260,7 +260,9 @@ function isUniqueSlugError(error: unknown) {
 
 function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/posts");
+  revalidatePath("/admin/categories");
+  revalidatePath("/admin/tags");
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/posts");

@@ -1,12 +1,14 @@
 "use client";
 
 import { X } from "lucide-react";
+import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { useEffect, useId, useState } from "react";
 
 type ConfirmActionDialogProps = {
   triggerLabel: string;
   triggerClassName: string;
+  triggerContent?: ReactNode;
   title: string;
   description: string;
   confirmLabel: string;
@@ -22,6 +24,7 @@ type ConfirmActionDialogProps = {
 export function ConfirmActionDialog({
   triggerLabel,
   triggerClassName,
+  triggerContent,
   title,
   description,
   confirmLabel,
@@ -59,8 +62,9 @@ export function ConfirmActionDialog({
         className={triggerClassName}
         disabled={disabled}
         onClick={() => setOpen(true)}
+        aria-label={triggerLabel || confirmLabel}
       >
-        {triggerLabel}
+        {triggerContent ?? triggerLabel}
       </button>
 
       {open && typeof document !== "undefined"

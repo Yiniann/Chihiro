@@ -60,7 +60,7 @@ export async function createTagAction(
 
   return {
     error: null,
-    redirectTo: "/admin/workbench?tab=tags",
+    redirectTo: "/admin/tags",
     createdTag: null,
   };
 }
@@ -110,7 +110,7 @@ export async function saveTagAction(
 
   return {
     error: null,
-    redirectTo: "/admin/workbench?tab=tags",
+    redirectTo: "/admin/tags",
     createdTag: null,
   };
 }
@@ -128,12 +128,13 @@ export async function deleteTagAction(formData: FormData) {
 
   revalidateTagSurfaces(currentTag.id, currentTag.slug);
   revalidateTagSurfaces(tag.id, tag.slug);
-  redirect("/admin/workbench?tab=tags");
+  redirect("/admin/tags");
 }
 
 function revalidateTagSurfaces(id: string, slug: string) {
   revalidatePath("/admin");
-  revalidatePath("/admin/workbench");
+  revalidatePath("/admin/posts");
+  revalidatePath("/admin/tags");
   revalidatePath(`/admin/tags/${id}`);
   revalidatePath("/");
   revalidatePath("/posts");

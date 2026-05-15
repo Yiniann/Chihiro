@@ -89,11 +89,11 @@ export function PostActionMenu({ postId, isPublished }: PostActionMenuProps) {
             </form>
           )}
           <ConfirmActionDialog
-            triggerLabel="删除文章"
+            triggerLabel="移到回收站"
             triggerClassName="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
-            title="删除这篇文章？"
-            description="删除后无法撤销，文章和相关数据会被移除。"
-            confirmLabel="删除文章"
+            title="将这篇文章移到回收站？"
+            description="移入回收站后不会立刻彻底删除，你可以稍后在回收站里恢复或永久移除。"
+            confirmLabel="移到回收站"
             action={deletePostAction}
             fields={[{ name: "id", value: postId }]}
             confirmTone="danger"

@@ -247,6 +247,28 @@ export async function deleteUpdateById(id: number): Promise<UpdateItem> {
   return mapUpdateRecord(update);
 }
 
+export async function moveUpdateToTrashById(id: number): Promise<UpdateItem> {
+  const update = await prisma.update.update({
+    where: { id },
+    data: {
+      status: ContentStatus.ARCHIVED,
+    },
+  });
+
+  return mapUpdateRecord(update);
+}
+
+export async function restoreUpdateFromTrashById(id: number): Promise<UpdateItem> {
+  const update = await prisma.update.update({
+    where: { id },
+    data: {
+      status: ContentStatus.DRAFT,
+    },
+  });
+
+  return mapUpdateRecord(update);
+}
+
 export async function discardUpdateRevisionById(id: number): Promise<UpdateItem> {
   const current = await fetchUpdateRowById(id);
 

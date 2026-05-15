@@ -289,7 +289,7 @@ export async function getAssetUsageReferences(id: string): Promise<AssetUsageRef
       kind: "post-cover" as const,
       id: post.id,
       title: post.title,
-      href: `/admin/compose/post?id=${encodeURIComponent(post.id)}`,
+      href: `/admin/posts/${encodeURIComponent(post.id)}`,
     })),
     ...postContentRows
       .filter((post) => !coverPosts.some((coverPost) => coverPost.id === post.id))
@@ -297,13 +297,13 @@ export async function getAssetUsageReferences(id: string): Promise<AssetUsageRef
         kind: "post-content" as const,
         id: post.id,
         title: post.title,
-        href: `/admin/compose/post?id=${encodeURIComponent(post.id)}`,
+        href: `/admin/posts/${encodeURIComponent(post.id)}`,
       })),
     ...updateContentRows.map((update) => ({
       kind: "update-content" as const,
       id: update.id,
       title: update.title,
-      href: `/admin/compose/update?id=${encodeURIComponent(update.id)}`,
+      href: `/admin/updates/${encodeURIComponent(update.id)}`,
     })),
   ];
 

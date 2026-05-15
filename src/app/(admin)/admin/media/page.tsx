@@ -1,4 +1,4 @@
-import { AdminPageHeader } from "@/app/(admin)/admin/ui";
+import { StatCard } from "@/app/(admin)/admin/ui";
 import { MediaLibrary } from "@/app/(admin)/admin/media/media-library";
 import {
   getAssetUsageReferences,
@@ -17,11 +17,32 @@ export default async function AdminMediaPage() {
       usageReferences: await getAssetUsageReferences(asset.id),
     })),
   );
+  const imageCount = assetsWithUsage.filter((asset) => asset.kind === "IMAGE").length;
+  const videoCount = assetsWithUsage.filter((asset) => asset.kind === "VIDEO").length;
+  const fileCount = assetsWithUsage.filter((asset) => asset.kind === "FILE").length;
+  const usedAssetCount = assetsWithUsage.filter((asset) => asset.usageSummary.totalCount > 0).length;
 
   return (
     <div className="grid gap-8">
-      <AdminPageHeader eyebrow="Media" title="媒体库" />
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <BoardStat>
+          <StatCard label="全部媒体" value={assets.totalCount} />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="图片" value={imageCount} />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="视频与文件" value={videoCount + fileCount} />
+        </BoardStat>
+        <BoardStat>
+          <StatCard label="已被引用" value={usedAssetCount} tone="neutral" />
+        </BoardStat>
+      </section>
       <MediaLibrary assets={assetsWithUsage} />
     </div>
   );
+}
+
+function BoardStat({ children }: { children: React.ReactNode }) {
+  return <div className="min-w-0 px-5 py-4">{children}</div>;
 }

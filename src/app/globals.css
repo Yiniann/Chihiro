@@ -1922,3 +1922,13 @@ html[data-theme="dark"] {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 220'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='gamma' amplitude='1' exponent='1.15' offset='0'/%3E%3CfeFuncG type='gamma' amplitude='1' exponent='1.15' offset='0'/%3E%3CfeFuncB type='gamma' amplitude='1' exponent='1.15' offset='0'/%3E%3CfeFuncA type='table' tableValues='0 0.2'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
   }
 }
+
+.bulk-selection-form .bulk-action-bar {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .bulk-selection-form:has(input[type="checkbox"]:checked) .bulk-action-bar {
+    display: flex;
+  }
+}

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminContentRedirectPage() {
-  redirect("/admin/workbench");
+  redirect("/admin/posts");
 }
