@@ -43,6 +43,12 @@ export function LiveSearchInput({
       }
 
       const nextQuery = params.toString();
+      const currentQuery = searchParams.toString();
+
+      if (nextQuery === currentQuery) {
+        return;
+      }
+
       const nextHref = nextQuery ? `${pathname}?${nextQuery}` : pathname;
       router.replace(nextHref, { scroll: false });
     }, 220);
