@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Plus } from "lucide-react";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { deleteTagAction } from "@/app/(admin)/admin/tags/actions";
@@ -20,12 +21,13 @@ type TagCloudPanelProps = {
 export function TagCloudPanel({ items }: TagCloudPanelProps) {
   return (
     <section className="border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80">
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-5 flex flex-wrap items-center justify-end gap-4">
         <Link
           href="/admin/tags/new"
-          className="inline-flex items-center gap-1.5 border-b border-transparent px-0 py-1 text-sm font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
         >
-          增加标签
+          <Plus className="h-4 w-4" />
+          添加标签
         </Link>
       </div>
 

@@ -44,7 +44,7 @@ export default async function AdminCommentsPage({
 
   return (
     <div className="grid gap-10">
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="grid grid-cols-4 gap-2 sm:gap-4">
         <BoardStat>
           <StatCard label="全部评论" value={stats.total} />
         </BoardStat>

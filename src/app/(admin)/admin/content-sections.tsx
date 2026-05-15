@@ -19,10 +19,10 @@ import {
   Heart,
   MessageSquare,
   Plus,
-  Search,
 } from "lucide-react";
 import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { BulkSelectToggle } from "@/app/(admin)/admin/bulk-select-toggle";
+import { LiveSearchInput } from "@/app/(admin)/admin/live-search-input";
 import { WorkbenchCategoryPanel } from "@/app/(admin)/admin/workbench/workbench-category-panel";
 import { PostActionMenu } from "@/app/(admin)/admin/workbench/post-action-menu";
 import { TagCloudPanel } from "@/app/(admin)/admin/workbench/tag-cloud-panel";
@@ -284,16 +284,7 @@ function ContentTableToolbar({
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       <form action={basePath ?? ""} className="flex min-w-0 flex-1 items-center gap-3">
         {sort ? <input type="hidden" name="sort" value={sort} /> : null}
-        <label className="relative block w-full max-w-[28rem]">
-          <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
-          <input
-            type="search"
-            name="q"
-            defaultValue={query}
-            placeholder="搜索标题..."
-            className="h-11 w-full rounded-2xl border border-zinc-200/80 bg-zinc-50/90 pl-11 pr-4 text-sm text-zinc-800 outline-none transition placeholder:text-zinc-400 hover:border-zinc-300 focus:border-[rgb(var(--primary-rgb)/0.4)] focus:bg-white dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-100 dark:hover:border-white/15 dark:focus:border-[rgb(var(--primary-rgb)/0.4)] dark:focus:bg-white/[0.06]"
-          />
-        </label>
+        <LiveSearchInput defaultValue={query} sort={sort} />
       </form>
       <div className="flex flex-wrap items-center gap-3">
         <Link
