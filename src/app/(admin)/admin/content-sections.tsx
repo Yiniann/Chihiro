@@ -675,55 +675,40 @@ function AdminPostMobileRow({
             {item.title}
           </Link>
         </div>
-        <div className="mt-2 grid grid-cols-[auto_auto_auto_minmax(0,1fr)_auto] items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-          <span className="inline-flex h-8 min-w-0 max-w-[5.5rem] items-center truncate rounded-xl bg-zinc-100 px-2.5 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-300">
-            <span className="truncate">
-              {item.category?.name ?? "未分类"}
-            </span>
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-1.5">
-            <MessageSquare className="h-3.5 w-3.5" />
-            {formatAdminNumber(item.commentCount)}
-          </span>
-          <span className="inline-flex shrink-0 items-center gap-1.5">
-            <Heart className="h-3.5 w-3.5" />
-            {formatAdminNumber(item.likeCount)}
-          </span>
-          <span className="min-w-0 truncate whitespace-nowrap">
-            {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
-          </span>
-          <div className="shrink-0">
-            <TableStatus status={item.status} />
-          </div>
-        </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1 pl-1 text-zinc-400 dark:text-zinc-500">
-        {item.status === ContentStatus.PUBLISHED ? (
-          <a
-            href={getPostPath({ slug: item.slug, categorySlug: item.category?.slug })}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
-            aria-label="查看站点文章"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        ) : (
-          <span
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-300 dark:text-zinc-700"
-            aria-label="未发布，无法查看站点文章"
-          >
-            <ExternalLink className="h-4 w-4" />
+      <div className="flex shrink-0 items-center pl-1 text-zinc-400 dark:text-zinc-500">
+        <PostActionMenu
+          postId={item.id}
+          isPublished={item.status === ContentStatus.PUBLISHED}
+          editHref={`/admin/posts/${encodeURIComponent(item.id)}`}
+          viewHref={
+            item.status === ContentStatus.PUBLISHED
+              ? getPostPath({ slug: item.slug, categorySlug: item.category?.slug })
+              : undefined
+          }
+          compact
+        />
+      </div>
+      <div className="col-span-2 mt-1 grid grid-cols-[auto_auto_auto_minmax(0,1fr)_auto] items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="inline-flex h-8 min-w-0 max-w-[5.5rem] items-center truncate rounded-xl bg-zinc-100 px-2.5 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-300">
+          <span className="truncate">
+            {item.category?.name ?? "未分类"}
           </span>
-        )}
-        <Link
-          href={`/admin/posts/${encodeURIComponent(item.id)}`}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
-          aria-label="编辑文章"
-        >
-          <FilePenLine className="h-4 w-4" />
-        </Link>
-        <PostActionMenu postId={item.id} isPublished={item.status === ContentStatus.PUBLISHED} />
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <MessageSquare className="h-3.5 w-3.5" />
+          {formatAdminNumber(item.commentCount)}
+        </span>
+        <span className="inline-flex shrink-0 items-center gap-1.5">
+          <Heart className="h-3.5 w-3.5" />
+          {formatAdminNumber(item.likeCount)}
+        </span>
+        <span className="min-w-0 truncate whitespace-nowrap">
+          {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+        </span>
+        <div className="shrink-0">
+          <TableStatus status={item.status} />
+        </div>
       </div>
     </div>
   );
@@ -747,23 +732,22 @@ function AdminUpdateMobileRow({
             {content}
           </Link>
         </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
-          <span>{formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}</span>
-          <TableStatus status={item.status} />
-        </div>
       </div>
-      <div className="flex shrink-0 items-center gap-1 pl-1 text-zinc-400 dark:text-zinc-500">
-        <Link
-          href={`/admin/updates/${encodeURIComponent(item.id)}`}
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
-          aria-label="编辑动态"
-        >
-          <FilePenLine className="h-4 w-4" />
-        </Link>
+      <div className="flex shrink-0 items-center pl-1 text-zinc-400 dark:text-zinc-500">
         <UpdateActionMenu
           isPublished={item.status === ContentStatus.PUBLISHED}
           updateId={item.id}
+          editHref={`/admin/updates/${encodeURIComponent(item.id)}`}
+          compact
         />
+      </div>
+      <div className="col-span-2 mt-1 flex items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="min-w-0 truncate whitespace-nowrap">
+          {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+        </span>
+        <div className="shrink-0">
+          <TableStatus status={item.status} />
+        </div>
       </div>
     </div>
   );

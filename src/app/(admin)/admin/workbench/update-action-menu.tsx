@@ -6,15 +6,23 @@ import {
   unpublishUpdateAction,
 } from "@/app/(admin)/admin/actions";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
-import { ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, Ellipsis, FilePenLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type UpdateActionMenuProps = {
   updateId: number;
   isPublished: boolean;
+  editHref?: string;
+  compact?: boolean;
 };
 
-export function UpdateActionMenu({ updateId, isPublished }: UpdateActionMenuProps) {
+export function UpdateActionMenu({
+  updateId,
+  isPublished,
+  editHref,
+  compact = false,
+}: UpdateActionMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -58,15 +66,35 @@ export function UpdateActionMenu({ updateId, isPublished }: UpdateActionMenuProp
         type="button"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((current) => !current)}
-        className="inline-flex items-center gap-1.5 border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+        className={
+          compact
+            ? "inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-400"
+            : "inline-flex items-center gap-1.5 border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-900 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+        }
+        aria-label="更多操作"
       >
-        操作
-        <ChevronDown
-          className={`h-3.5 w-3.5 transition duration-200 ${isOpen ? "rotate-180" : ""}`}
-        />
+        {compact ? (
+          <Ellipsis className="h-4.5 w-4.5" />
+        ) : (
+          <>
+            操作
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition duration-200 ${isOpen ? "rotate-180" : ""}`}
+            />
+          </>
+        )}
       </button>
       {isOpen ? (
         <div className="absolute right-0 z-10 mt-2 min-w-[7.5rem] overflow-hidden rounded-2xl border border-zinc-200/90 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:border-zinc-800/90 dark:bg-zinc-950 dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)]">
+          {editHref ? (
+            <Link
+              href={editHref}
+              className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+            >
+              {compact ? null : <FilePenLine className="h-3.5 w-3.5" />}
+              编辑动态
+            </Link>
+          ) : null}
           {isPublished ? (
             <form action={unpublishUpdateAction}>
               <input type="hidden" name="id" value={updateId} />
