@@ -763,9 +763,11 @@ function renderCompactRow(
   columns: Array<{ key: string; label: string }>,
   row: React.JSX.Element,
 ) {
-  const children = Array.isArray(row.props.children) ? row.props.children : [row.props.children];
+  const children: React.ReactNode[] = Array.isArray(row.props.children)
+    ? row.props.children
+    : [row.props.children];
 
-  return children.map((child, index) => (
+  return children.map((child: React.ReactNode, index: number) => (
     <div key={`${columns[index]?.key ?? index}`} className="grid gap-1">
       <p className="text-[11px] font-medium uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
         {columns[index]?.label ?? ""}
