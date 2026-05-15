@@ -665,31 +665,39 @@ function AdminPostMobileRow({
   item: Awaited<ReturnType<typeof listPostsForAdmin>>[number];
 }) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1">
-        <Link
-          href={`/admin/posts/${encodeURIComponent(item.id)}`}
-          className="block truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
-        >
-          {item.title}
-        </Link>
-        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
-          <span className="inline-flex h-8 items-center rounded-xl bg-zinc-100 px-2.5 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-300">
-            {item.category?.name ?? "未分类"}
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+      <div className="min-w-0 w-full">
+        <div className="overflow-hidden">
+          <Link
+            href={`/admin/posts/${encodeURIComponent(item.id)}`}
+            className="block w-full truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
+          >
+            {item.title}
+          </Link>
+        </div>
+        <div className="mt-2 grid grid-cols-[auto_auto_auto_minmax(0,1fr)_auto] items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <span className="inline-flex h-8 min-w-0 max-w-[5.5rem] items-center truncate rounded-xl bg-zinc-100 px-2.5 text-zinc-700 dark:bg-white/[0.06] dark:text-zinc-300">
+            <span className="truncate">
+              {item.category?.name ?? "未分类"}
+            </span>
           </span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex shrink-0 items-center gap-1.5">
             <MessageSquare className="h-3.5 w-3.5" />
             {formatAdminNumber(item.commentCount)}
           </span>
-          <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex shrink-0 items-center gap-1.5">
             <Heart className="h-3.5 w-3.5" />
             {formatAdminNumber(item.likeCount)}
           </span>
-          <span>{formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}</span>
-          <TableStatus status={item.status} />
+          <span className="min-w-0 truncate whitespace-nowrap">
+            {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+          </span>
+          <div className="shrink-0">
+            <TableStatus status={item.status} />
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
+      <div className="flex shrink-0 items-center gap-1 pl-1 text-zinc-400 dark:text-zinc-500">
         {item.status === ContentStatus.PUBLISHED ? (
           <a
             href={getPostPath({ slug: item.slug, categorySlug: item.category?.slug })}
@@ -729,20 +737,22 @@ function AdminUpdateMobileRow({
   const content = getContentText(item.contentHtml, item.content) || "空内容";
 
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1">
-        <Link
-          href={`/admin/updates/${encodeURIComponent(item.id)}`}
-          className="block truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
-        >
-          {content}
-        </Link>
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+      <div className="min-w-0 w-full">
+        <div className="overflow-hidden">
+          <Link
+            href={`/admin/updates/${encodeURIComponent(item.id)}`}
+            className="block w-full truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
+          >
+            {content}
+          </Link>
+        </div>
         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
           <span>{formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}</span>
           <TableStatus status={item.status} />
         </div>
       </div>
-      <div className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
+      <div className="flex shrink-0 items-center gap-1 pl-1 text-zinc-400 dark:text-zinc-500">
         <Link
           href={`/admin/updates/${encodeURIComponent(item.id)}`}
           className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
