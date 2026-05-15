@@ -79,6 +79,14 @@ body {
   font-family: var(--font-sans);
 }
 
+@media (hover: none) and (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: rgb(var(--primary-rgb) / 0.6) transparent;

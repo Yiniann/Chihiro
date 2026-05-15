@@ -399,7 +399,7 @@ export function PostCommentForm({
   showGuestFields = false,
   compact = false,
   placeholder = "写下你的想法...",
-  submitLabel = "提交评论",
+  submitLabel = "Send",
   user = null,
   onSuccess,
 }: PostCommentFormProps) {
