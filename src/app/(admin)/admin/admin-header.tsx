@@ -108,7 +108,7 @@ export function AdminHeader() {
           <Link
             href="/"
             aria-label="View site"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white text-zinc-600 transition hover:border-primary/25 hover:bg-primary/6 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-primary/20 dark:hover:bg-primary/10 dark:hover:text-primary"
+            className="inline-flex h-10 w-10 items-center justify-center text-zinc-600 transition hover:text-primary dark:text-zinc-300 dark:hover:text-primary"
           >
             <House className="h-4.5 w-4.5" />
           </Link>
@@ -118,7 +118,7 @@ export function AdminHeader() {
             aria-label={isMobileNavOpen ? "Close admin navigation" : "Open admin navigation"}
             aria-expanded={isMobileNavOpen}
             onClick={() => setIsMobileNavOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-200/80 bg-white text-zinc-700 transition hover:border-primary/25 hover:bg-primary/6 hover:text-primary dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-primary/20 dark:hover:bg-primary/10 dark:hover:text-primary"
+            className="inline-flex h-10 w-10 items-center justify-center text-zinc-700 transition hover:text-primary dark:text-zinc-200 dark:hover:text-primary"
           >
             {isMobileNavOpen ? <X className="h-4.5 w-4.5" /> : <Menu className="h-4.5 w-4.5" />}
           </button>

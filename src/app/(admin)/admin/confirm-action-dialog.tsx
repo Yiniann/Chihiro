@@ -36,6 +36,7 @@ export function ConfirmActionDialog({
   const [open, setOpen] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
+  const isDanger = confirmTone === "danger";
 
   useEffect(() => {
     if (!open) {
@@ -79,7 +80,7 @@ export function ConfirmActionDialog({
                   aria-modal="true"
                   aria-labelledby={titleId}
                   aria-describedby={descriptionId}
-                  className="relative w-full max-w-lg overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/95 shadow-[0_24px_90px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/95 dark:shadow-[0_24px_90px_rgba(0,0,0,0.55)]"
+                  className="relative w-full max-w-md overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/95 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/95 dark:shadow-[0_24px_90px_rgba(0,0,0,0.55)]"
                   onClick={(event) => event.stopPropagation()}
                 >
                   <button
@@ -91,62 +92,53 @@ export function ConfirmActionDialog({
                     <X className="h-4 w-4" />
                   </button>
 
-                  <div className="flex items-start gap-3 px-5 pt-5">
-                    <div
+                  <div className="pr-8">
+                    <p
                       className={[
-                        "mt-0.5 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border",
-                        confirmTone === "danger"
-                          ? "border-rose-200 bg-rose-50 text-rose-600 dark:border-rose-900/60 dark:bg-rose-950/25 dark:text-rose-300"
-                          : "border-zinc-200 bg-zinc-50 text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900/60 dark:text-zinc-300",
+                        "text-[0.68rem] font-medium uppercase tracking-[0.24em]",
+                        isDanger ? "text-rose-500 dark:text-rose-400" : "text-zinc-400 dark:text-zinc-500",
                       ].join(" ")}
                     >
-                      <span className="text-sm font-semibold uppercase tracking-[0.12em]">!</span>
-                    </div>
-                    <div className="min-w-0 flex-1 pr-8">
-                      <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                        Confirm
-                      </p>
-                      <h2
-                        id={titleId}
-                        className="mt-2 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
-                      >
-                        {title}
-                      </h2>
-                      <p
-                        id={descriptionId}
-                        className="mt-2 text-sm leading-6 text-zinc-500 dark:text-zinc-400"
-                      >
-                        {description}
-                      </p>
-                    </div>
+                      {isDanger ? "Confirm" : "Action"}
+                    </p>
+                    <h2
+                      id={titleId}
+                      className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
+                    >
+                      {title}
+                    </h2>
+                    <p
+                      id={descriptionId}
+                      className="mt-3 text-sm leading-6 text-zinc-500 dark:text-zinc-400"
+                    >
+                      {description}
+                    </p>
                   </div>
 
-                  <div className="mt-5 border-t border-zinc-200/80 px-5 py-4 dark:border-zinc-800/80">
-                    <div className="flex items-center justify-end gap-2">
+                  <div className="mt-6 flex items-center justify-end gap-5">
+                    <button
+                      type="button"
+                      onClick={() => setOpen(false)}
+                      className="inline-flex h-10 items-center justify-center text-sm font-medium text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+                    >
+                      取消
+                    </button>
+                    <form action={action}>
+                      {fields.map((field) => (
+                        <input key={field.name} type="hidden" name={field.name} value={field.value} />
+                      ))}
                       <button
-                        type="button"
-                        onClick={() => setOpen(false)}
-                        className="inline-flex h-10 items-center justify-center rounded-2xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+                        type="submit"
+                        className={[
+                          "inline-flex h-10 items-center justify-center rounded-2xl px-1 text-sm font-medium transition",
+                          isDanger
+                            ? "text-rose-600 hover:text-rose-500 dark:text-rose-400 dark:hover:text-rose-300"
+                            : "text-zinc-950 hover:text-zinc-700 dark:text-zinc-100 dark:hover:text-white",
+                        ].join(" ")}
                       >
-                        取消
+                        {confirmLabel}
                       </button>
-                      <form action={action}>
-                        {fields.map((field) => (
-                          <input key={field.name} type="hidden" name={field.name} value={field.value} />
-                        ))}
-                        <button
-                          type="submit"
-                          className={[
-                            "inline-flex h-10 items-center justify-center rounded-2xl px-4 text-sm font-medium transition",
-                            confirmTone === "danger"
-                              ? "bg-rose-600 text-white hover:bg-rose-500 dark:bg-rose-500 dark:hover:bg-rose-400"
-                              : "bg-zinc-950 text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white",
-                          ].join(" ")}
-                        >
-                          {confirmLabel}
-                        </button>
-                      </form>
-                    </div>
+                    </form>
                   </div>
                 </div>
               </div>

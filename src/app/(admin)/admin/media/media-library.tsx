@@ -19,6 +19,16 @@ type MediaAssetItem = AssetItem & {
   usageReferences: AssetUsageReference[];
 };
 
+const mediaTypeFilters: Array<{
+  label: string;
+  value: AssetItem["kind"] | null;
+}> = [
+  { label: "全部", value: null },
+  { label: "图片", value: "IMAGE" },
+  { label: "视频", value: "VIDEO" },
+  { label: "文件", value: "FILE" },
+];
+
 export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
   const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -41,8 +51,6 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
     });
   }, [assets, deferredQuery, typeFilter]);
   const searchTerms = useMemo(() => getSearchTerms(deferredQuery.trim().toLowerCase()), [deferredQuery]);
-  const hasActiveFilters = typeFilter !== null;
-
   const selectedAsset = useMemo(
     () =>
       filteredAssets.find((asset) => asset.id === selectedAssetId) ??
@@ -91,42 +99,23 @@ export function MediaLibrary({ assets }: { assets: MediaAssetItem[] }) {
   return (
     <>
       <section className="grid gap-5">
-        <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            当前显示 {filteredAssets.length} / {assets.length} 条媒体
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 pb-2 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
-          <div className="flex flex-wrap items-center gap-3">
-            {(["IMAGE", "VIDEO", "FILE"] as const).map((value) => {
-              const active = typeFilter === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setTypeFilter((current) => (current === value ? null : value))}
-                  className={`transition ${
-                    active
-                      ? "relative inline-flex items-center justify-center px-1 py-1 text-sm font-medium text-zinc-950 after:absolute after:inset-x-0 after:-bottom-2 after:h-0.5 after:rounded-full after:bg-zinc-950 dark:text-zinc-50 dark:after:bg-zinc-100"
-                      : "relative inline-flex items-center justify-center px-1 py-1 text-sm font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-                  }`}
-                >
-                  {getMediaTypeLabel(value)}
-                </button>
-              );
-            })}
-            {hasActiveFilters ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+          <div className="flex flex-wrap items-center gap-2">
+            {mediaTypeFilters.map((item) => (
               <button
+                key={item.label}
                 type="button"
-                onClick={() => {
-                  setTypeFilter(null);
-                }}
-                className="text-xs uppercase tracking-[0.18em] text-primary transition hover:text-primary/80 dark:text-primary dark:hover:text-primary/80"
+                onClick={() => setTypeFilter(item.value)}
+                className={[
+                  "inline-flex h-9 items-center rounded-2xl px-3 text-sm font-medium transition",
+                  item.value === typeFilter
+                    ? "bg-primary/10 text-primary"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100",
+                ].join(" ")}
               >
-                Clear
+                {item.label}
               </button>
-            ) : null}
+            ))}
           </div>
 
           <button
