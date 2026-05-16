@@ -1,4 +1,3 @@
-import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { PostEditorForm } from "@/app/(admin)/admin/compose/post/post-editor-form";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { listPostCategories } from "@/server/repositories/categories";
@@ -14,9 +13,7 @@ export default async function AdminNewPostPage() {
   const siteUrlBase = resolveCanonicalSiteUrl(siteSettings);
 
   return (
-    <div className="grid gap-8">
-      <AdminPageHeader title="撰写新文章" />
-
+    <div className="grid gap-6">
       <PostEditorForm
         key="new-post"
         post={null}

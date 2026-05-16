@@ -1,6 +1,7 @@
 "use client";
 
 import { ContentStatus } from "@prisma/client";
+import { Code2, FileText, SlidersHorizontal } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
@@ -43,6 +44,8 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
   const [state, formAction] = useActionState(saveUpdateAction, initialState);
   const editableUpdate = getEditableUpdate(update);
   const formRef = useRef<HTMLFormElement | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCodeView, setIsCodeView] = useState(false);
   const [previewState, setPreviewState] = useState<UpdatePreviewState | null>(null);
   const [isEditorDirty, setIsEditorDirty] = useState(false);
   const wasDirtyBeforeSubmitRef = useRef(false);
@@ -80,20 +83,54 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
             <input type="hidden" name="currentStatus" value={status} />
           </>
         }
+        topBar={
+          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                Editor
+              </p>
+              <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+                {update ? "编辑动态" : "撰写新动态"}
+              </h1>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsCodeView((current) => !current)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
+                title={isCodeView ? "切换到富文本" : "切换到源码"}
+              >
+                {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen(true)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                aria-label="打开设置"
+                title="打开设置"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        }
         stateError={state.error}
         main={
-          <div className="grid gap-4">
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              动态只需要填写内容，标题会自动从内容生成。
-            </p>
-
-            <PostRichTextEditor
-              initialContent={editableUpdate?.content}
-              initialContentHtml={editableUpdate?.contentHtml}
-              onDirtyChange={setIsEditorDirty}
-              placeholder="开始写这条动态。支持标题、引用、链接和图片。"
-            />
-          </div>
+          <article className="grid gap-0">
+            <div className="mx-auto w-full max-w-[64rem] px-1 pb-5 pt-3 sm:px-2 sm:pb-8 sm:pt-4 2xl:max-w-[72rem]">
+              <PostRichTextEditor
+                initialContent={editableUpdate?.content}
+                initialContentHtml={editableUpdate?.contentHtml}
+                onDirtyChange={setIsEditorDirty}
+                placeholder="开始写这条动态。支持标题、引用、链接和图片。"
+                appearance="embedded"
+                isCodeView={isCodeView}
+                onCodeViewChange={setIsCodeView}
+                showModeToggle={false}
+              />
+            </div>
+          </article>
         }
         sidebar={
           <>
@@ -105,6 +142,10 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
             </label>
           </>
         }
+        sidebarMode="drawer"
+        sidebarOpen={isSettingsOpen}
+        onSidebarOpenChange={setIsSettingsOpen}
+        sidebarTitle="动态设置"
         footerLeft={
           <>
             <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>

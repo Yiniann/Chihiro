@@ -13,6 +13,7 @@ import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 import { StarterKit } from "@tiptap/starter-kit"
 import { Image as TiptapImage } from "@tiptap/extension-image"
 import { TaskItem, TaskList } from "@tiptap/extension-list"
+import { Placeholder } from "@tiptap/extension-placeholder"
 import { TextAlign } from "@tiptap/extension-text-align"
 import { Typography } from "@tiptap/extension-typography"
 import { Highlight } from "@tiptap/extension-highlight"
@@ -338,6 +339,11 @@ type SimpleEditorProps = {
   htmlFieldName?: string
   onDirtyChange?: (isDirty: boolean) => void
   showThemeToggle?: boolean
+  placeholder?: string
+  appearance?: "default" | "embedded"
+  isCodeView?: boolean
+  onCodeViewChange?: (isCodeView: boolean) => void
+  showModeToggle?: boolean
 }
 
 const EMPTY_DOCUMENT: JSONContent = {
@@ -347,6 +353,81 @@ const EMPTY_DOCUMENT: JSONContent = {
 
 const IMAGE_UPLOAD_ACCEPT = "image/avif,image/gif,image/jpeg,image/png,image/svg+xml,image/webp"
 const INITIAL_MEDIA_SELECTION_TYPES = new Set(["image", "gallery", "imageUpload"])
+
+function formatHtmlForCodeView(html: string) {
+  if (typeof window === "undefined") {
+    return html
+  }
+
+  const parser = new DOMParser()
+  const parsed = parser.parseFromString(html, "text/html")
+  const voidTags = new Set([
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+  ])
+  const preserveInlineHtmlTags = new Set(["pre", "code"])
+
+  function serializeNode(node: ChildNode, depth: number): string {
+    const indent = "  ".repeat(depth)
+
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent?.replace(/\s+/g, " ").trim() ?? ""
+      return text ? `${indent}${text}` : ""
+    }
+
+    if (node.nodeType !== Node.ELEMENT_NODE) {
+      return ""
+    }
+
+    const element = node as HTMLElement
+    const tagName = element.tagName.toLowerCase()
+    const attributes = Array.from(element.attributes)
+      .map((attribute) => ` ${attribute.name}="${attribute.value.replace(/"/g, "&quot;")}"`)
+      .join("")
+
+    if (voidTags.has(tagName)) {
+      return `${indent}<${tagName}${attributes}>`
+    }
+
+    if (preserveInlineHtmlTags.has(tagName)) {
+      return `${indent}<${tagName}${attributes}>${element.innerHTML}</${tagName}>`
+    }
+
+    const serializedChildren = Array.from(element.childNodes)
+      .map((child) => serializeNode(child, depth + 1))
+      .filter(Boolean)
+
+    if (serializedChildren.length === 0) {
+      return `${indent}<${tagName}${attributes}></${tagName}>`
+    }
+
+    const hasSingleTextChild =
+      element.childNodes.length === 1 && element.childNodes[0]?.nodeType === Node.TEXT_NODE
+
+    if (hasSingleTextChild) {
+      return `${indent}<${tagName}${attributes}>${element.textContent?.trim() ?? ""}</${tagName}>`
+    }
+
+    return `${indent}<${tagName}${attributes}>\n${serializedChildren.join("\n")}\n${indent}</${tagName}>`
+  }
+
+  return Array.from(parsed.body.childNodes)
+    .map((node) => serializeNode(node, 0))
+    .filter(Boolean)
+    .join("\n\n")
+}
 
 function normalizeInitialMediaSelection(editor: Editor) {
   const { state, view } = editor
@@ -497,19 +578,29 @@ export function SimpleEditor({
   htmlFieldName = "contentHtml",
   onDirtyChange,
   showThemeToggle = false,
+  placeholder = "开始写作。",
+  appearance = "default",
+  isCodeView: controlledCodeView,
+  onCodeViewChange,
+  showModeToggle = true,
 }: SimpleEditorProps) {
   const isMobile = useIsBreakpoint()
   const [mobileView, setMobileView] = useState<"main" | "highlighter" | "link">(
     "main"
   )
-  const [isCodeView, setIsCodeView] = useState(false)
+  const [uncontrolledCodeView, setUncontrolledCodeView] = useState(false)
   const [codeValue, setCodeValue] = useState(() => initialContentHtml ?? "")
   const toolbarRef = useRef<HTMLDivElement>(null)
   const [serializedContent, setSerializedContent] = useState("null")
   const [serializedHtml, setSerializedHtml] = useState("")
+  const [isToolbarStuck, setIsToolbarStuck] = useState(false)
   const initialSignatureRef = useRef<string | null>(null)
   const shouldNormalizeInitialSelectionRef = useRef(true)
   const activeMobileView = isMobile ? mobileView : "main"
+  const isCodeView = controlledCodeView ?? uncontrolledCodeView
+  const toolbarBarRef = useRef<HTMLDivElement>(null)
+  const toolbarSentinelRef = useRef<HTMLDivElement>(null)
+  const codeInputRef = useRef<HTMLTextAreaElement>(null)
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -551,6 +642,11 @@ export function SimpleEditor({
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Placeholder.configure({
+        placeholder,
+        showOnlyCurrent: false,
+        includeChildren: false,
+      }),
       Highlight.configure({ multicolor: true }),
       PhotoImage,
       GalleryNode.configure({
@@ -599,18 +695,89 @@ export function SimpleEditor({
     void toolbarRef.current
   }, [])
 
+  useEffect(() => {
+    if (!isCodeView) {
+      return
+    }
+
+    const textarea = codeInputRef.current
+
+    if (!textarea) {
+      return
+    }
+
+    textarea.style.height = "auto"
+    textarea.style.height = `${textarea.scrollHeight}px`
+  }, [codeValue, isCodeView])
+
+  useEffect(() => {
+    if (!isCodeView || !editor) {
+      return
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      setCodeValue((current) => {
+        const formatted = formatHtmlForCodeView(editor.getHTML())
+        return current === formatted ? current : formatted
+      })
+    })
+
+    return () => {
+      window.cancelAnimationFrame(frame)
+    }
+  }, [editor, isCodeView])
+
+  useEffect(() => {
+    if (appearance !== "embedded") {
+      return
+    }
+
+    const element = toolbarBarRef.current
+    const sentinel = toolbarSentinelRef.current
+
+    if (!element || !sentinel) {
+      return
+    }
+
+    const scrollParent = element.closest("main")
+    const root = scrollParent instanceof Element ? scrollParent : null
+    const stickyTop = Number.parseFloat(window.getComputedStyle(element).top || "0")
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsToolbarStuck(!entry.isIntersecting)
+      },
+      {
+        root,
+        threshold: [1],
+        rootMargin: `-${stickyTop + 1}px 0px 0px 0px`,
+      }
+    )
+
+    observer.observe(sentinel)
+
+    return () => {
+      observer.disconnect()
+    }
+  }, [appearance, isMobile])
+
   function toggleCodeView() {
     if (!editor) {
       return
     }
 
     if (!isCodeView) {
-      syncCodeValue(editor.getHTML())
-      setIsCodeView(true)
+      syncCodeValue(formatHtmlForCodeView(editor.getHTML()))
+      onCodeViewChange?.(true)
+      if (controlledCodeView === undefined) {
+        setUncontrolledCodeView(true)
+      }
       return
     }
 
-    setIsCodeView(false)
+    onCodeViewChange?.(false)
+    if (controlledCodeView === undefined) {
+      setUncontrolledCodeView(false)
+    }
   }
 
   function syncCodeValue(nextCodeValue: string) {
@@ -632,43 +799,55 @@ export function SimpleEditor({
   }
 
   return (
-    <div className="simple-editor-shell">
+    <div className="simple-editor-shell" data-appearance={appearance}>
       {editor ? (
-        <div className="simple-editor-mode-toolbar">
-          <ModeToggle isCodeView={isCodeView} onToggleCodeView={toggleCodeView} />
-        </div>
+        <>
+          <div ref={toolbarSentinelRef} aria-hidden="true" className="simple-editor-toolbar-sentinel" />
+          <div
+            ref={toolbarBarRef}
+            className="simple-editor-toolbar-bar"
+            data-stuck={isToolbarStuck ? "true" : "false"}
+          >
+            <Toolbar
+              ref={toolbarRef}
+              className="simple-editor-main-toolbar"
+            >
+              {!isCodeView && editor && activeMobileView === "main" ? (
+                <MainToolbarContent
+                  editor={editor}
+                  onHighlighterClick={() => setMobileView("highlighter")}
+                  onLinkClick={() => setMobileView("link")}
+                  isMobile={isMobile}
+                  showThemeToggle={showThemeToggle}
+                />
+              ) : !isCodeView && editor ? (
+                <MobileToolbarContent
+                  editor={editor}
+                  type={activeMobileView === "highlighter" ? "highlighter" : "link"}
+                  onBack={() => setMobileView("main")}
+                />
+              ) : null}
+            </Toolbar>
+
+            {showModeToggle ? (
+              <div className="simple-editor-mode-toolbar">
+                <ModeToggle isCodeView={isCodeView} onToggleCodeView={toggleCodeView} />
+              </div>
+            ) : null}
+          </div>
+        </>
       ) : null}
 
-      <div className="simple-editor-wrapper">
+      <div className="simple-editor-wrapper" data-appearance={appearance}>
         <input type="hidden" name={contentFieldName} value={serializedContent} />
         <input type="hidden" name={htmlFieldName} value={serializedHtml} />
         <EditorContext.Provider value={{ editor }}>
-          <Toolbar
-            ref={toolbarRef}
-            className="simple-editor-main-toolbar"
-          >
-            {!isCodeView && editor && activeMobileView === "main" ? (
-              <MainToolbarContent
-                editor={editor}
-                onHighlighterClick={() => setMobileView("highlighter")}
-                onLinkClick={() => setMobileView("link")}
-                isMobile={isMobile}
-                showThemeToggle={showThemeToggle}
-              />
-            ) : !isCodeView && editor ? (
-              <MobileToolbarContent
-                editor={editor}
-                type={activeMobileView === "highlighter" ? "highlighter" : "link"}
-                onBack={() => setMobileView("main")}
-              />
-            ) : null}
-          </Toolbar>
-
           {!isCodeView && editor ? <ImageAltEditor editor={editor} /> : null}
 
           {isCodeView ? (
             <div className="simple-editor-code-pane">
               <textarea
+                ref={codeInputRef}
                 value={codeValue}
                 onChange={(event) => syncCodeValue(event.target.value)}
                 wrap="soft"

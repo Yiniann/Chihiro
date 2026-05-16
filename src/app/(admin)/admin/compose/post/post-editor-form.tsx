@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentStatus } from "@prisma/client";
-import { Check } from "lucide-react";
+import { Check, Code2, FileText, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -12,10 +12,10 @@ import {
   type SavePostEditorState,
 } from "@/app/(admin)/admin/compose/post/actions";
 import { ContentEditorShell } from "@/app/(admin)/admin/compose/content-editor-shell";
+import { PostDocumentCanvas } from "@/app/(admin)/admin/compose/post/post-document-canvas";
 import { ContentPreviewDialog } from "@/app/(admin)/admin/compose/content-preview-dialog";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { PublishedAtField } from "@/app/(admin)/admin/compose/post/published-at-field";
-import { PostRichTextEditor } from "@/app/(admin)/admin/compose/post/post-rich-text-editor";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import { escapeHtmlText, stripHtml } from "@/lib/content";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
@@ -60,6 +60,8 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
   );
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCodeView, setIsCodeView] = useState(false);
   const [previewState, setPreviewState] = useState<PostPreviewState | null>(null);
   const [isEditorDirty, setIsEditorDirty] = useState(false);
   const handleCreatedCategoryRef = useRef<(category: CategoryOption) => void>(() => {});
@@ -103,52 +105,51 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
             <input type="hidden" name="currentStatus" value={post?.status ?? ContentStatus.DRAFT} />
           </>
         }
+        topBar={
+          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
+            <div className="min-w-0">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                Editor
+              </p>
+              <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+                {post ? "编辑文章" : "撰写新文章"}
+              </h1>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setIsCodeView((current) => !current)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
+                title={isCodeView ? "切换到富文本" : "切换到源码"}
+              >
+                {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsSettingsOpen(true)}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                aria-label="打开设置"
+                title="打开设置"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        }
         stateError={state.error}
         main={
-          <>
-            <div className="grid gap-2">
-              <input
-                id="title"
-                name="title"
-                type="text"
-                required
-                defaultValue={editablePost?.title ?? ""}
-                placeholder="输入文章标题"
-                className="h-14 border-b border-zinc-200/80 bg-transparent px-0 text-3xl font-semibold tracking-tight text-zinc-950 outline-none transition placeholder:text-zinc-300 focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-50 dark:placeholder:text-zinc-600"
-              />
-            </div>
-
-            <label className="grid gap-2">
-              <div className="flex items-center border-b border-zinc-200/80 text-sm text-zinc-600 transition focus-within:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-300">
-                <span className="shrink-0 whitespace-nowrap text-zinc-600 dark:text-zinc-300">
-                  {postUrlPrefix}
-                </span>
-                <input
-                  name="slug"
-                  type="text"
-                  defaultValue={editablePost?.slug ?? ""}
-                  placeholder="留空则根据id生成"
-                  className="h-11 min-w-0 flex-1 bg-transparent px-0 outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-600"
-                />
-              </div>
-            </label>
-
-            <label className="grid gap-2">
-              <textarea
-                name="summary"
-                rows={3}
-                defaultValue={editablePost?.summary ?? ""}
-                placeholder="为文章写一段简短介绍"
-                className="min-h-28 border-b border-zinc-200/80 bg-transparent px-0 py-2 text-base leading-8 text-zinc-600 outline-none transition placeholder:text-zinc-400 focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-300 dark:placeholder:text-zinc-600"
-              />
-            </label>
-
-            <PostRichTextEditor
-              initialContent={editablePost?.content}
-              initialContentHtml={editablePost?.contentHtml}
-              onDirtyChange={setIsEditorDirty}
-            />
-          </>
+          <PostDocumentCanvas
+            defaultTitle={editablePost?.title ?? ""}
+            defaultSlug={editablePost?.slug ?? ""}
+            defaultSummary={editablePost?.summary ?? ""}
+            postUrlPrefix={postUrlPrefix}
+            initialContent={editablePost?.content}
+            initialContentHtml={editablePost?.contentHtml}
+            onDirtyChange={setIsEditorDirty}
+            isCodeView={isCodeView}
+            onCodeViewChange={setIsCodeView}
+          />
         }
         sidebar={
           <>
@@ -251,6 +252,10 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
             </fieldset>
           </>
         }
+        sidebarMode="drawer"
+        sidebarOpen={isSettingsOpen}
+        onSidebarOpenChange={setIsSettingsOpen}
+        sidebarTitle="文章设置"
         footerLeft={
           <>
             <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>

@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { PostEditorForm } from "@/app/(admin)/admin/compose/post/post-editor-form";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { listPostCategories } from "@/server/repositories/categories";
@@ -35,9 +34,7 @@ export default async function AdminPostDetailPage({ params }: AdminPostDetailPag
   const siteUrlBase = resolveCanonicalSiteUrl(siteSettings);
 
   return (
-    <div className="grid gap-8">
-      <AdminPageHeader title="编辑文章" />
-
+    <div className="grid gap-6">
       <PostEditorForm
         key={`${post.id}:${post.draftSnapshot?.savedAt ?? post.updatedAt}`}
         post={post}

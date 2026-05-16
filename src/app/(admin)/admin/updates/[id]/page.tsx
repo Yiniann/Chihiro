@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { UpdateEditorForm } from "@/app/(admin)/admin/compose/update/update-editor-form";
 import { getUpdateByIdForAdmin } from "@/server/repositories/updates";
 import { getSiteSettings } from "@/server/repositories/site";
@@ -29,15 +28,11 @@ export default async function AdminUpdateDetailPage({ params }: AdminUpdateDetai
   }
 
   return (
-    <div className="grid gap-8">
-      <AdminPageHeader title="编辑动态" />
-
-      <UpdateEditorForm
-        key={`${update.id}:${update.draftSnapshot?.savedAt ?? update.updatedAt}`}
-        update={update}
-        authorName={siteSettings?.authorName ?? siteConfig.author}
-      />
-    </div>
+    <UpdateEditorForm
+      key={`${update.id}:${update.draftSnapshot?.savedAt ?? update.updatedAt}`}
+      update={update}
+      authorName={siteSettings?.authorName ?? siteConfig.author}
+    />
   );
 }
 
