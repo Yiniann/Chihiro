@@ -41,7 +41,10 @@ export default async function AdminLoginSettingsPage() {
             authSecret: Boolean(process.env.AUTH_SECRET?.trim()),
             githubId: Boolean(process.env.AUTH_GITHUB_ID?.trim()),
             githubSecret: Boolean(process.env.AUTH_GITHUB_SECRET?.trim()),
-            callbackUrl: `${siteUrl}/api/auth/callback/github`,
+            githubCallbackUrl: `${siteUrl}/api/auth/callback/github`,
+            googleId: Boolean(process.env.AUTH_GOOGLE_ID?.trim()),
+            googleSecret: Boolean(process.env.AUTH_GOOGLE_SECRET?.trim()),
+            googleCallbackUrl: `${siteUrl}/api/auth/callback/google`,
           }}
         />
       </div>

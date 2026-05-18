@@ -1,7 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   saveCommentSettingsAction,
   saveLoginSettingsAction,
@@ -26,7 +25,10 @@ type LoginSettingsFormProps = BaseSettingsFormProps & {
     authSecret: boolean;
     githubId: boolean;
     githubSecret: boolean;
-    callbackUrl: string;
+    githubCallbackUrl: string;
+    googleId: boolean;
+    googleSecret: boolean;
+    googleCallbackUrl: string;
   };
 };
 
@@ -36,92 +38,107 @@ export function LoginSettingsForm({
   authStatus,
 }: LoginSettingsFormProps) {
   const [state, formAction] = useActionState(saveLoginSettingsAction, initialState);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const didMountRef = useRef(false);
-  const shouldSubmitRef = useRef(false);
-  const rollbackValueRef = useRef<boolean | null>(null);
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   useSettingsToast(state);
   const [watchedGithubLoginEnabled, setWatchedGithubLoginEnabled] = useState(
     defaults.githubLoginEnabled,
   );
+  const [watchedGoogleLoginEnabled, setWatchedGoogleLoginEnabled] = useState(
+    defaults.googleLoginEnabled,
+  );
   const authSecretReady = defaults.hasAuthSecret || authStatus.authSecret;
   const githubClientIdReady = Boolean(defaults.githubClientId) || authStatus.githubId;
   const githubClientSecretReady = defaults.hasGithubClientSecret || authStatus.githubSecret;
   const githubReady = authSecretReady && githubClientIdReady && githubClientSecretReady;
+  const googleClientIdReady = Boolean(defaults.googleClientId) || authStatus.googleId;
+  const googleClientSecretReady =
+    defaults.hasGoogleClientSecret || authStatus.googleSecret;
+  const googleReady = authSecretReady && googleClientIdReady && googleClientSecretReady;
 
-  useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-
-    if (!canEdit) {
-      return;
-    }
-
-    if (!shouldSubmitRef.current) {
-      return;
-    }
-
-    shouldSubmitRef.current = false;
-    formRef.current?.requestSubmit();
-  }, [canEdit, watchedGithubLoginEnabled]);
-
-  useEffect(() => {
-    if (!state.nonce || !isSubmitting) {
-      return;
-    }
-
-    if (state.error && rollbackValueRef.current !== null) {
-      setWatchedGithubLoginEnabled(rollbackValueRef.current);
-    }
-
-    rollbackValueRef.current = null;
-    setIsSubmitting(false);
-  }, [isSubmitting, state.error, state.nonce]);
-
-  function handleGithubLoginEnabledChange(nextChecked: boolean) {
+  async function updateLoginToggles(nextState: {
+    github: boolean;
+    google: boolean;
+  }) {
     if (!canEdit || isSubmitting) {
       return;
     }
 
-    rollbackValueRef.current = watchedGithubLoginEnabled;
-    shouldSubmitRef.current = true;
+    const previousState = {
+      github: watchedGithubLoginEnabled,
+      google: watchedGoogleLoginEnabled,
+    };
     setIsSubmitting(true);
-    setWatchedGithubLoginEnabled(nextChecked);
+    setWatchedGithubLoginEnabled(nextState.github);
+    setWatchedGoogleLoginEnabled(nextState.google);
+
+    const formData = new FormData();
+    formData.set("githubLoginEnabled", nextState.github ? "true" : "false");
+    formData.set("googleLoginEnabled", nextState.google ? "true" : "false");
+
+    const result = await saveLoginSettingsAction(initialState, formData);
+
+    if (result.error) {
+      setWatchedGithubLoginEnabled(previousState.github);
+      setWatchedGoogleLoginEnabled(previousState.google);
+      showToast(result.error, "error");
+    } else if (result.success) {
+      showToast(result.success);
+    }
+
+    setIsSubmitting(false);
+  }
+
+  function handleGithubLoginEnabledChange(nextChecked: boolean) {
+    void updateLoginToggles({
+      github: nextChecked,
+      google: watchedGoogleLoginEnabled,
+    });
+  }
+
+  function handleGoogleLoginEnabledChange(nextChecked: boolean) {
+    void updateLoginToggles({
+      github: watchedGithubLoginEnabled,
+      google: nextChecked,
+    });
   }
 
   return (
-    <form
-      id="login-settings-form"
-      ref={formRef}
-      action={formAction}
-      className="grid gap-8"
-    >
+    <form id="login-settings-form" action={formAction} className="grid gap-8">
       <input
         type="hidden"
         name="githubLoginEnabled"
         value={watchedGithubLoginEnabled ? "true" : "false"}
       />
+      <input
+        type="hidden"
+        name="googleLoginEnabled"
+        value={watchedGoogleLoginEnabled ? "true" : "false"}
+      />
       <section className="grid gap-5">
+        <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            会话安全
+          </p>
+          <AuthSecretField
+            ready={authSecretReady}
+            placeholder={authSecretReady ? "已保存；填写新值才会覆盖" : "粘贴或生成 Auth.js secret"}
+          />
+        </div>
+
         <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             GitHub 登录
           </p>
           <SwitchField
             title="启用 GitHub 登录"
-            description={githubReady ? "允许访客使用 GitHub 登录。" : "OAuth 配置未完整时，登录入口不会真正可用。"}
+            description="允许访客使用 GitHub 登录。"
             checked={watchedGithubLoginEnabled}
             onCheckedChange={handleGithubLoginEnabledChange}
             disabled={!canEdit || isSubmitting}
           />
           {watchedGithubLoginEnabled ? (
             <div className="grid gap-5 md:grid-cols-2">
-              <AuthSecretField
-                ready={authSecretReady}
-                placeholder={authSecretReady ? "已保存；填写新值才会覆盖" : "粘贴或生成 Auth.js secret"}
-              />
               <OAuthField
                 label="GitHub Client ID"
                 ready={githubClientIdReady}
@@ -146,7 +163,7 @@ export function LoginSettingsForm({
                   Callback URL
                 </span>
                 <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                  {authStatus.callbackUrl}
+                  {authStatus.githubCallbackUrl}
                 </code>
               </div>
             </div>
@@ -159,10 +176,42 @@ export function LoginSettingsForm({
           </p>
           <SwitchField
             title="启用 Google 登录"
-            description="先保留 UI；Google OAuth 还没有接入。"
-            defaultChecked={defaults.googleLoginEnabled}
-            disabled
+            description="允许访客使用 Google 登录。"
+            checked={watchedGoogleLoginEnabled}
+            onCheckedChange={handleGoogleLoginEnabledChange}
+            disabled={!canEdit || isSubmitting}
           />
+          {watchedGoogleLoginEnabled ? (
+            <div className="grid gap-5 md:grid-cols-2">
+              <OAuthField
+                label="Google Client ID"
+                ready={googleClientIdReady}
+                statusLabel={googleClientIdReady ? "已配置" : "未配置"}
+                name="googleClientId"
+                type="text"
+                defaultValue={defaults.googleClientId ?? ""}
+                placeholder={authStatus.googleId ? "已通过环境变量配置" : "粘贴 Google OAuth Client ID"}
+                description="来自 Google OAuth Client，用来识别当前站点。"
+              />
+              <OAuthField
+                label="Google Client Secret"
+                ready={googleClientSecretReady}
+                statusLabel={googleClientSecretReady ? "已配置" : "未配置"}
+                name="googleClientSecret"
+                type="password"
+                placeholder={googleClientSecretReady ? "已保存；填写新值才会覆盖" : "粘贴 Google OAuth Client Secret"}
+                description="不会在页面回显；留空会保留已保存的值或继续使用环境变量。"
+              />
+              <div className="grid gap-2 md:col-span-2">
+                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  Callback URL
+                </span>
+                <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                  {authStatus.googleCallbackUrl}
+                </code>
+              </div>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -181,15 +230,7 @@ export function CommentSettingsForm({
   defaults,
   canEdit,
 }: BaseSettingsFormProps) {
-  const [state, formAction] = useActionState(saveCommentSettingsAction, initialState);
-  const formRef = useRef<HTMLFormElement | null>(null);
-  const didMountRef = useRef(false);
-  const shouldSubmitRef = useRef(false);
-  const rollbackSnapshotRef = useRef<{
-    commentsEnabled: boolean;
-    loginRequiredToComment: boolean;
-    commentModeration: boolean;
-  } | null>(null);
+  const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [watchedCommentsEnabled, setWatchedCommentsEnabled] = useState(
     defaults.commentsEnabled,
@@ -200,47 +241,8 @@ export function CommentSettingsForm({
   const [watchedCommentModeration, setWatchedCommentModeration] = useState(
     defaults.commentModeration,
   );
-  useSettingsToast(state);
 
-  useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true;
-      return;
-    }
-
-    if (!canEdit) {
-      return;
-    }
-
-    if (!shouldSubmitRef.current) {
-      return;
-    }
-
-    shouldSubmitRef.current = false;
-    formRef.current?.requestSubmit();
-  }, [
-    canEdit,
-    watchedCommentsEnabled,
-    watchedCommentModeration,
-    watchedLoginRequiredToComment,
-  ]);
-
-  useEffect(() => {
-    if (!state.nonce || !isSubmitting) {
-      return;
-    }
-
-    if (state.error && rollbackSnapshotRef.current) {
-      setWatchedCommentsEnabled(rollbackSnapshotRef.current.commentsEnabled);
-      setWatchedLoginRequiredToComment(rollbackSnapshotRef.current.loginRequiredToComment);
-      setWatchedCommentModeration(rollbackSnapshotRef.current.commentModeration);
-    }
-
-    rollbackSnapshotRef.current = null;
-    setIsSubmitting(false);
-  }, [isSubmitting, state.error, state.nonce]);
-
-  function submitCommentToggleUpdate(nextState: {
+  async function submitCommentToggleUpdate(nextState: {
     commentsEnabled: boolean;
     loginRequiredToComment: boolean;
     commentModeration: boolean;
@@ -249,20 +251,40 @@ export function CommentSettingsForm({
       return;
     }
 
-    rollbackSnapshotRef.current = {
+    const previousState = {
       commentsEnabled: watchedCommentsEnabled,
       loginRequiredToComment: watchedLoginRequiredToComment,
       commentModeration: watchedCommentModeration,
     };
-    shouldSubmitRef.current = true;
     setIsSubmitting(true);
     setWatchedCommentsEnabled(nextState.commentsEnabled);
     setWatchedLoginRequiredToComment(nextState.loginRequiredToComment);
     setWatchedCommentModeration(nextState.commentModeration);
+
+    const formData = new FormData();
+    formData.set("commentsEnabled", nextState.commentsEnabled ? "true" : "false");
+    formData.set(
+      "loginRequiredToComment",
+      nextState.loginRequiredToComment ? "true" : "false",
+    );
+    formData.set("commentModeration", nextState.commentModeration ? "true" : "false");
+
+    const result = await saveCommentSettingsAction(initialState, formData);
+
+    if (result.error) {
+      setWatchedCommentsEnabled(previousState.commentsEnabled);
+      setWatchedLoginRequiredToComment(previousState.loginRequiredToComment);
+      setWatchedCommentModeration(previousState.commentModeration);
+      showToast(result.error, "error");
+    } else if (result.success) {
+      showToast(result.success);
+    }
+
+    setIsSubmitting(false);
   }
 
   function handleCommentsEnabledChange(nextChecked: boolean) {
-    submitCommentToggleUpdate({
+    void submitCommentToggleUpdate({
       commentsEnabled: nextChecked,
       loginRequiredToComment: watchedLoginRequiredToComment,
       commentModeration: watchedCommentModeration,
@@ -270,7 +292,7 @@ export function CommentSettingsForm({
   }
 
   function handleLoginRequiredToCommentChange(nextChecked: boolean) {
-    submitCommentToggleUpdate({
+    void submitCommentToggleUpdate({
       commentsEnabled: watchedCommentsEnabled,
       loginRequiredToComment: nextChecked,
       commentModeration: watchedCommentModeration,
@@ -278,7 +300,7 @@ export function CommentSettingsForm({
   }
 
   function handleCommentModerationChange(nextChecked: boolean) {
-    submitCommentToggleUpdate({
+    void submitCommentToggleUpdate({
       commentsEnabled: watchedCommentsEnabled,
       loginRequiredToComment: watchedLoginRequiredToComment,
       commentModeration: nextChecked,
@@ -286,28 +308,8 @@ export function CommentSettingsForm({
   }
 
   return (
-    <form
-      id="comment-settings-form"
-      ref={formRef}
-      action={formAction}
-      className="grid gap-8"
-    >
-      <input
-        type="hidden"
-        name="commentsEnabled"
-        value={watchedCommentsEnabled ? "true" : "false"}
-      />
-      <input
-        type="hidden"
-        name="loginRequiredToComment"
-        value={watchedLoginRequiredToComment ? "true" : "false"}
-      />
-      <input
-        type="hidden"
-        name="commentModeration"
-        value={watchedCommentModeration ? "true" : "false"}
-      />
-      <section className="grid gap-3">
+    <section className="grid gap-8">
+      <div className="grid gap-3">
         <SwitchField
           title="启用评论"
           description="打开后文章页可以展示评论入口。"
@@ -333,16 +335,16 @@ export function CommentSettingsForm({
             />
           </div>
         ) : null}
-      </section>
+      </div>
 
-      <section className="grid gap-3">
+      <div className="grid gap-3">
         {!canEdit ? (
           <div className="text-xs text-zinc-500 dark:text-zinc-400">
             只有 Owner 可以修改设置。
           </div>
         ) : null}
-      </section>
-    </form>
+      </div>
+    </section>
   );
 }
 

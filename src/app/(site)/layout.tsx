@@ -88,6 +88,10 @@ export default async function SiteLayout({
     interactionSettings.githubLoginEnabled &&
     (Boolean(interactionSettings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
     (interactionSettings.hasGithubClientSecret || Boolean(process.env.AUTH_GITHUB_SECRET?.trim()));
+  const googleAuthAvailable =
+    interactionSettings.googleLoginEnabled &&
+    (Boolean(interactionSettings.googleClientId) || Boolean(process.env.AUTH_GOOGLE_ID?.trim())) &&
+    (interactionSettings.hasGoogleClientSecret || Boolean(process.env.AUTH_GOOGLE_SECRET?.trim()));
 
   return (
     <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
@@ -101,7 +105,7 @@ export default async function SiteLayout({
         siteUrl={siteUrl}
         publicAuthProviders={{
           github: githubAuthAvailable,
-          google: interactionSettings.googleLoginEnabled,
+          google: googleAuthAvailable,
         }}
         postCategories={postCategories}
         recentArchiveItems={recentArchiveItems}

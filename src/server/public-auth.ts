@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import GitHub from "next-auth/providers/github";
+import Google from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextRequest } from "next/server";
 import { ACCOUNT_LINK_INTENT_COOKIE } from "@/lib/account-linking";
@@ -75,6 +76,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
         },
       }),
       ...(publicAuthConfig.githubCredentials ? [GitHub(publicAuthConfig.githubCredentials)] : []),
+      ...(publicAuthConfig.googleCredentials ? [Google(publicAuthConfig.googleCredentials)] : []),
     ],
     session: {
       strategy: "jwt",

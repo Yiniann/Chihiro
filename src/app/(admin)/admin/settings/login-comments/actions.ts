@@ -27,10 +27,21 @@ export async function saveLoginSettingsAction(
 
   try {
     const currentSettings = await getPublicInteractionSettings();
-    const githubLoginEnabled = getBoolean(formData, "githubLoginEnabled");
+    const githubLoginEnabled = getBooleanField(
+      formData,
+      "githubLoginEnabled",
+      currentSettings.githubLoginEnabled,
+    );
+    const googleLoginEnabled = getBooleanField(
+      formData,
+      "googleLoginEnabled",
+      currentSettings.googleLoginEnabled,
+    );
     const authSecret = getOptionalStringField(formData, "authSecret");
     const githubClientIdField = getOptionalStringField(formData, "githubClientId");
     const githubClientSecret = getOptionalStringField(formData, "githubClientSecret");
+    const googleClientIdField = getOptionalStringField(formData, "googleClientId");
+    const googleClientSecret = getOptionalStringField(formData, "googleClientSecret");
 
     await upsertPublicInteractionSettings({
       commentsEnabled: currentSettings.commentsEnabled,
@@ -43,7 +54,12 @@ export async function saveLoginSettingsAction(
           ? currentSettings.githubClientId
           : githubClientIdField,
       githubClientSecret,
-      googleLoginEnabled: false,
+      googleLoginEnabled,
+      googleClientId:
+        googleClientIdField === undefined
+          ? currentSettings.googleClientId
+          : googleClientIdField,
+      googleClientSecret,
     });
   } catch (error) {
     return {
@@ -99,6 +115,7 @@ export async function saveCommentSettingsAction(
       githubLoginEnabled: currentSettings.githubLoginEnabled,
       githubClientId: currentSettings.githubClientId,
       googleLoginEnabled: currentSettings.googleLoginEnabled,
+      googleClientId: currentSettings.googleClientId,
     });
   } catch (error) {
     return {

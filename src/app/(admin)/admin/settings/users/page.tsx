@@ -33,7 +33,10 @@ export default async function AdminUsersSettingsPage({
     interactionSettings.githubLoginEnabled &&
     (Boolean(interactionSettings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
     (interactionSettings.hasGithubClientSecret || Boolean(process.env.AUTH_GITHUB_SECRET?.trim()));
-  const googleEnabled = interactionSettings.googleLoginEnabled;
+  const googleEnabled =
+    interactionSettings.googleLoginEnabled &&
+    (Boolean(interactionSettings.googleClientId) || Boolean(process.env.AUTH_GOOGLE_ID?.trim())) &&
+    (interactionSettings.hasGoogleClientSecret || Boolean(process.env.AUTH_GOOGLE_SECRET?.trim()));
   const ownerUser =
     users.find((user) => user.id === currentUserId) ??
     users.find((user) => user.role === UserRole.OWNER) ??

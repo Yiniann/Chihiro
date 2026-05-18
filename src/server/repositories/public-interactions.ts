@@ -10,14 +10,17 @@ export type PublicInteractionSettingsRecord = {
   githubClientId: string | null;
   hasGithubClientSecret: boolean;
   googleLoginEnabled: boolean;
+  googleClientId: string | null;
+  hasGoogleClientSecret: boolean;
 };
 
 export type PublicInteractionSettingsInput = Omit<
   PublicInteractionSettingsRecord,
-  "hasAuthSecret" | "hasGithubClientSecret"
+  "hasAuthSecret" | "hasGithubClientSecret" | "hasGoogleClientSecret"
 > & {
   authSecret?: string | null;
   githubClientSecret?: string | null;
+  googleClientSecret?: string | null;
 };
 
 export const defaultPublicInteractionSettings: PublicInteractionSettingsRecord = {
@@ -29,6 +32,8 @@ export const defaultPublicInteractionSettings: PublicInteractionSettingsRecord =
   githubClientId: null,
   hasGithubClientSecret: false,
   googleLoginEnabled: false,
+  googleClientId: null,
+  hasGoogleClientSecret: false,
 };
 
 export async function getPublicInteractionSettings(): Promise<PublicInteractionSettingsRecord> {
@@ -51,17 +56,20 @@ export async function getPublicInteractionSettings(): Promise<PublicInteractionS
     githubClientId: settings.githubClientId,
     hasGithubClientSecret: Boolean(settings.githubClientSecret),
     googleLoginEnabled: settings.googleLoginEnabled,
+    googleClientId: settings.googleClientId,
+    hasGoogleClientSecret: Boolean(settings.googleClientSecret),
   };
 }
 
 export async function upsertPublicInteractionSettings(
   input: PublicInteractionSettingsInput,
 ): Promise<PublicInteractionSettingsRecord> {
-  const { authSecret, githubClientSecret, ...safeInput } = input;
+  const { authSecret, githubClientSecret, googleClientSecret, ...safeInput } = input;
   const secretData =
     {
       ...(typeof authSecret === "string" ? { authSecret } : {}),
       ...(typeof githubClientSecret === "string" ? { githubClientSecret } : {}),
+      ...(typeof googleClientSecret === "string" ? { googleClientSecret } : {}),
     };
   const settings = await prisma.publicInteractionSettings.upsert({
     where: {
@@ -87,6 +95,8 @@ export async function upsertPublicInteractionSettings(
     githubClientId: settings.githubClientId,
     hasGithubClientSecret: Boolean(settings.githubClientSecret),
     googleLoginEnabled: settings.googleLoginEnabled,
+    googleClientId: settings.googleClientId,
+    hasGoogleClientSecret: Boolean(settings.googleClientSecret),
   };
 }
 
@@ -100,6 +110,9 @@ export async function getPublicAuthConfig() {
       githubLoginEnabled: true,
       githubClientId: true,
       githubClientSecret: true,
+      googleLoginEnabled: true,
+      googleClientId: true,
+      googleClientSecret: true,
     },
   });
   const envAuthSecret = process.env.AUTH_SECRET?.trim();
@@ -123,33 +136,34 @@ export async function getPublicAuthConfig() {
         githubLoginEnabled: true,
         githubClientId: true,
         githubClientSecret: true,
+        googleLoginEnabled: true,
+        googleClientId: true,
+        googleClientSecret: true,
       },
     });
   }
-
-  if (!settings?.githubLoginEnabled) {
-    return {
-      authSecret: authSecret || null,
-      githubCredentials: null,
-    };
-  }
-
-  const clientId = settings.githubClientId?.trim() || process.env.AUTH_GITHUB_ID?.trim();
-  const clientSecret =
-    settings.githubClientSecret?.trim() || process.env.AUTH_GITHUB_SECRET?.trim();
-
-  if (!clientId || !clientSecret) {
-    return {
-      authSecret: authSecret || null,
-      githubCredentials: null,
-    };
-  }
+  const githubClientId = settings?.githubClientId?.trim() || process.env.AUTH_GITHUB_ID?.trim();
+  const githubClientSecret =
+    settings?.githubClientSecret?.trim() || process.env.AUTH_GITHUB_SECRET?.trim();
+  const googleClientId = settings?.googleClientId?.trim() || process.env.AUTH_GOOGLE_ID?.trim();
+  const googleClientSecret =
+    settings?.googleClientSecret?.trim() || process.env.AUTH_GOOGLE_SECRET?.trim();
 
   return {
     authSecret: authSecret || null,
-    githubCredentials: {
-      clientId,
-      clientSecret,
-    },
+    githubCredentials:
+      settings?.githubLoginEnabled && githubClientId && githubClientSecret
+        ? {
+            clientId: githubClientId,
+            clientSecret: githubClientSecret,
+          }
+        : null,
+    googleCredentials:
+      settings?.googleLoginEnabled && googleClientId && googleClientSecret
+        ? {
+            clientId: googleClientId,
+            clientSecret: googleClientSecret,
+          }
+        : null,
   };
 }
