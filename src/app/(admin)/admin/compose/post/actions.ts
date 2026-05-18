@@ -12,8 +12,8 @@ import {
   publishPostById,
   savePostDraft,
 } from "@/server/repositories/posts";
-import { getSiteSettings } from "@/server/repositories/site";
 import { siteConfig } from "@/lib/site";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export type SavePostEditorState = {
   error: string | null;
@@ -44,8 +44,8 @@ export async function savePostDraftAction(
       .map((value) => value.trim())
       .filter(Boolean);
     const postId = getOptionalPostId(formData, "postId");
-    const siteSettings = await getSiteSettings();
-    const authorName = siteSettings?.authorName ?? siteConfig.author;
+    const ownerProfile = await getOwnerDisplayProfile();
+    const authorName = getOwnerDisplayName(ownerProfile, siteConfig.author);
 
     const post = await savePostDraft({
       id: postId ?? undefined,

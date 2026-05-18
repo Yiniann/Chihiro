@@ -1,12 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { EmptyPanel } from "@/app/(admin)/admin/ui";
+import { useActionState, useEffect } from "react";
 import {
   saveImageHostingSettingsAction,
   type SaveImageHostingSettingsState,
 } from "@/app/(admin)/admin/settings/image-hosting/actions";
+import { useToast } from "@/components/toast-provider";
 
 const initialState: SaveImageHostingSettingsState = {
   error: null,
@@ -30,9 +29,10 @@ type ImageHostingSettingsFormProps = {
 
 export function ImageHostingSettingsForm({ defaults, canEdit }: ImageHostingSettingsFormProps) {
   const [state, formAction] = useActionState(saveImageHostingSettingsAction, initialState);
+  useSettingsToast(state);
 
   return (
-    <form action={formAction} className="grid gap-6">
+    <form id="image-hosting-settings-form" action={formAction} className="grid gap-6">
       <section className="grid gap-6 md:grid-cols-2">
         <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
           <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
@@ -173,36 +173,27 @@ export function ImageHostingSettingsForm({ defaults, canEdit }: ImageHostingSett
       </section>
 
       <section className="grid gap-3">
-        {state.error ? <EmptyPanel text={state.error} /> : null}
-        {state.success ? (
-          <div className="border border-emerald-200/80 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/20 dark:text-emerald-300">
-            {state.success}
+        {!canEdit ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            只有 Owner 可以修改设置。
           </div>
         ) : null}
-        <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
-          <div className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
-            {canEdit
-              ? "保存后，富文本编辑器的图片上传会直接写入对象存储。"
-              : "只有 Owner 可以修改设置。"}
-          </div>
-          <SaveButton disabled={!canEdit} />
-        </div>
       </section>
     </form>
   );
 }
 
-function SaveButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
-  const isDisabled = pending || disabled;
+function useSettingsToast(state: SaveImageHostingSettingsState) {
+  const { showToast } = useToast();
 
-  return (
-    <button
-      type="submit"
-      disabled={isDisabled}
-      className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
-    >
-      {pending ? "保存中..." : "保存图床"}
-    </button>
-  );
+  useEffect(() => {
+    if (state.error) {
+      showToast(state.error, "error");
+      return;
+    }
+
+    if (state.success) {
+      showToast(state.success);
+    }
+  }, [showToast, state.error, state.success]);
 }

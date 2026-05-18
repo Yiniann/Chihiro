@@ -15,6 +15,7 @@ import {
   isPublicSiteUnavailableError,
 } from "@/server/public-content";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,7 @@ export default async function SiteLayout({
   let adminState;
   let publicSession;
   let interactionSettings;
+  let ownerProfile;
 
   try {
     [
@@ -46,6 +48,7 @@ export default async function SiteLayout({
       adminState,
       publicSession,
       interactionSettings,
+      ownerProfile,
     ] =
       await Promise.all([
         listPublicHeaderPostCategories(),
@@ -55,6 +58,7 @@ export default async function SiteLayout({
         getPublicAdminState(),
         auth(),
         getPublicInteractionSettings(),
+        getOwnerDisplayProfile(),
       ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
@@ -71,13 +75,14 @@ export default async function SiteLayout({
     throw error;
   }
 
-  const adminDisplayName = siteSettings.authorName ?? siteConfig.author;
-  const adminAvatarUrl = siteSettings.authorAvatarUrl ?? siteConfig.avatar;
+  const ownerDisplayName = getOwnerDisplayName(ownerProfile, siteConfig.author);
+  const adminDisplayName = ownerDisplayName;
+  const adminAvatarUrl = ownerProfile?.image ?? siteConfig.avatar;
   const siteName = siteSettings.siteName ?? siteConfig.name;
-  const siteAuthorName = siteSettings.authorName ?? siteConfig.author;
+  const siteAuthorName = ownerDisplayName;
   const siteMotto = siteSettings.motto ?? siteConfig.motto;
-  const siteEmail = siteSettings.email ?? siteConfig.email;
-  const siteGithubUrl = siteSettings.githubUrl ?? siteConfig.github;
+  const siteEmail = ownerProfile?.email ?? null;
+  const siteGithubUrl = ownerProfile?.githubUrl ?? null;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
   const githubAuthAvailable =
     interactionSettings.githubLoginEnabled &&

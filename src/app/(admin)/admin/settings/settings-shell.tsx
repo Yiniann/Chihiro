@@ -13,7 +13,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
       <aside className="lg:sticky lg:top-8 lg:self-start lg:border-r lg:border-dashed lg:border-zinc-200/80 lg:pr-4 dark:lg:border-white/8">
         <nav
           aria-label="设置导航"
-          className="flex gap-1 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
+          className="flex flex-wrap gap-1 pb-2 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
         >
           {SETTINGS_NAV_ITEMS.map((item) => {
             const isActive =
@@ -57,7 +57,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
         </nav>
       </aside>
 
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 w-full">{children}</div>
     </div>
   );
 }

@@ -28,28 +28,36 @@ export function SiteFooter({
   siteName: string;
   authorName: string;
   motto: string;
-  email: string;
-  githubUrl: string;
+  email: string | null;
+  githubUrl: string | null;
 }) {
   const currentYear = new Date().getFullYear();
   const mottoLines = getFooterMottoLines(motto);
   const footerContactLinks = [
-    {
-      href: `mailto:${email}`,
-      label: "Email",
-      external: true,
-    },
-    {
-      href: githubUrl,
-      label: "GitHub",
-      external: true,
-    },
+    ...(email
+      ? [
+          {
+            href: `mailto:${email}`,
+            label: "Email",
+            external: true,
+          },
+        ]
+      : []),
+    ...(githubUrl
+      ? [
+          {
+            href: githubUrl,
+            label: "GitHub",
+            external: true,
+          },
+        ]
+      : []),
     {
       href: "/message",
       label: "Message",
       external: false,
     },
-  ] as const;
+  ];
 
   return (
     <footer className="site-footer-surface relative z-10 mt-20">

@@ -7,6 +7,7 @@ export type UserListItem = {
   name: string | null;
   email: string | null;
   image: string | null;
+  githubUrl: string | null;
   role: UserRole;
   accounts: Array<{
     provider: string;
@@ -23,8 +24,19 @@ export type UserAuthMethods = {
 export type UserSecurityProfile = {
   id: string;
   username: string | null;
+  name: string | null;
   email: string | null;
+  image: string | null;
+  githubUrl: string | null;
   passwordHash: string | null;
+};
+
+export type OwnerDisplayProfile = {
+  id: string;
+  name: string | null;
+  image: string | null;
+  email: string | null;
+  githubUrl: string | null;
 };
 
 export async function listUsersForAdmin(): Promise<UserListItem[]> {
@@ -36,6 +48,7 @@ export async function listUsersForAdmin(): Promise<UserListItem[]> {
       name: true,
       email: true,
       image: true,
+      githubUrl: true,
       role: true,
       accounts: {
         select: {
@@ -203,25 +216,82 @@ export async function findUserSecurityProfileById(userId: string): Promise<UserS
     select: {
       id: true,
       username: true,
+      name: true,
       email: true,
+      image: true,
+      githubUrl: true,
       passwordHash: true,
     },
   });
 }
 
-export async function updateUserEmail(userId: string, email: string) {
+export async function getOwnerDisplayProfile(): Promise<OwnerDisplayProfile | null> {
+  return prisma.user.findFirst({
+    where: {
+      role: UserRole.OWNER,
+    },
+    orderBy: {
+      id: "asc",
+    },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      email: true,
+      githubUrl: true,
+    },
+  });
+}
+
+export function getOwnerDisplayName(
+  owner: Pick<OwnerDisplayProfile, "name" | "email"> | null | undefined,
+  fallback: string,
+) {
+  return owner?.name?.trim() || owner?.email?.trim() || fallback;
+}
+
+export async function updateUserEmail(userId: string, email: string | null) {
   return prisma.user.update({
     where: {
       id: userId,
     },
     data: {
       email,
-      emailVerified: new Date(),
+      emailVerified: email ? new Date() : null,
     },
     select: {
       id: true,
       email: true,
       emailVerified: true,
+    },
+  });
+}
+
+export async function updateUserProfile(
+  userId: string,
+  input: {
+    username: string;
+    name: string;
+    image: string | null;
+    githubUrl: string | null;
+  },
+) {
+  return prisma.user.update({
+    where: {
+      id: userId,
+    },
+    data: {
+      username: input.username,
+      name: input.name,
+      image: input.image,
+      githubUrl: input.githubUrl,
+    },
+    select: {
+      id: true,
+      username: true,
+      name: true,
+      image: true,
+      githubUrl: true,
     },
   });
 }

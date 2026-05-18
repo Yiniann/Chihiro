@@ -347,8 +347,10 @@ export function SiteHeader({
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
   const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
   const headerUserAvatarUrl =
-    publicUser?.image ??
-    (publicUser?.role === "OWNER" || (!publicUser && isAdminLoggedIn) ? adminAvatarUrl : null);
+    publicUser?.role === "OWNER"
+      ? adminAvatarUrl ?? publicUser?.image ?? null
+      : publicUser?.image ??
+        (!publicUser && isAdminLoggedIn ? adminAvatarUrl : null);
   const headerUserEmail = publicUser?.email ?? null;
   const hasHeaderUser = Boolean(publicUser) || isAdminLoggedIn;
   const topStateWeight = 1 - stickyProgress;

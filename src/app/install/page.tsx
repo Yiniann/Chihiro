@@ -64,13 +64,9 @@ export default async function InstallPage() {
               siteDescription: siteSettings?.siteDescription ?? siteConfig.description,
               siteUrl: siteSettings?.siteUrl ?? siteConfig.url,
               locale: siteSettings?.locale ?? siteConfig.locale,
-              authorName: siteSettings?.authorName ?? siteConfig.author,
-              authorAvatarUrl: siteSettings?.authorAvatarUrl ?? siteConfig.avatar,
               heroIntro: siteSettings?.heroIntro ?? siteConfig.heroIntro,
               summary: siteSettings?.summary ?? siteConfig.summary,
               motto: siteSettings?.motto ?? siteConfig.motto,
-              email: siteSettings?.email ?? siteConfig.email,
-              githubUrl: siteSettings?.githubUrl ?? siteConfig.github,
             }}
             needsAdminSetup={installationState.adminUserCount === 0}
           />

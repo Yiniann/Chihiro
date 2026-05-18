@@ -13,9 +13,10 @@ import { listPostsForAdmin } from "@/server/repositories/posts";
 import { auth } from "@/server/public-auth";
 import { getSiteCreatedAt, getSiteSettings } from "@/server/repositories/site";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export default async function AdminOverviewPage() {
-  const [session, posts, updates, siteCreatedAt, siteSettings, commentStats, postCategories] =
+  const [session, posts, updates, siteCreatedAt, siteSettings, commentStats, postCategories, ownerProfile] =
     await Promise.all([
       auth(),
       listPostsForAdmin(),
@@ -24,13 +25,13 @@ export default async function AdminOverviewPage() {
       getSiteSettings(),
       getCommentStatsForAdmin(),
       listPostCategories(),
+      getOwnerDisplayProfile(),
     ]);
 
   const displayName =
     session?.user?.name?.trim() ||
     session?.user?.email?.trim() ||
-    siteSettings?.authorName?.trim() ||
-    "管理员";
+    getOwnerDisplayName(ownerProfile, "管理员");
   const siteName = siteSettings?.siteName?.trim() || "博客";
   const visiblePosts = posts.filter((item) => item.status !== ContentStatus.ARCHIVED);
   const visibleUpdates = updates.filter((item) => item.status !== ContentStatus.ARCHIVED);

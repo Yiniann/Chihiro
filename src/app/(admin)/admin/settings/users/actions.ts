@@ -2,27 +2,24 @@
 
 import { Prisma, UserRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import {
+  MIN_ADMIN_USERNAME_LENGTH,
+  normalizeAdminUsername,
+} from "@/lib/admin-auth";
 import { isSupportedAccountLinkProvider } from "@/lib/account-linking";
 import { isOwnerAuthenticated } from "@/server/auth";
-import { hashPassword, verifyPasswordHash } from "@/server/passwords";
 import { auth } from "@/server/public-auth";
 import {
   deleteUser,
-  findUserSecurityProfileById,
   findUserRole,
   getUserAuthMethods,
   unlinkUserProviderAccount,
   updateUserEmail,
-  updateUserPasswordHash,
+  updateUserProfile,
   updateUserRole,
 } from "@/server/repositories/users";
 
-export type SaveOwnerEmailState = {
-  error: string | null;
-  success: string | null;
-};
-
-export type SaveOwnerPasswordState = {
+export type SaveOwnerSettingsState = {
   error: string | null;
   success: string | null;
 };
@@ -118,22 +115,29 @@ export async function deleteUserAction(formData: FormData) {
   revalidatePath("/admin/settings/users");
 }
 
-export async function saveOwnerEmailAction(
-  _previousState: SaveOwnerEmailState,
+export async function saveOwnerSettingsAction(
+  _previousState: SaveOwnerSettingsState,
   formData: FormData,
-): Promise<SaveOwnerEmailState> {
+): Promise<SaveOwnerSettingsState> {
   if (!(await isOwnerAuthenticated())) {
     return {
-      error: "只有 Owner 才能修改邮箱。",
+      error: "只有 Owner 才能修改资料。",
       success: null,
     };
   }
 
   const session = await auth();
   const currentUserId = session?.user?.id ?? null;
-  const passwordValue = formData.get("password");
+  const usernameValue = formData.get("username");
+  const nameValue = formData.get("name");
+  const imageValue = formData.get("image");
+  const githubUrlValue = formData.get("githubUrl");
   const emailValue = formData.get("email");
-  const password = typeof passwordValue === "string" ? passwordValue.trim() : "";
+  const username =
+    typeof usernameValue === "string" ? normalizeAdminUsername(usernameValue) : "";
+  const name = typeof nameValue === "string" ? nameValue.trim() : "";
+  const imageInput = typeof imageValue === "string" ? imageValue.trim() : "";
+  const githubUrlInput = typeof githubUrlValue === "string" ? githubUrlValue.trim() : "";
   const email = typeof emailValue === "string" ? emailValue.trim().toLowerCase() : "";
 
   if (!currentUserId) {
@@ -143,160 +147,130 @@ export async function saveOwnerEmailAction(
     };
   }
 
-  if (!password) {
+  if (!name) {
     return {
-      error: "请输入当前密码。",
+      error: "请输入名称。",
       success: null,
     };
   }
 
-  if (!email) {
+  if (!username) {
     return {
-      error: "请输入邮箱。",
+      error: "请输入用户名。",
+      success: null,
+    };
+  }
+
+  if (username.length < MIN_ADMIN_USERNAME_LENGTH) {
+    return {
+      error: `用户名至少需要 ${MIN_ADMIN_USERNAME_LENGTH} 个字符。`,
       success: null,
     };
   }
 
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  if (!emailPattern.test(email)) {
+  if (email && !emailPattern.test(email)) {
     return {
       error: "请输入有效邮箱。",
       success: null,
     };
   }
 
-  const user = await findUserSecurityProfileById(currentUserId);
+  let image: string | null = null;
+  let githubUrl: string | null = null;
 
-  if (!user?.passwordHash) {
-    return {
-      error: "当前帐号不支持本地密码校验。",
-      success: null,
-    };
+  if (imageInput) {
+    if (imageInput.startsWith("/") && !imageInput.startsWith("//")) {
+      image = imageInput;
+    } else {
+      try {
+        const url = new URL(imageInput);
+
+        if (url.protocol === "http:" || url.protocol === "https:") {
+          image = url.toString().replace(/\/$/, "");
+        } else {
+          return {
+            error: "请填写有效头像地址。",
+            success: null,
+          };
+        }
+      } catch {
+        return {
+          error: "请填写有效头像地址。",
+          success: null,
+        };
+      }
+    }
   }
 
-  const passwordMatches = await verifyPasswordHash(password, user.passwordHash);
+  if (githubUrlInput) {
+    try {
+      const url = new URL(githubUrlInput);
 
-  if (!passwordMatches) {
-    return {
-      error: "当前密码不正确。",
-      success: null,
-    };
+      if (url.protocol === "http:" || url.protocol === "https:") {
+        githubUrl = url.toString().replace(/\/$/, "");
+      } else {
+        return {
+          error: "请填写有效 GitHub 链接。",
+          success: null,
+        };
+      }
+    } catch {
+      return {
+        error: "请填写有效 GitHub 链接。",
+        success: null,
+      };
+    }
   }
 
   try {
-    await updateUserEmail(currentUserId, email);
+    await updateUserEmail(currentUserId, email || null);
+
+    await updateUserProfile(currentUserId, {
+      username,
+      name,
+      image,
+      githubUrl,
+    });
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2002"
     ) {
-      return {
-        error: "这个邮箱已经被其他帐号使用。",
-        success: null,
-      };
+      const target = Array.isArray(error.meta?.target)
+        ? error.meta.target.join(",")
+        : String(error.meta?.target ?? "");
+
+      if (target.includes("username")) {
+        return {
+          error: "这个用户名已经被使用。",
+          success: null,
+        };
+      }
+
+      if (target.includes("email")) {
+        return {
+          error: "这个邮箱已经被其他帐号使用。",
+          success: null,
+        };
+      }
     }
 
     throw error;
   }
-
+  revalidatePath("/");
+  revalidatePath("/about");
+  revalidatePath("/message");
+  revalidatePath("/posts");
+  revalidatePath("/updates");
+  revalidatePath("/timeline");
+  revalidatePath("/more");
+  revalidatePath("/admin");
   revalidatePath("/admin/settings/users");
 
   return {
     error: null,
-    success: "邮箱已保存。",
-  };
-}
-
-export async function saveOwnerPasswordAction(
-  _previousState: SaveOwnerPasswordState,
-  formData: FormData,
-): Promise<SaveOwnerPasswordState> {
-  if (!(await isOwnerAuthenticated())) {
-    return {
-      error: "只有 Owner 才能修改密码。",
-      success: null,
-    };
-  }
-
-  const session = await auth();
-  const currentUserId = session?.user?.id ?? null;
-  const currentPasswordValue = formData.get("currentPassword");
-  const nextPasswordValue = formData.get("nextPassword");
-  const confirmPasswordValue = formData.get("confirmPassword");
-  const currentPassword =
-    typeof currentPasswordValue === "string"
-      ? currentPasswordValue.trim()
-      : "";
-  const nextPassword =
-    typeof nextPasswordValue === "string"
-      ? nextPasswordValue.trim()
-      : "";
-  const confirmPassword =
-    typeof confirmPasswordValue === "string"
-      ? confirmPasswordValue.trim()
-      : "";
-
-  if (!currentUserId) {
-    return {
-      error: "当前登录状态无效。",
-      success: null,
-    };
-  }
-
-  if (!currentPassword || !nextPassword || !confirmPassword) {
-    return {
-      error: "请填写完整密码信息。",
-      success: null,
-    };
-  }
-
-  if (nextPassword.length < 8) {
-    return {
-      error: "新密码至少需要 8 位。",
-      success: null,
-    };
-  }
-
-  if (nextPassword !== confirmPassword) {
-    return {
-      error: "两次输入的新密码不一致。",
-      success: null,
-    };
-  }
-
-  const user = await findUserSecurityProfileById(currentUserId);
-
-  if (!user?.passwordHash) {
-    return {
-      error: "当前帐号不支持本地密码校验。",
-      success: null,
-    };
-  }
-
-  const currentPasswordMatches = await verifyPasswordHash(currentPassword, user.passwordHash);
-
-  if (!currentPasswordMatches) {
-    return {
-      error: "当前密码不正确。",
-      success: null,
-    };
-  }
-
-  const nextPasswordMatchesCurrent = await verifyPasswordHash(nextPassword, user.passwordHash);
-
-  if (nextPasswordMatchesCurrent) {
-    return {
-      error: "新密码不能和当前密码相同。",
-      success: null,
-    };
-  }
-
-  await updateUserPasswordHash(currentUserId, await hashPassword(nextPassword));
-  revalidatePath("/admin/settings/users");
-
-  return {
-    error: null,
-    success: "密码已更新。",
+    success: "设置已保存。",
   };
 }

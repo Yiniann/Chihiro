@@ -1,24 +1,16 @@
-import { AssetProvider } from "@prisma/client";
-import { ImageHostingSettingsForm } from "@/app/(admin)/admin/settings/image-hosting/image-hosting-settings-form";
+import { LoginSettingsForm } from "@/app/(admin)/admin/settings/login-comments/login-comments-settings-form";
+import { resolveCanonicalSiteUrl } from "@/lib/site";
 import { isOwnerAuthenticated } from "@/server/auth";
-import { getObjectStorageSettings } from "@/server/repositories/object-storage";
+import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
+import { getSiteSettings } from "@/server/repositories/site";
 
-export default async function AdminImageHostingSettingsPage() {
-  const [settings, canEdit] = await Promise.all([
-    getObjectStorageSettings(),
+export default async function AdminLoginSettingsPage() {
+  const [settings, siteSettings, canEdit] = await Promise.all([
+    getPublicInteractionSettings(),
+    getSiteSettings(),
     isOwnerAuthenticated(),
   ]);
-  const defaults = {
-    provider: settings?.provider ?? AssetProvider.R2,
-    endpoint: settings?.endpoint ?? "",
-    region: settings?.region ?? "auto",
-    bucket: settings?.bucket ?? "",
-    accessKeyId: settings?.accessKeyId ?? "",
-    publicBaseUrl: settings?.publicBaseUrl ?? "",
-    keyPrefix: settings?.keyPrefix ?? "uploads/images",
-    forcePathStyle: settings?.forcePathStyle ?? true,
-    hasSecretAccessKey: Boolean(settings?.secretAccessKey),
-  };
+  const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
   return (
     <div className="grid gap-8">
@@ -28,13 +20,13 @@ export default async function AdminImageHostingSettingsPage() {
             Settings
           </p>
           <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
-            图床设置
+            登录设置
           </h1>
         </div>
         {canEdit ? (
           <button
             type="submit"
-            form="image-hosting-settings-form"
+            form="login-settings-form"
             className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
           >
             保存设置
@@ -42,7 +34,16 @@ export default async function AdminImageHostingSettingsPage() {
         ) : null}
       </div>
       <div className="mx-auto w-full max-w-2xl">
-        <ImageHostingSettingsForm defaults={defaults} canEdit={canEdit} />
+        <LoginSettingsForm
+          defaults={settings}
+          canEdit={canEdit}
+          authStatus={{
+            authSecret: Boolean(process.env.AUTH_SECRET?.trim()),
+            githubId: Boolean(process.env.AUTH_GITHUB_ID?.trim()),
+            githubSecret: Boolean(process.env.AUTH_GITHUB_SECRET?.trim()),
+            callbackUrl: `${siteUrl}/api/auth/callback/github`,
+          }}
+        />
       </div>
     </div>
   );

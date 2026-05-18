@@ -1,8 +1,8 @@
 import { notFound } from "next/navigation";
 import { UpdateEditorForm } from "@/app/(admin)/admin/compose/update/update-editor-form";
 import { getUpdateByIdForAdmin } from "@/server/repositories/updates";
-import { getSiteSettings } from "@/server/repositories/site";
 import { siteConfig } from "@/lib/site";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 type AdminUpdateDetailPageProps = {
   params: Promise<{
@@ -18,9 +18,9 @@ export default async function AdminUpdateDetailPage({ params }: AdminUpdateDetai
     notFound();
   }
 
-  const [update, siteSettings] = await Promise.all([
+  const [update, ownerProfile] = await Promise.all([
     getUpdateByIdForAdmin(updateId),
-    getSiteSettings(),
+    getOwnerDisplayProfile(),
   ]);
 
   if (!update) {
@@ -31,7 +31,7 @@ export default async function AdminUpdateDetailPage({ params }: AdminUpdateDetai
     <UpdateEditorForm
       key={`${update.id}:${update.draftSnapshot?.savedAt ?? update.updatedAt}`}
       update={update}
-      authorName={siteSettings?.authorName ?? siteConfig.author}
+      authorName={getOwnerDisplayName(ownerProfile, siteConfig.author)}
     />
   );
 }

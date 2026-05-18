@@ -1,24 +1,27 @@
 "use client";
 
 import { useState } from "react";
-import type { ChangeEvent } from "react";
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { EmptyPanel } from "@/app/(admin)/admin/ui";
+import { useActionState, useEffect, useRef } from "react";
 import {
-  saveLoginCommentsSettingsAction,
+  saveCommentSettingsAction,
+  saveLoginSettingsAction,
   type SaveLoginCommentsSettingsState,
 } from "@/app/(admin)/admin/settings/login-comments/actions";
+import { useToast } from "@/components/toast-provider";
 import type { PublicInteractionSettingsRecord } from "@/server/repositories/public-interactions";
 
 const initialState: SaveLoginCommentsSettingsState = {
   error: null,
   success: null,
+  nonce: 0,
 };
 
-type LoginCommentsSettingsFormProps = {
+type BaseSettingsFormProps = {
   defaults: PublicInteractionSettingsRecord;
   canEdit: boolean;
+};
+
+type LoginSettingsFormProps = BaseSettingsFormProps & {
   authStatus: {
     authSecret: boolean;
     githubId: boolean;
@@ -27,12 +30,18 @@ type LoginCommentsSettingsFormProps = {
   };
 };
 
-export function LoginCommentsSettingsForm({
+export function LoginSettingsForm({
   defaults,
   canEdit,
   authStatus,
-}: LoginCommentsSettingsFormProps) {
-  const [state, formAction] = useActionState(saveLoginCommentsSettingsAction, initialState);
+}: LoginSettingsFormProps) {
+  const [state, formAction] = useActionState(saveLoginSettingsAction, initialState);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const didMountRef = useRef(false);
+  const shouldSubmitRef = useRef(false);
+  const rollbackValueRef = useRef<boolean | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  useSettingsToast(state);
   const [watchedGithubLoginEnabled, setWatchedGithubLoginEnabled] = useState(
     defaults.githubLoginEnabled,
   );
@@ -41,40 +50,71 @@ export function LoginCommentsSettingsForm({
   const githubClientSecretReady = defaults.hasGithubClientSecret || authStatus.githubSecret;
   const githubReady = authSecretReady && githubClientIdReady && githubClientSecretReady;
 
-  return (
-    <form action={formAction} className="grid gap-8">
-      <section className="grid gap-3 md:grid-cols-3">
-        <SwitchField
-          name="commentsEnabled"
-          title="启用评论"
-          description="打开后文章页可以展示评论入口。"
-          defaultChecked={defaults.commentsEnabled}
-        />
-        <SwitchField
-          name="loginRequiredToComment"
-          title="登录后才能评论"
-          description="建议开启，避免匿名垃圾评论。"
-          defaultChecked={defaults.loginRequiredToComment}
-        />
-        <SwitchField
-          name="commentModeration"
-          title="评论需要审核"
-          description="建议开启，审核通过后再公开展示。"
-          defaultChecked={defaults.commentModeration}
-        />
-      </section>
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
 
+    if (!canEdit) {
+      return;
+    }
+
+    if (!shouldSubmitRef.current) {
+      return;
+    }
+
+    shouldSubmitRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [canEdit, watchedGithubLoginEnabled]);
+
+  useEffect(() => {
+    if (!state.nonce || !isSubmitting) {
+      return;
+    }
+
+    if (state.error && rollbackValueRef.current !== null) {
+      setWatchedGithubLoginEnabled(rollbackValueRef.current);
+    }
+
+    rollbackValueRef.current = null;
+    setIsSubmitting(false);
+  }, [isSubmitting, state.error, state.nonce]);
+
+  function handleGithubLoginEnabledChange(nextChecked: boolean) {
+    if (!canEdit || isSubmitting) {
+      return;
+    }
+
+    rollbackValueRef.current = watchedGithubLoginEnabled;
+    shouldSubmitRef.current = true;
+    setIsSubmitting(true);
+    setWatchedGithubLoginEnabled(nextChecked);
+  }
+
+  return (
+    <form
+      id="login-settings-form"
+      ref={formRef}
+      action={formAction}
+      className="grid gap-8"
+    >
+      <input
+        type="hidden"
+        name="githubLoginEnabled"
+        value={watchedGithubLoginEnabled ? "true" : "false"}
+      />
       <section className="grid gap-5">
         <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             GitHub 登录
           </p>
           <SwitchField
-            name="githubLoginEnabled"
             title="启用 GitHub 登录"
             description={githubReady ? "允许访客使用 GitHub 登录。" : "OAuth 配置未完整时，登录入口不会真正可用。"}
-            defaultChecked={defaults.githubLoginEnabled}
-            onCheckedChange={setWatchedGithubLoginEnabled}
+            checked={watchedGithubLoginEnabled}
+            onCheckedChange={handleGithubLoginEnabledChange}
+            disabled={!canEdit || isSubmitting}
           />
           {watchedGithubLoginEnabled ? (
             <div className="grid gap-5 md:grid-cols-2">
@@ -118,7 +158,6 @@ export function LoginCommentsSettingsForm({
             Google 登录
           </p>
           <SwitchField
-            name="googleLoginEnabled"
             title="启用 Google 登录"
             description="先保留 UI；Google OAuth 还没有接入。"
             defaultChecked={defaults.googleLoginEnabled}
@@ -128,20 +167,180 @@ export function LoginCommentsSettingsForm({
       </section>
 
       <section className="grid gap-3">
-        {state.error ? <EmptyPanel text={state.error} /> : null}
-        {state.success ? (
-          <div className="border border-emerald-200/80 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/20 dark:text-emerald-300">
-            {state.success}
+        {!canEdit ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            只有 Owner 可以修改设置。
           </div>
         ) : null}
-        <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
-          <div className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
-            {canEdit
-              ? "这些设置会影响后续文章评论入口和公开用户登录体验。"
-              : "只有 Owner 可以修改设置。"}
+      </section>
+    </form>
+  );
+}
+
+export function CommentSettingsForm({
+  defaults,
+  canEdit,
+}: BaseSettingsFormProps) {
+  const [state, formAction] = useActionState(saveCommentSettingsAction, initialState);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const didMountRef = useRef(false);
+  const shouldSubmitRef = useRef(false);
+  const rollbackSnapshotRef = useRef<{
+    commentsEnabled: boolean;
+    loginRequiredToComment: boolean;
+    commentModeration: boolean;
+  } | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [watchedCommentsEnabled, setWatchedCommentsEnabled] = useState(
+    defaults.commentsEnabled,
+  );
+  const [watchedLoginRequiredToComment, setWatchedLoginRequiredToComment] = useState(
+    defaults.loginRequiredToComment,
+  );
+  const [watchedCommentModeration, setWatchedCommentModeration] = useState(
+    defaults.commentModeration,
+  );
+  useSettingsToast(state);
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
+    if (!canEdit) {
+      return;
+    }
+
+    if (!shouldSubmitRef.current) {
+      return;
+    }
+
+    shouldSubmitRef.current = false;
+    formRef.current?.requestSubmit();
+  }, [
+    canEdit,
+    watchedCommentsEnabled,
+    watchedCommentModeration,
+    watchedLoginRequiredToComment,
+  ]);
+
+  useEffect(() => {
+    if (!state.nonce || !isSubmitting) {
+      return;
+    }
+
+    if (state.error && rollbackSnapshotRef.current) {
+      setWatchedCommentsEnabled(rollbackSnapshotRef.current.commentsEnabled);
+      setWatchedLoginRequiredToComment(rollbackSnapshotRef.current.loginRequiredToComment);
+      setWatchedCommentModeration(rollbackSnapshotRef.current.commentModeration);
+    }
+
+    rollbackSnapshotRef.current = null;
+    setIsSubmitting(false);
+  }, [isSubmitting, state.error, state.nonce]);
+
+  function submitCommentToggleUpdate(nextState: {
+    commentsEnabled: boolean;
+    loginRequiredToComment: boolean;
+    commentModeration: boolean;
+  }) {
+    if (!canEdit || isSubmitting) {
+      return;
+    }
+
+    rollbackSnapshotRef.current = {
+      commentsEnabled: watchedCommentsEnabled,
+      loginRequiredToComment: watchedLoginRequiredToComment,
+      commentModeration: watchedCommentModeration,
+    };
+    shouldSubmitRef.current = true;
+    setIsSubmitting(true);
+    setWatchedCommentsEnabled(nextState.commentsEnabled);
+    setWatchedLoginRequiredToComment(nextState.loginRequiredToComment);
+    setWatchedCommentModeration(nextState.commentModeration);
+  }
+
+  function handleCommentsEnabledChange(nextChecked: boolean) {
+    submitCommentToggleUpdate({
+      commentsEnabled: nextChecked,
+      loginRequiredToComment: watchedLoginRequiredToComment,
+      commentModeration: watchedCommentModeration,
+    });
+  }
+
+  function handleLoginRequiredToCommentChange(nextChecked: boolean) {
+    submitCommentToggleUpdate({
+      commentsEnabled: watchedCommentsEnabled,
+      loginRequiredToComment: nextChecked,
+      commentModeration: watchedCommentModeration,
+    });
+  }
+
+  function handleCommentModerationChange(nextChecked: boolean) {
+    submitCommentToggleUpdate({
+      commentsEnabled: watchedCommentsEnabled,
+      loginRequiredToComment: watchedLoginRequiredToComment,
+      commentModeration: nextChecked,
+    });
+  }
+
+  return (
+    <form
+      id="comment-settings-form"
+      ref={formRef}
+      action={formAction}
+      className="grid gap-8"
+    >
+      <input
+        type="hidden"
+        name="commentsEnabled"
+        value={watchedCommentsEnabled ? "true" : "false"}
+      />
+      <input
+        type="hidden"
+        name="loginRequiredToComment"
+        value={watchedLoginRequiredToComment ? "true" : "false"}
+      />
+      <input
+        type="hidden"
+        name="commentModeration"
+        value={watchedCommentModeration ? "true" : "false"}
+      />
+      <section className="grid gap-3">
+        <SwitchField
+          title="启用评论"
+          description="打开后文章页可以展示评论入口。"
+          checked={watchedCommentsEnabled}
+          onCheckedChange={handleCommentsEnabledChange}
+          disabled={!canEdit || isSubmitting}
+        />
+        {watchedCommentsEnabled ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            <SwitchField
+              title="登录后才能评论"
+              description="建议开启，避免匿名垃圾评论。"
+              checked={watchedLoginRequiredToComment}
+              onCheckedChange={handleLoginRequiredToCommentChange}
+              disabled={!canEdit || isSubmitting}
+            />
+            <SwitchField
+              title="评论需要审核"
+              description="建议开启，审核通过后再公开展示。"
+              checked={watchedCommentModeration}
+              onCheckedChange={handleCommentModerationChange}
+              disabled={!canEdit || isSubmitting}
+            />
           </div>
-          <SaveButton disabled={!canEdit} />
-        </div>
+        ) : null}
+      </section>
+
+      <section className="grid gap-3">
+        {!canEdit ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            只有 Owner 可以修改设置。
+          </div>
+        ) : null}
       </section>
     </form>
   );
@@ -194,6 +393,21 @@ function OAuthField({
       <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">{description}</span>
     </label>
   );
+}
+
+function useSettingsToast(state: SaveLoginCommentsSettingsState) {
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (state.error) {
+      showToast(state.error, "error");
+      return;
+    }
+
+    if (state.success) {
+      showToast(state.success);
+    }
+  }, [showToast, state.error, state.nonce, state.success]);
 }
 
 function AuthSecretField({
@@ -264,7 +478,6 @@ function AuthSecretField({
 }
 
 function SwitchField({
-  name,
   title,
   description,
   defaultChecked,
@@ -272,7 +485,6 @@ function SwitchField({
   onCheckedChange,
   disabled = false,
 }: {
-  name: string;
   title: string;
   description: string;
   defaultChecked?: boolean;
@@ -280,57 +492,54 @@ function SwitchField({
   onCheckedChange?: (checked: boolean) => void;
   disabled?: boolean;
 }) {
-  const checkboxProps =
-    typeof checked === "boolean"
-      ? {
-          checked,
-          onChange: onCheckedChange
-            ? (event: ChangeEvent<HTMLInputElement>) => onCheckedChange(event.target.checked)
-            : undefined,
-        }
-      : {
-          defaultChecked: Boolean(defaultChecked),
-          onChange: onCheckedChange
-            ? (event: ChangeEvent<HTMLInputElement>) => onCheckedChange(event.target.checked)
-            : undefined,
-        };
+  const [internalChecked, setInternalChecked] = useState(Boolean(defaultChecked));
+  const isControlled = typeof checked === "boolean";
+  const isChecked = isControlled ? checked : internalChecked;
+
+  function handleToggle() {
+    if (disabled) {
+      return;
+    }
+
+    const nextChecked = !isChecked;
+
+    if (!isControlled) {
+      setInternalChecked(nextChecked);
+    }
+
+    onCheckedChange?.(nextChecked);
+  }
 
   return (
-    <label
+    <div
       className={`grid w-fit max-w-xl gap-2 border-b border-zinc-200/80 pb-5 pr-4 dark:border-zinc-800/80 ${
         disabled ? "cursor-not-allowed opacity-55" : "cursor-pointer"
       }`}
     >
       <span className="flex w-fit items-center gap-3">
         <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</span>
-        <span className="relative inline-flex h-5 w-9 shrink-0 items-center">
-          <input
-            name={name}
-            type="checkbox"
-            disabled={disabled}
-            className="peer absolute inset-0 opacity-0"
-            {...checkboxProps}
+        <button
+          type="button"
+          role="switch"
+          aria-checked={isChecked}
+          aria-label={title}
+          onClick={handleToggle}
+          disabled={disabled}
+          className="relative inline-flex h-5 w-9 shrink-0 items-center"
+        >
+          <span
+            className={`absolute inset-0 rounded-full transition ${
+              isChecked ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+            }`}
           />
-          <span className="absolute inset-0 rounded-full bg-zinc-200 transition peer-checked:bg-primary dark:bg-zinc-800" />
-          <span className="relative size-4 translate-x-0.5 rounded-full bg-white shadow-sm transition-transform peer-checked:translate-x-[1.125rem]" />
-        </span>
+          <span
+            className={`relative size-4 rounded-full bg-white shadow-sm transition-transform ${
+              isChecked ? "translate-x-[1.125rem]" : "translate-x-0.5"
+            }`}
+          />
+        </button>
       </span>
       <span className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">{description}</span>
-    </label>
-  );
-}
-
-function SaveButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
-  const isDisabled = pending || disabled;
-
-  return (
-    <button
-      type="submit"
-      disabled={isDisabled}
-      className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
-    >
-      {pending ? "保存中..." : "保存设置"}
-    </button>
+    </div>
   );
 }

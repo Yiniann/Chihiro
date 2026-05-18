@@ -5,6 +5,7 @@ import { listPostCategories } from "@/server/repositories/categories";
 import { getPostByIdForAdmin } from "@/server/repositories/posts";
 import { getSiteSettings } from "@/server/repositories/site";
 import { listTags } from "@/server/repositories/tags";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 type AdminPostDetailPageProps = {
   params: Promise<{
@@ -20,11 +21,12 @@ export default async function AdminPostDetailPage({ params }: AdminPostDetailPag
     notFound();
   }
 
-  const [post, categories, tags, siteSettings] = await Promise.all([
+  const [post, categories, tags, siteSettings, ownerProfile] = await Promise.all([
     getPostByIdForAdmin(postId),
     listPostCategories(),
     listTags(),
     getSiteSettings(),
+    getOwnerDisplayProfile(),
   ]);
 
   if (!post) {
@@ -41,7 +43,7 @@ export default async function AdminPostDetailPage({ params }: AdminPostDetailPag
         categories={categories}
         tags={tags}
         siteUrlBase={siteUrlBase}
-        authorName={siteSettings?.authorName ?? siteConfig.author}
+        authorName={getOwnerDisplayName(ownerProfile, siteConfig.author)}
       />
     </div>
   );

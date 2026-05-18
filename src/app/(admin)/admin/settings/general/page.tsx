@@ -1,5 +1,4 @@
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
-import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { GeneralSettingsForm } from "@/app/(admin)/admin/settings/general/general-settings-form";
 import { isOwnerAuthenticated } from "@/server/auth";
 import { getSiteSettings } from "@/server/repositories/site";
@@ -8,11 +7,7 @@ export default async function AdminGeneralSettingsPage() {
   const [siteSettings, canEdit] = await Promise.all([getSiteSettings(), isOwnerAuthenticated()]);
   const defaults = {
     siteName: siteSettings?.siteName ?? siteConfig.name,
-    authorName: siteSettings?.authorName ?? siteConfig.author,
-    authorAvatarUrl: siteSettings?.authorAvatarUrl ?? siteConfig.avatar,
     siteUrl: resolveCanonicalSiteUrl(siteSettings),
-    email: siteSettings?.email ?? siteConfig.email,
-    githubUrl: siteSettings?.githubUrl ?? siteConfig.github,
     heroIntro: siteSettings?.heroIntro ?? siteConfig.heroIntro,
     summary: siteSettings?.summary ?? siteConfig.summary,
     motto: siteSettings?.motto ?? siteConfig.motto,
@@ -20,10 +15,28 @@ export default async function AdminGeneralSettingsPage() {
 
   return (
     <div className="grid gap-8">
-      <div className="grid gap-3">
-        <AdminPageHeader eyebrow="Settings" title="常规设置" />
+      <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
+        <div className="min-w-0">
+          <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+            Settings
+          </p>
+          <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+            站点设置
+          </h1>
+        </div>
+        {canEdit ? (
+          <button
+            type="submit"
+            form="general-settings-form"
+            className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+          >
+            保存设置
+          </button>
+        ) : null}
       </div>
-      <GeneralSettingsForm defaults={defaults} canEdit={canEdit} />
+      <div className="mx-auto w-full max-w-2xl">
+        <GeneralSettingsForm defaults={defaults} canEdit={canEdit} />
+      </div>
     </div>
   );
 }

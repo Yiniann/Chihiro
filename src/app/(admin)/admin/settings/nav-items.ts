@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Image, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
+import { Image, LogIn, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
 
 export type SettingsNavItem = {
   href: string;
@@ -11,13 +11,13 @@ export type SettingsNavItem = {
 export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   {
     href: "/admin/settings/users",
-    label: "用户",
-    description: "Owner 登录方式与第三方绑定",
+    label: "用户设置",
+    description: "站长用户管理",
     icon: ShieldUser,
   },
   {
     href: "/admin/settings/general",
-    label: "常规设置",
+    label: "站点设置",
     description: "站点基础资料与展示文案",
     icon: Settings2,
   },
@@ -28,9 +28,15 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     icon: Image,
   },
   {
-    href: "/admin/settings/login-comments",
-    label: "登录与评论",
-    description: "公开评论、OAuth 与审核策略",
+    href: "/admin/settings/login",
+    label: "登录设置",
+    description: "公开用户登录与 OAuth",
+    icon: LogIn,
+  },
+  {
+    href: "/admin/settings/comments",
+    label: "评论设置",
+    description: "评论入口与审核策略",
     icon: MessageSquareText,
   },
 ];

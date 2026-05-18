@@ -50,23 +50,13 @@ export async function initializeSiteAction(
   const siteDescription = getRequiredString(formData, "siteDescription");
   const siteUrl = getValidatedUrl(getRequiredString(formData, "siteUrl"));
   const locale = getOptionalString(formData, "locale") || siteConfig.locale;
-  const authorName = getRequiredString(formData, "authorName");
-  const authorAvatarUrl = getOptionalImageSource(formData, "authorAvatarUrl");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
-  const email = getOptionalString(formData, "email");
-  const githubUrl = getOptionalUrl(formData, "githubUrl");
 
   if (!siteName) {
     return {
       error: "请填写站点名称。",
-    };
-  }
-
-  if (!authorName) {
-    return {
-      error: "请填写作者名称。",
     };
   }
 
@@ -83,6 +73,7 @@ export async function initializeSiteAction(
   }
 
   let createdAdminCredentials: { username: string; password: string } | null = null;
+  let initialAuthorName = siteConfig.author;
 
   try {
     const adminUserCount = await countLocalAdminUsers();
@@ -103,11 +94,12 @@ export async function initializeSiteAction(
         };
       }
 
-      const admin = await createOwnerUser(username, await hashPassword(password));
+      await createOwnerUser(username, await hashPassword(password));
       createdAdminCredentials = {
         username,
         password,
       };
+      initialAuthorName = username;
     }
 
     await upsertSiteSettings({
@@ -115,13 +107,13 @@ export async function initializeSiteAction(
       siteDescription,
       siteUrl,
       locale,
-      authorName,
-      authorAvatarUrl,
+      authorName: initialAuthorName,
+      authorAvatarUrl: null,
       heroIntro,
       summary,
       motto,
-      email,
-      githubUrl,
+      email: null,
+      githubUrl: null,
     });
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
@@ -184,49 +176,5 @@ function getValidatedUrl(value: string) {
     return new URL(value).toString().replace(/\/$/, "");
   } catch {
     return "";
-  }
-}
-
-function getOptionalUrl(formData: FormData, key: string) {
-  const value = getOptionalString(formData, key);
-
-  if (!value) {
-    return null;
-  }
-
-  try {
-    const url = new URL(value);
-
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return url.toString().replace(/\/$/, "");
-    }
-
-    return null;
-  } catch {
-    return null;
-  }
-}
-
-function getOptionalImageSource(formData: FormData, key: string) {
-  const value = getOptionalString(formData, key);
-
-  if (!value) {
-    return null;
-  }
-
-  if (value.startsWith("/") && !value.startsWith("//")) {
-    return value;
-  }
-
-  try {
-    const url = new URL(value);
-
-    if (url.protocol === "http:" || url.protocol === "https:") {
-      return url.toString().replace(/\/$/, "");
-    }
-
-    return null;
-  } catch {
-    return null;
   }
 }

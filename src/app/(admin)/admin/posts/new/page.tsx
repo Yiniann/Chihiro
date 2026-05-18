@@ -3,12 +3,14 @@ import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { listPostCategories } from "@/server/repositories/categories";
 import { getSiteSettings } from "@/server/repositories/site";
 import { listTags } from "@/server/repositories/tags";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export default async function AdminNewPostPage() {
-  const [categories, tags, siteSettings] = await Promise.all([
+  const [categories, tags, siteSettings, ownerProfile] = await Promise.all([
     listPostCategories(),
     listTags(),
     getSiteSettings(),
+    getOwnerDisplayProfile(),
   ]);
   const siteUrlBase = resolveCanonicalSiteUrl(siteSettings);
 
@@ -20,7 +22,7 @@ export default async function AdminNewPostPage() {
         categories={categories}
         tags={tags}
         siteUrlBase={siteUrlBase}
-        authorName={siteSettings?.authorName ?? siteConfig.author}
+        authorName={getOwnerDisplayName(ownerProfile, siteConfig.author)}
       />
     </div>
   );

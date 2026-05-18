@@ -14,13 +14,9 @@ type InstallFormProps = {
     siteDescription: string;
     siteUrl: string;
     locale: string;
-    authorName: string;
-    authorAvatarUrl: string;
     heroIntro: string;
     summary: string;
     motto: string;
-    email: string;
-    githubUrl: string;
   };
   needsAdminSetup: boolean;
 };
@@ -152,12 +148,8 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
         <section className="grid gap-5 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
           <div className="grid gap-5 md:grid-cols-2">
             <Field label="站点名称" {...siteFieldProps("siteName")} required />
-            <Field label="作者名称" {...siteFieldProps("authorName")} required />
             <Field label="站点地址" {...siteFieldProps("siteUrl")} required />
             <Field label="语言" {...siteFieldProps("locale")} />
-            <Field label="作者头像" {...siteFieldProps("authorAvatarUrl")} />
-            <Field label="邮箱" {...siteFieldProps("email")} />
-            <Field label="GitHub" {...siteFieldProps("githubUrl")} />
             <Field label="站点简介" {...siteFieldProps("siteDescription")} required />
           </div>
 

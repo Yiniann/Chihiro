@@ -11,8 +11,8 @@ import {
   getUpdateByIdForAdmin,
   saveUpdate,
 } from "@/server/repositories/updates";
-import { getSiteSettings } from "@/server/repositories/site";
 import { siteConfig } from "@/lib/site";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export type SaveUpdateEditorState = {
   error: string | null;
@@ -30,8 +30,8 @@ export async function saveUpdateAction(
   const publishedAtInput = getOptionalString(formData, "publishedAt");
   const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
   const updateId = getOptionalUpdateId(formData, "updateId");
-  const siteSettings = await getSiteSettings();
-  const fallbackAuthorName = siteSettings?.authorName ?? siteConfig.author;
+  const ownerProfile = await getOwnerDisplayProfile();
+  const fallbackAuthorName = getOwnerDisplayName(ownerProfile, siteConfig.author);
   const content = parseRichTextContent(formData);
   const contentHtml = getOptionalString(formData, "contentHtml");
 

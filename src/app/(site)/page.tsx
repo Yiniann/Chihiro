@@ -16,18 +16,21 @@ import {
   listPublicPosts,
   listPublicUpdates,
 } from "@/server/public-content";
+import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 import Link from "next/link";
 
 export default async function HomePage() {
   let siteSettings;
   let posts;
   let updates;
+  let ownerProfile;
 
   try {
-    [siteSettings, posts, updates] = await Promise.all([
+    [siteSettings, posts, updates, ownerProfile] = await Promise.all([
       getPublicSiteSettings(),
       listPublicPosts(),
       listPublicUpdates(),
+      getOwnerDisplayProfile(),
     ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
@@ -37,8 +40,8 @@ export default async function HomePage() {
     throw error;
   }
 
-  const authorName = siteSettings.authorName ?? siteConfig.author;
-  const avatarUrl = siteSettings.authorAvatarUrl ?? siteConfig.avatar;
+  const authorName = getOwnerDisplayName(ownerProfile, siteConfig.author);
+  const avatarUrl = ownerProfile?.image ?? siteConfig.avatar;
   const heroIntro = siteSettings.heroIntro ?? siteConfig.heroIntro;
   const summary = siteSettings.summary ?? siteConfig.summary;
   const recentPosts = posts.slice(0, 5);

@@ -1,12 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
-import { useFormStatus } from "react-dom";
-import { EmptyPanel } from "@/app/(admin)/admin/ui";
+import { useActionState, useEffect } from "react";
 import {
   saveGeneralSettingsAction,
   type SaveGeneralSettingsState,
 } from "@/app/(admin)/admin/settings/actions";
+import { useToast } from "@/components/toast-provider";
 
 const initialState: SaveGeneralSettingsState = {
   error: null,
@@ -16,11 +15,7 @@ const initialState: SaveGeneralSettingsState = {
 type GeneralSettingsFormProps = {
   defaults: {
     siteName: string;
-    authorName: string;
-    authorAvatarUrl: string;
     siteUrl: string;
-    email: string;
-    githubUrl: string;
     heroIntro: string;
     summary: string;
     motto: string;
@@ -30,9 +25,10 @@ type GeneralSettingsFormProps = {
 
 export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormProps) {
   const [state, formAction] = useActionState(saveGeneralSettingsAction, initialState);
+  useSettingsToast(state);
 
   return (
-    <form action={formAction} className="grid gap-6">
+    <form id="general-settings-form" action={formAction} className="grid gap-6">
       <section className="grid gap-6 md:grid-cols-2">
         <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
           <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
@@ -45,33 +41,6 @@ export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormPr
             defaultValue={defaults.siteName}
             className="h-11 bg-transparent px-0 text-xl tracking-tight text-zinc-950 outline-none transition placeholder:text-zinc-300 focus:outline-none dark:text-zinc-50 dark:placeholder:text-zinc-600"
             placeholder="输入站点名称"
-          />
-        </label>
-
-        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            作者
-          </span>
-          <input
-            name="authorName"
-            type="text"
-            required
-            defaultValue={defaults.authorName}
-            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-            placeholder="输入作者名称"
-          />
-        </label>
-
-        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            作者头像
-          </span>
-          <input
-            name="authorAvatarUrl"
-            type="text"
-            defaultValue={defaults.authorAvatarUrl}
-            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-            placeholder="/avatar.png 或 https://example.com/avatar.png"
           />
         </label>
 
@@ -107,7 +76,7 @@ export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormPr
               placeholder="在首页作者名下方展示的介绍段落"
             />
             <span className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">
-              支持换行形成多段；<code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">{"{author}"}</code> 自动替换作者名；反引号包裹的内容（如 <code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">`&lt;Developer /&gt;`</code>）会以打字机动画原样显示；<code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">**xxx**</code> 加斜体强调。
+              支持换行形成多段；<code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">{"{author}"}</code> 自动替换昵称；反引号包裹的内容（如 <code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">`&lt;Developer /&gt;`</code>）会以打字机动画原样显示；<code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">**xxx**</code> 加斜体强调。
             </span>
           </label>
         </div>
@@ -142,64 +111,30 @@ export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormPr
           </label>
         </div>
 
-        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            邮箱
-          </span>
-          <input
-            name="email"
-            type="email"
-            defaultValue={defaults.email}
-            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-            placeholder="name@example.com"
-          />
-        </label>
-
-        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            GitHub
-          </span>
-          <input
-            name="githubUrl"
-            type="url"
-            defaultValue={defaults.githubUrl}
-            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-            placeholder="https://github.com/username"
-          />
-        </label>
       </section>
 
       <section className="grid gap-3">
-        {state.error ? <EmptyPanel text={state.error} /> : null}
-        {state.success ? (
-          <div className="border border-emerald-200/80 bg-emerald-50/80 px-5 py-4 text-sm text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/20 dark:text-emerald-300">
-            {state.success}
+        {!canEdit ? (
+          <div className="text-xs text-zinc-500 dark:text-zinc-400">
+            只有 Owner 可以修改设置。
           </div>
         ) : null}
-        <div className="sticky bottom-4 z-20 flex items-center justify-between gap-3 rounded-2xl border border-zinc-200/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/70 dark:border-zinc-800/70 dark:bg-zinc-950/75 supports-[backdrop-filter]:dark:bg-zinc-950/65">
-          <div className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">
-            {canEdit
-              ? "保存后会同步更新公开站点和后台默认信息。"
-              : "只有 Owner 可以修改设置。"}
-          </div>
-          <SaveButton disabled={!canEdit} />
-        </div>
       </section>
     </form>
   );
 }
 
-function SaveButton({ disabled }: { disabled: boolean }) {
-  const { pending } = useFormStatus();
-  const isDisabled = pending || disabled;
+function useSettingsToast(state: SaveGeneralSettingsState) {
+  const { showToast } = useToast();
 
-  return (
-    <button
-      type="submit"
-      disabled={isDisabled}
-      className="inline-flex items-center justify-center border border-transparent bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-70 dark:bg-zinc-100 dark:text-zinc-950 dark:hover:bg-white"
-    >
-      {pending ? "保存中..." : "保存设置"}
-    </button>
-  );
+  useEffect(() => {
+    if (state.error) {
+      showToast(state.error, "error");
+      return;
+    }
+
+    if (state.success) {
+      showToast(state.success);
+    }
+  }, [showToast, state.error, state.success]);
 }
