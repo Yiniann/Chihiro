@@ -128,50 +128,6 @@ export function LoginSettingsForm({
 
         <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
           <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            GitHub 登录
-          </p>
-          <SwitchField
-            title="启用 GitHub 登录"
-            description="允许访客使用 GitHub 登录。"
-            checked={watchedGithubLoginEnabled}
-            onCheckedChange={handleGithubLoginEnabledChange}
-            disabled={!canEdit || isSubmitting}
-          />
-          {watchedGithubLoginEnabled ? (
-            <div className="grid gap-5 md:grid-cols-2">
-              <OAuthField
-                label="GitHub Client ID"
-                ready={githubClientIdReady}
-                statusLabel={githubClientIdReady ? "已配置" : "未配置"}
-                name="githubClientId"
-                type="text"
-                defaultValue={defaults.githubClientId ?? ""}
-                placeholder={authStatus.githubId ? "已通过环境变量配置" : "粘贴 GitHub OAuth Client ID"}
-                description="来自 GitHub OAuth App，用来识别当前站点。"
-              />
-              <OAuthField
-                label="GitHub Client Secret"
-                ready={githubClientSecretReady}
-                statusLabel={githubClientSecretReady ? "已配置" : "未配置"}
-                name="githubClientSecret"
-                type="password"
-                placeholder={githubClientSecretReady ? "已保存；填写新值才会覆盖" : "粘贴 GitHub OAuth Client Secret"}
-                description="不会在页面回显；留空会保留已保存的值或继续使用环境变量。"
-              />
-              <div className="grid gap-2 md:col-span-2">
-                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                  Callback URL
-                </span>
-                <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
-                  {authStatus.githubCallbackUrl}
-                </code>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
-          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             Google 登录
           </p>
           <SwitchField
@@ -208,6 +164,50 @@ export function LoginSettingsForm({
                 </span>
                 <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
                   {authStatus.googleCallbackUrl}
+                </code>
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className="grid gap-5 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+          <p className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            GitHub 登录
+          </p>
+          <SwitchField
+            title="启用 GitHub 登录"
+            description="允许访客使用 GitHub 登录。"
+            checked={watchedGithubLoginEnabled}
+            onCheckedChange={handleGithubLoginEnabledChange}
+            disabled={!canEdit || isSubmitting}
+          />
+          {watchedGithubLoginEnabled ? (
+            <div className="grid gap-5 md:grid-cols-2">
+              <OAuthField
+                label="GitHub Client ID"
+                ready={githubClientIdReady}
+                statusLabel={githubClientIdReady ? "已配置" : "未配置"}
+                name="githubClientId"
+                type="text"
+                defaultValue={defaults.githubClientId ?? ""}
+                placeholder={authStatus.githubId ? "已通过环境变量配置" : "粘贴 GitHub OAuth Client ID"}
+                description="来自 GitHub OAuth App，用来识别当前站点。"
+              />
+              <OAuthField
+                label="GitHub Client Secret"
+                ready={githubClientSecretReady}
+                statusLabel={githubClientSecretReady ? "已配置" : "未配置"}
+                name="githubClientSecret"
+                type="password"
+                placeholder={githubClientSecretReady ? "已保存；填写新值才会覆盖" : "粘贴 GitHub OAuth Client Secret"}
+                description="不会在页面回显；留空会保留已保存的值或继续使用环境变量。"
+              />
+              <div className="grid gap-2 md:col-span-2">
+                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  Callback URL
+                </span>
+                <code className="w-fit rounded-md bg-zinc-100 px-2 py-1 font-mono text-xs text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">
+                  {authStatus.githubCallbackUrl}
                 </code>
               </div>
             </div>
