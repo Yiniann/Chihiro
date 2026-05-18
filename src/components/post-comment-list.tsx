@@ -17,6 +17,7 @@ type PostCommentListProps = {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    provider?: "github" | "google" | "credentials" | null;
   } | null;
 };
 

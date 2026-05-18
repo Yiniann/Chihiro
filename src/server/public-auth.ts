@@ -100,15 +100,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
 
         return "/auth/error?error=AccountLinkIntentRequired";
       },
-      jwt({ token, user }) {
+      jwt({ token, user, account }) {
+        if (account?.provider === "github" || account?.provider === "google") {
+          token.provider = account.provider;
+        }
+
         if (user) {
           token.id = user.id;
           token.role = user.role;
         }
 
+        if (typeof token.provider !== "string" && typeof user?.id === "string") {
+          token.provider = "credentials";
+        }
+
         return token;
       },
-      session({ session, token }) {
+      session({ session, token, user }) {
+        const sessionProvider =
+          typeof token.provider === "string"
+            ? token.provider
+            : user?.id
+              ? "credentials"
+              : null;
+
         return {
           ...session,
           user: {
@@ -118,6 +133,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
               token.role === "ADMIN" || token.role === "OWNER" || token.role === "USER"
                 ? token.role
                 : "USER",
+            provider:
+              sessionProvider === "github" ||
+              sessionProvider === "google" ||
+              sessionProvider === "credentials"
+                ? sessionProvider
+                : null,
           },
         };
       },

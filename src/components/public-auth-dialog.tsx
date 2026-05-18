@@ -107,18 +107,18 @@ export function PublicAuthDialog({
             <>
               <div className="mt-5 grid gap-2">
                 <ProviderButton
+                  label="Google"
+                  enabled={googleEnabled}
+                  disabledText="Google 登录尚未配置"
+                  icon={<GoogleMark className="size-5" />}
+                  onClick={() => handleProviderSignIn("google")}
+                />
+                <ProviderButton
                   label="GitHub"
                   enabled={githubEnabled}
                   disabledText="GitHub 登录尚未配置"
                   icon={<GithubMark className="size-5" />}
                   onClick={() => handleProviderSignIn("github")}
-                />
-                <ProviderButton
-                  label="Google"
-                  enabled={googleEnabled}
-                  disabledText="Google 登录稍后接入"
-                  icon={<GoogleMark className="size-5" />}
-                  onClick={() => handleProviderSignIn("google")}
                 />
                 {process.env.NODE_ENV !== "production" ? (
                   <a

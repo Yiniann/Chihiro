@@ -38,6 +38,7 @@ import { PublicAuthDialog } from "@/components/public-auth-dialog";
 import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { useToast } from "@/components/toast-provider";
+import { AuthProviderBadge } from "@/components/auth-provider-badge";
 import { homeSections } from "@/lib/home-sections";
 import { moreSections } from "@/lib/more-sections";
 
@@ -147,6 +148,7 @@ type SiteHeaderProps = {
     email?: string | null;
     image?: string | null;
     role?: "USER" | "ADMIN" | "OWNER";
+    provider?: "github" | "google" | "credentials" | null;
   } | null;
   siteUrl: string;
   publicAuthProviders: {
@@ -508,6 +510,7 @@ export function SiteHeader({
                 }`}
               >
                 <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
+                <AuthProviderBadge provider={publicUser?.provider ?? null} className="bottom-0.5 right-0.5" />
               </button>
 
               <AnimatePresence>

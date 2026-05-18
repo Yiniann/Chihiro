@@ -2,7 +2,6 @@
 
 import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
 import { Send, Smile } from "lucide-react";
-import Image from "next/image";
 import { useActionState, useEffect, useRef, useState, type CSSProperties } from "react";
 import { useFormStatus } from "react-dom";
 import {
@@ -14,6 +13,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/tiptap-ui-primitive/popover/popover";
+import { AuthProviderBadge } from "@/components/auth-provider-badge";
 import { useToast } from "@/components/toast-provider";
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint";
 
@@ -637,25 +637,24 @@ function UserAvatar({
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    provider?: "github" | "google" | "credentials" | null;
   };
 }) {
   const label = user.name ?? user.email ?? "你";
 
-  if (user.image) {
-    return (
-      <Image
-        src={user.image}
-        alt=""
-        width={36}
-        height={36}
-        className="mt-1 size-9 rounded-full"
-      />
-    );
-  }
-
   return (
-    <span className="mt-1 inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-      {label.slice(0, 1).toUpperCase()}
+    <span className="relative mt-1 block size-9 shrink-0">
+      {user.image ? (
+        <span
+          className="block size-9 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-zinc-200/80 dark:ring-zinc-800/80"
+          style={{ backgroundImage: `url(${user.image})` }}
+        />
+      ) : (
+        <span className="inline-flex size-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          {label.slice(0, 1).toUpperCase()}
+        </span>
+      )}
+      <AuthProviderBadge provider={user.provider ?? null} />
     </span>
   );
 }
