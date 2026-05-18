@@ -15,6 +15,7 @@ import {
   Settings2,
   Tags,
   Trash2,
+  Users,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -40,6 +41,9 @@ const adminNavMeta: Record<
   },
   "/admin/updates": {
     icon: MessageSquareText,
+  },
+  "/admin/readers": {
+    icon: Users,
   },
   "/admin/pages": {
     icon: FileText,

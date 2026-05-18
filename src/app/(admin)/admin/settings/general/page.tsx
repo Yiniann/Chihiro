@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { AdminPageHeader } from "@/app/(admin)/admin/ui";
 import { GeneralSettingsForm } from "@/app/(admin)/admin/settings/general/general-settings-form";
@@ -22,13 +21,7 @@ export default async function AdminGeneralSettingsPage() {
   return (
     <div className="grid gap-8">
       <div className="grid gap-3">
-        <Link
-          href="/admin/settings"
-          className="inline-flex w-fit items-center text-sm text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-        >
-          返回设置
-        </Link>
-        <AdminPageHeader eyebrow="Settings" title="设置" />
+        <AdminPageHeader eyebrow="Settings" title="常规设置" />
       </div>
       <GeneralSettingsForm defaults={defaults} canEdit={canEdit} />
     </div>
