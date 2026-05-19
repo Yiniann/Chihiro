@@ -108,6 +108,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
         if (user) {
           token.id = user.id;
           token.role = user.role;
+          token.name = user.name;
+          token.email = user.email;
+          token.picture = user.image;
         }
 
         if (typeof token.provider !== "string" && typeof user?.id === "string") {
@@ -129,6 +132,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth(async (request) => {
           user: {
             ...session.user,
             id: typeof token.id === "string" ? token.id : "",
+            name: typeof token.name === "string" ? token.name : null,
+            email: typeof token.email === "string" ? token.email : null,
+            image: typeof token.picture === "string" ? token.picture : null,
             role:
               token.role === "ADMIN" || token.role === "OWNER" || token.role === "USER"
                 ? token.role
