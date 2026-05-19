@@ -9,7 +9,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/admin/posts", label: "文章" },
   { href: "/admin/updates", label: "动态" },
   { href: "/admin/readers", label: "读者" },
-  { href: "/admin/pages", label: "页面" },
+  { href: "/admin/pages", label: "独立页面" },
   { href: "/admin/categories", label: "分类标签" },
   { href: "/admin/comments", label: "评论" },
   { href: "/admin/media", label: "媒体库" },

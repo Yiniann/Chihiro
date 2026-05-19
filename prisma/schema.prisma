@@ -41,6 +41,11 @@ enum UserRole {
   OWNER
 }
 
+enum StandalonePageNavGroup {
+  HOME
+  MORE
+}
+
 model Post {
   id                Int           @id @default(autoincrement())
   title             String
@@ -204,6 +209,28 @@ model Update {
   updatedAt     DateTime      @updatedAt
 
   @@index([status, publishedAt])
+}
+
+model StandalonePage {
+  id             Int                    @id @default(autoincrement())
+  title          String
+  slug           String                 @unique
+  status         ContentStatus          @default(DRAFT)
+  content        Json?
+  contentHtml    String?
+  publishedAt    DateTime?
+  draftSnapshot  Json?
+  showInNav      Boolean                @default(false)
+  navLabel       String?
+  navEyebrow     String?
+  navGroup       StandalonePageNavGroup @default(HOME)
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([showInNav, navGroup, status, publishedAt])
 }
 
 model Asset {

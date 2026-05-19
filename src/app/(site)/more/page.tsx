@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Bookmark, BriefcaseBusiness, Film, Handshake } from "lucide-react";
 import { moreSections } from "@/lib/more-sections";
+import { listPublicStandalonePagesForNavigation } from "@/server/public-content";
+import { StandalonePageNavGroup } from "@prisma/client";
 
 const sectionIcons = {
   projects: BriefcaseBusiness,
@@ -9,7 +11,11 @@ const sectionIcons = {
   bookmarks: Bookmark,
 } as const;
 
-export default function MorePage() {
+export default async function MorePage() {
+  const standalonePages = await listPublicStandalonePagesForNavigation(
+    StandalonePageNavGroup.MORE,
+  );
+
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">More</p>
@@ -54,6 +60,27 @@ export default function MorePage() {
           })()
         ))}
       </section>
+      {standalonePages.length > 0 ? (
+        <section className="mt-16 border-t border-zinc-200/80 pt-10 dark:border-zinc-800/80">
+          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+            Pages
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            {standalonePages.map((page) => (
+              <Link
+                key={page.id}
+                href={page.href}
+                className="rounded-3xl border border-zinc-200/80 px-5 py-5 text-zinc-700 transition hover:border-primary/30 hover:text-primary dark:border-zinc-800/80 dark:text-zinc-200 dark:hover:border-primary/30"
+              >
+                <p className="text-sm font-medium">{page.navLabel}</p>
+                <p className="mt-2 text-xs uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  /{page.slug}
+                </p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 }

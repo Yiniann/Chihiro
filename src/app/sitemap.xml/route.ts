@@ -1,5 +1,4 @@
 import { getPostPath } from "@/lib/routes";
-import { homeSections } from "@/lib/home-sections";
 import { moreSections } from "@/lib/more-sections";
 import { canonicalUrl } from "@/lib/site";
 import {
@@ -7,14 +6,20 @@ import {
   isPublicSiteUnavailableError,
   isUninstalledSiteError,
   listPublicPosts,
+  listPublicStandalonePages,
 } from "@/server/public-content";
 
 export async function GET() {
   let posts;
+  let standalonePages;
   let siteSettings;
 
   try {
-    [posts, siteSettings] = await Promise.all([listPublicPosts(), getPublicSiteSettings()]);
+    [posts, standalonePages, siteSettings] = await Promise.all([
+      listPublicPosts(),
+      listPublicStandalonePages(),
+      getPublicSiteSettings(),
+    ]);
   } catch (error) {
     if (isUninstalledSiteError(error)) {
       return new Response("404 · Not Found", {
@@ -43,12 +48,12 @@ export async function GET() {
 
   const staticRoutes = [
     toCanonical("/"),
-    ...homeSections.map((section) => toCanonical(section.href)),
     toCanonical("/posts"),
     toCanonical("/updates"),
     toCanonical("/timeline"),
     toCanonical("/more"),
     ...moreSections.map((section) => toCanonical(section.href)),
+    ...standalonePages.map((page) => toCanonical(`/${page.slug}`)),
   ];
 
   const postRoutes = posts.map((post) =>

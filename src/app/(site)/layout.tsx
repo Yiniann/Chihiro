@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { StandalonePageNavGroup } from "@prisma/client";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { SiteHeader } from "@/components/site-header";
@@ -11,6 +12,7 @@ import {
   listPublicHeaderPostCategories,
   listPublicRecentArchiveItems,
   listPublicRecentUpdateItems,
+  listPublicStandalonePagesForNavigation,
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
 } from "@/server/public-content";
@@ -33,6 +35,8 @@ export default async function SiteLayout({
   let postCategories;
   let recentArchiveItems;
   let recentUpdateItems;
+  let homeStandalonePages;
+  let moreStandalonePages;
   let siteSettings;
   let adminState;
   let publicSession;
@@ -44,6 +48,8 @@ export default async function SiteLayout({
       postCategories,
       recentArchiveItems,
       recentUpdateItems,
+      homeStandalonePages,
+      moreStandalonePages,
       siteSettings,
       adminState,
       publicSession,
@@ -54,6 +60,8 @@ export default async function SiteLayout({
         listPublicHeaderPostCategories(),
         listPublicRecentArchiveItems(),
         listPublicRecentUpdateItems(),
+        listPublicStandalonePagesForNavigation(StandalonePageNavGroup.HOME),
+        listPublicStandalonePagesForNavigation(StandalonePageNavGroup.MORE),
         getPublicSiteSettings(),
         getPublicAdminState(),
         auth(),
@@ -110,6 +118,8 @@ export default async function SiteLayout({
         postCategories={postCategories}
         recentArchiveItems={recentArchiveItems}
         recentUpdateItems={recentUpdateItems}
+        homeStandalonePages={homeStandalonePages}
+        moreStandalonePages={moreStandalonePages}
       />
       <div className="relative z-10 flex-1 pt-24 sm:pt-28">{children}</div>
       <SiteFooter

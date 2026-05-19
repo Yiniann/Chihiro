@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ContentStatus } from "@prisma/client";
+import { ContentStatus, StandalonePageNavGroup } from "@prisma/client";
 import {
   deletePostsBulkAction,
   deleteUpdatesBulkAction,
@@ -32,6 +32,7 @@ import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import type { CategoryOption } from "@/server/repositories/categories";
 import { listPostsForAdmin } from "@/server/repositories/posts";
+import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
 import { listTags } from "@/server/repositories/tags";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 
@@ -130,6 +131,51 @@ export function filterAdminPosts(
   });
 }
 
+export function sortAdminStandalonePages(
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+  sort: AdminSortValue,
+) {
+  const nextItems = [...items];
+  const { field, direction } = getAdminSortMeta(sort);
+  const resolvedField = field === "category" ? "updated" : field;
+
+  nextItems.sort((left, right) => {
+    const leftValue = resolvedField === "created" ? left.createdAt : left.updatedAt;
+    const rightValue = resolvedField === "created" ? right.createdAt : right.updatedAt;
+
+    return direction === "asc"
+      ? compareDates(leftValue, rightValue)
+      : compareDates(rightValue, leftValue);
+  });
+
+  return nextItems;
+}
+
+export function filterAdminStandalonePages(
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+  query: string,
+) {
+  if (!query) {
+    return items;
+  }
+
+  const normalizedQuery = query.toLocaleLowerCase("zh-CN");
+
+  return items.filter((item) => {
+    const haystack = [
+      item.title,
+      item.slug,
+      item.navLabel ?? "",
+      item.seoTitle ?? "",
+      item.seoDescription ?? "",
+    ]
+      .join("\n")
+      .toLocaleLowerCase("zh-CN");
+
+    return haystack.includes(normalizedQuery);
+  });
+}
+
 export function filterVisibleAdminPosts(items: Awaited<ReturnType<typeof listPostsForAdmin>>) {
   return items.filter((item) => item.status !== ContentStatus.ARCHIVED);
 }
@@ -215,11 +261,25 @@ export function AdminUpdatesSection({
   );
 }
 
-export function AdminPagesSection() {
+export function AdminPagesSection({
+  items,
+  sort,
+  query,
+}: {
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>;
+  sort: AdminSortValue;
+  query: string;
+}) {
   return (
     <section className="grid gap-5">
-      <ContentTableToolbar createHref="/admin/compose/page" createLabel="新页面" query="" />
-      <EmptyPanel text="独立页面会单独管理，这里先保留入口，后续再接入完整列表。" />
+      <ContentTableToolbar
+        createHref="/admin/pages/new"
+        createLabel="新独立页面"
+        query={query}
+        sort={sort}
+        basePath="/admin/pages"
+      />
+      <AdminStandalonePagesTable items={items} sort={sort} query={query} />
     </section>
   );
 }
@@ -515,6 +575,101 @@ function AdminUpdatesTable({
   );
 }
 
+function AdminStandalonePagesTable({
+  items,
+  sort,
+  query,
+}: {
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>;
+  sort: AdminSortValue;
+  query: string;
+}) {
+  if (items.length === 0) {
+    return <EmptyPanel text={query ? "没有匹配的独立页面结果。" : "还没有独立页面。"} />;
+  }
+
+  return (
+    <AdminDataTable
+      columns={[
+        { key: "title", label: "标题", className: "minmax(14rem,2.1fr)" },
+        { key: "slug", label: "路径", className: "minmax(8rem,1fr)" },
+        { key: "nav", label: "导航", className: "minmax(8rem,0.9fr)" },
+        { key: "created", label: "创建于", className: "6.5rem", sortable: "created", icon: CalendarDays, align: "right" },
+        { key: "updated", label: "修改于", className: "6.5rem", sortable: "updated", icon: Clock3, align: "right" },
+        { key: "status", label: "状态", className: "5.75rem" },
+        { key: "actions", label: "操作", className: "4.5rem" },
+      ]}
+      items={items}
+      sort={sort}
+      query={query}
+      basePath="/admin/pages"
+      emptyText="没有匹配的独立页面结果。"
+      renderMobileRow={(item) => <AdminStandalonePageMobileRow item={item} />}
+      renderRow={(item) => (
+        <>
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
+              <Link
+                href={`/admin/pages/${encodeURIComponent(item.id)}`}
+                className="truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
+              >
+                {item.title}
+              </Link>
+              {item.status === ContentStatus.PUBLISHED && item.draftSnapshot ? (
+                <span className="inline-flex h-6 items-center rounded-full bg-amber-100/70 px-2 text-[11px] font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-300">
+                  有修订
+                </span>
+              ) : null}
+              {item.status === ContentStatus.PUBLISHED ? (
+                <a
+                  href={`/${item.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
+                  aria-label="查看站点页面"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              ) : (
+                <span
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 dark:text-zinc-700"
+                  aria-label="未发布，无法查看站点页面"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </span>
+              )}
+              <Link
+                href={`/admin/pages/${encodeURIComponent(item.id)}`}
+                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
+                aria-label="编辑独立页面"
+              >
+                <FilePenLine className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+          </div>
+          <div className="text-sm text-zinc-600 dark:text-zinc-300">/{item.slug}</div>
+          <div className="min-w-0 text-sm text-zinc-500 dark:text-zinc-400">
+            {item.showInNav ? `${item.navGroup === StandalonePageNavGroup.HOME ? "起点" : "更多"} · ${item.navLabel ?? item.title}` : "不显示"}
+          </div>
+          <TableDate value={item.createdAt} />
+          <TableDate value={item.updatedAt} />
+          <div>
+            <TableStatus status={item.status} />
+          </div>
+          <div className="justify-self-start text-sm">
+            <Link
+              href={`/admin/pages/${encodeURIComponent(item.id)}`}
+              className="inline-flex h-8 items-center rounded-full border border-zinc-200/80 px-3 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
+            >
+              编辑
+            </Link>
+          </div>
+        </>
+      )}
+    />
+  );
+}
+
 function BulkActionBar({
   formId,
   publishAction,
@@ -744,6 +899,56 @@ function AdminUpdateMobileRow({
       <div className="col-span-2 mt-1 flex items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
         <span className="min-w-0 truncate whitespace-nowrap">
           {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+        </span>
+        <div className="shrink-0">
+          <TableStatus status={item.status} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AdminStandalonePageMobileRow({
+  item,
+}: {
+  item: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>[number];
+}) {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+      <div className="min-w-0 w-full">
+        <div className="overflow-hidden">
+          <Link
+            href={`/admin/pages/${encodeURIComponent(item.id)}`}
+            className="block w-full truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
+          >
+            {item.title}
+          </Link>
+        </div>
+      </div>
+      <div className="flex shrink-0 items-center gap-2 pl-1 text-zinc-400 dark:text-zinc-500">
+        {item.status === ContentStatus.PUBLISHED ? (
+          <a
+            href={`/${item.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
+            aria-label="查看站点页面"
+          >
+            <ExternalLink className="h-4 w-4" />
+          </a>
+        ) : null}
+        <Link
+          href={`/admin/pages/${encodeURIComponent(item.id)}`}
+          className="inline-flex h-8 items-center rounded-full border border-zinc-200/80 px-3 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
+        >
+          编辑
+        </Link>
+      </div>
+      <div className="col-span-2 mt-1 flex items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="min-w-0 truncate whitespace-nowrap">
+          {item.showInNav
+            ? `${item.navGroup === StandalonePageNavGroup.HOME ? "起点" : "更多"} · ${item.navLabel ?? item.title}`
+            : "不显示在导航中"}
         </span>
         <div className="shrink-0">
           <TableStatus status={item.status} />

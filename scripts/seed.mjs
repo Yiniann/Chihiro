@@ -1,5 +1,12 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { CategoryKind, ContentStatus, PrismaClient, AssetProvider, AssetKind } from "@prisma/client";
+import {
+  CategoryKind,
+  ContentStatus,
+  PrismaClient,
+  AssetProvider,
+  AssetKind,
+  StandalonePageNavGroup,
+} from "@prisma/client";
 import pg from "pg";
 
 const { Pool } = pg;
@@ -160,6 +167,31 @@ const updateSeeds = [
   },
 ];
 
+const standalonePageSeeds = [
+  {
+    title: "关于此站点",
+    slug: "about",
+    navLabel: "此站点",
+    navEyebrow: "About",
+    navGroup: StandalonePageNavGroup.HOME,
+    paragraphs: [
+      "这里可以写站点的来历、写作方向，或者你想让第一次到访的人先读到的那段话。",
+      "独立页面默认不会自动显示标题，前台会直接从正文开始展示，所以这一页适合写成更自由的说明页。",
+    ],
+  },
+  {
+    title: "留言",
+    slug: "message",
+    navLabel: "留言",
+    navEyebrow: "Message",
+    navGroup: StandalonePageNavGroup.HOME,
+    paragraphs: [
+      "这里可以放留言说明、联系偏好，或者一段你希望读者在写信前先看到的话。",
+      "如果之后要接入联系表单、社交方式或来信规则，也可以继续在这一页扩展。",
+    ],
+  },
+];
+
 async function main() {
   await prisma.siteSettings.upsert({
     where: { id: "default" },
@@ -281,7 +313,31 @@ async function main() {
     });
   }
 
-  console.log("Seeded site settings, posts, updates, tags, categories, and assets.");
+  for (const page of standalonePageSeeds) {
+    const content = buildParagraphJson(page.paragraphs);
+    const contentHtml = buildParagraphHtml(page.paragraphs);
+
+    await prisma.standalonePage.upsert({
+      where: { slug: page.slug },
+      update: {},
+      create: {
+        title: page.title,
+        slug: page.slug,
+        status: ContentStatus.PUBLISHED,
+        content,
+        contentHtml,
+        publishedAt: new Date(),
+        showInNav: true,
+        navLabel: page.navLabel,
+        navEyebrow: page.navEyebrow,
+        navGroup: page.navGroup,
+        seoTitle: page.title,
+        seoDescription: page.paragraphs[0],
+      },
+    });
+  }
+
+  console.log("Seeded site settings, posts, updates, standalone pages, tags, categories, and assets.");
 }
 
 function buildParagraphJson(paragraphs) {

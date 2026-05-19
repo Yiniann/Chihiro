@@ -1,12 +1,15 @@
-import { HomeSectionPlaceholder } from "@/components/home-section-placeholder";
-import { getHomeSectionBySlug } from "@/lib/home-sections";
+import type { Metadata } from "next";
+import {
+  StandalonePageRenderer,
+  generateStandalonePageMetadata,
+} from "@/app/(site)/standalone-page-renderer";
+
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  return generateStandalonePageMetadata("message");
+}
 
 export default function MessagePage() {
-  const section = getHomeSectionBySlug("message");
-
-  if (!section) {
-    throw new Error("Missing home section config for message.");
-  }
-
-  return <HomeSectionPlaceholder section={section} />;
+  return <StandalonePageRenderer slug="message" />;
 }

@@ -21,6 +21,14 @@ import {
   listRecentPublishedUpdatesForNavigation,
   type UpdateItem,
 } from "@/server/repositories/updates";
+import {
+  getPublishedStandalonePageBySlug,
+  listPublishedStandalonePages,
+  listPublishedStandalonePagesForNavigation,
+  type StandalonePageItem,
+  type StandalonePageNavigationItem,
+} from "@/server/repositories/standalone-pages";
+import { StandalonePageNavGroup } from "@prisma/client";
 
 export class PublicSiteUnavailableError extends Error {
   constructor() {
@@ -65,6 +73,8 @@ export type PublicRecentArchiveItem = {
   publishedAt: string | null;
   kind: "篇章" | "足迹";
 };
+
+export type PublicStandalonePageNavigationItem = StandalonePageNavigationItem;
 
 export async function getPublicSiteSettings(): Promise<SiteSettingsRecord> {
   await assertInstalledPublicSite();
@@ -190,6 +200,62 @@ export async function listPublicPostCategories(): Promise<CategoryOption[]> {
 
   try {
     return await listPostCategories();
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicStandalonePages(): Promise<StandalonePageItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await listPublishedStandalonePages();
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function getPublicStandalonePageBySlug(slug: string): Promise<StandalonePageItem | null> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await getPublishedStandalonePageBySlug(slug);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicStandalonePagesForNavigation(
+  navGroup: StandalonePageNavGroup,
+): Promise<PublicStandalonePageNavigationItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await listPublishedStandalonePagesForNavigation(navGroup);
   } catch (error) {
     if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
       throw new PublicSiteUnavailableError();

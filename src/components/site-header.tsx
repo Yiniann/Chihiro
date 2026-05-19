@@ -22,6 +22,7 @@ import {
   Compass,
   Film,
   FileArchive,
+  FileText,
   GalleryVerticalEnd,
   Handshake,
   LayoutDashboard,
@@ -39,7 +40,6 @@ import { RelativeDate } from "@/components/relative-date";
 import { ThemeModeToggle } from "@/components/theme-mode-toggle";
 import { useToast } from "@/components/toast-provider";
 import { AuthProviderBadge } from "@/components/auth-provider-badge";
-import { homeSections } from "@/lib/home-sections";
 import { moreSections } from "@/lib/more-sections";
 
 const navItems = [
@@ -87,29 +87,47 @@ const homeSectionIcons = {
   "/message": MessageCircle,
 } as const;
 
-function getDisplayNavItems(pathname: string) {
-  const activeHomeSection = homeSections.find((section) => pathname === section.href) ?? null;
+type StandaloneNavItem = {
+  id: number;
+  slug: string;
+  href: string;
+  title: string;
+  navLabel: string;
+  navEyebrow: string | null;
+};
+
+function getDisplayNavItems(
+  pathname: string,
+  homeStandalonePages: StandaloneNavItem[],
+  moreStandalonePages: StandaloneNavItem[],
+) {
+  const activeHomeSection = homeStandalonePages.find((section) => pathname === section.href) ?? null;
   const activeHomeSectionIcon =
     pathname in homeSectionIcons
       ? homeSectionIcons[pathname as keyof typeof homeSectionIcons]
       : null;
-  const activeMoreSection = moreSections.find((section) => pathname === section.href) ?? null;
+  const activeMoreSection =
+    moreStandalonePages.find((section) => pathname === section.href) ??
+    moreSections.find((section) => pathname === section.href) ??
+    null;
   const activeMoreSectionIcon =
     pathname in moreSectionIcons
       ? moreSectionIcons[pathname as keyof typeof moreSectionIcons]
-      : null;
+      : pathname === activeMoreSection?.href
+        ? FileText
+        : null;
 
   return navItems.map((item) =>
     item.href === "/" && activeHomeSection
       ? {
           ...item,
-          label: activeHomeSection.title,
+          label: activeHomeSection.navLabel,
           icon: activeHomeSectionIcon ?? item.icon,
         }
       : item.href === "/more" && activeMoreSection
         ? {
             ...item,
-            label: activeMoreSection.title,
+            label: "navLabel" in activeMoreSection ? activeMoreSection.navLabel : activeMoreSection.title,
             icon: activeMoreSectionIcon ?? item.icon,
           }
         : item,
@@ -158,6 +176,8 @@ type SiteHeaderProps = {
   postCategories: SiteHeaderPostCategory[];
   recentArchiveItems: SiteHeaderRecentArchiveItem[];
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
+  homeStandalonePages: StandaloneNavItem[];
+  moreStandalonePages: StandaloneNavItem[];
 };
 
 export function SiteHeader({
@@ -171,6 +191,8 @@ export function SiteHeader({
   postCategories,
   recentArchiveItems,
   recentUpdateItems,
+  homeStandalonePages,
+  moreStandalonePages,
 }: SiteHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -342,9 +364,11 @@ export function SiteHeader({
     setHighlightedHref(null);
   };
 
-  const displayNavItems = getDisplayNavItems(pathname);
+  const displayNavItems = getDisplayNavItems(pathname, homeStandalonePages, moreStandalonePages);
   const activeItem =
-    displayNavItems.find((item) => isActivePath(pathname, item.href)) ?? displayNavItems[0];
+    displayNavItems.find((item) =>
+      isActivePath(pathname, item.href, homeStandalonePages, moreStandalonePages),
+    ) ?? displayNavItems[0];
   const featuredItem =
     displayNavItems.find((item) => item.href === highlightedHref) ?? activeItem;
   const headerUserName = publicUser?.name ?? publicUser?.email ?? adminDisplayName;
@@ -452,7 +476,9 @@ export function SiteHeader({
             onNavigate={preserveStickyOnNextNavigation}
             onItemEnter={openMegaNav}
             onItemFocus={openMegaNav}
-            isActivePath={isActivePath}
+            isActivePath={(currentPathname, href) =>
+              isActivePath(currentPathname, href, homeStandalonePages, moreStandalonePages)
+            }
           />
 
           <AnimatePresence>
@@ -471,6 +497,8 @@ export function SiteHeader({
                       postCategories,
                       recentArchiveItems,
                       recentUpdateItems,
+                      homeStandalonePages,
+                      moreStandalonePages,
                       hoveredPostCategorySlug,
                       onHoverPostCategory: setHoveredPostCategorySlug,
                       onNavigate: handleMegaNavNavigate,
@@ -609,7 +637,12 @@ export function SiteHeader({
             <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_18px_50px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.44)]">
               <nav className="grid gap-2">
                 {displayNavItems.map((item) => {
-                  const active = isActivePath(pathname, item.href);
+                  const active = isActivePath(
+                    pathname,
+                    item.href,
+                    homeStandalonePages,
+                    moreStandalonePages,
+                  );
                   const Icon = item.icon;
                   const expanded = expandedMobileHref === item.href;
                   const canExpand = item.href === "/" || item.href === "/posts" || item.href === "/more";
@@ -685,6 +718,8 @@ export function SiteHeader({
                                   postCategories,
                                   recentArchiveItems,
                                   recentUpdateItems,
+                                  homeStandalonePages,
+                                  moreStandalonePages,
                                 },
                                 () => setIsMobileNavOpen(false),
                               )}
@@ -754,13 +789,22 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
   );
 }
 
-function isActivePath(pathname: string, href: string) {
+function isActivePath(
+  pathname: string,
+  href: string,
+  homeStandalonePages: StandaloneNavItem[],
+  moreStandalonePages: StandaloneNavItem[],
+) {
   if (href === "/") {
-    return pathname === "/" || homeSections.some((section) => pathname === section.href);
+    return pathname === "/" || homeStandalonePages.some((section) => pathname === section.href);
   }
 
   if (href === "/more") {
-    return pathname === "/more" || moreSections.some((section) => pathname === section.href);
+    return (
+      pathname === "/more" ||
+      moreStandalonePages.some((section) => pathname === section.href) ||
+      moreSections.some((section) => pathname === section.href)
+    );
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -772,6 +816,8 @@ function renderMegaNavContent(
     postCategories: SiteHeaderPostCategory[];
     recentArchiveItems: SiteHeaderRecentArchiveItem[];
     recentUpdateItems: SiteHeaderRecentArchiveItem[];
+    homeStandalonePages: StandaloneNavItem[];
+    moreStandalonePages: StandaloneNavItem[];
     hoveredPostCategorySlug: string | null;
     onHoverPostCategory: (slug: string) => void;
     onNavigate: () => void;
@@ -782,13 +828,15 @@ function renderMegaNavContent(
       return (
         <MegaNavSection eyebrow="Home">
           <div className="grid gap-2 sm:grid-cols-2">
-            <MegaNavLinkCard href="/about" title="自述" eyebrow="About" onNavigate={options.onNavigate} />
-            <MegaNavLinkCard
-              href="/message"
-              title="留言"
-              eyebrow="Message"
-              onNavigate={options.onNavigate}
-            />
+            {options.homeStandalonePages.map((item) => (
+              <MegaNavLinkCard
+                key={item.id}
+                href={item.href}
+                title={item.navLabel}
+                eyebrow={item.navEyebrow ?? item.title}
+                onNavigate={options.onNavigate}
+              />
+            ))}
           </div>
         </MegaNavSection>
       );
@@ -853,6 +901,15 @@ function renderMegaNavContent(
       return (
         <MegaNavSection eyebrow="More">
           <div className="grid gap-2 sm:grid-cols-3">
+            {options.moreStandalonePages.map((item) => (
+              <MegaNavLinkCard
+                key={`standalone-${item.id}`}
+                href={item.href}
+                title={item.navLabel}
+                eyebrow={item.navEyebrow ?? item.title}
+                onNavigate={options.onNavigate}
+              />
+            ))}
             {moreSections.map((item) => (
               <MegaNavLinkCard
                 key={item.eyebrow}
@@ -876,6 +933,8 @@ function renderMobileNavContent(
     postCategories: SiteHeaderPostCategory[];
     recentArchiveItems: SiteHeaderRecentArchiveItem[];
     recentUpdateItems: SiteHeaderRecentArchiveItem[];
+    homeStandalonePages: StandaloneNavItem[];
+    moreStandalonePages: StandaloneNavItem[];
   },
   onNavigate: () => void,
 ) {
@@ -884,8 +943,14 @@ function renderMobileNavContent(
       return (
         <div className="flex flex-wrap gap-2">
           <MobileNavChip href="/" label="起点" onNavigate={onNavigate} />
-          <MobileNavChip href="/about" label="自述" onNavigate={onNavigate} />
-          <MobileNavChip href="/message" label="留言" onNavigate={onNavigate} />
+          {navigationData.homeStandalonePages.map((item) => (
+            <MobileNavChip
+              key={item.id}
+              href={item.href}
+              label={item.navLabel}
+              onNavigate={onNavigate}
+            />
+          ))}
         </div>
       );
     case "/posts":
@@ -927,6 +992,16 @@ function renderMobileNavContent(
     case "/more":
       return (
         <div className="flex flex-wrap gap-2">
+          {navigationData.moreStandalonePages.map((item) => (
+            <Link
+              key={`standalone-${item.id}`}
+              href={item.href}
+              onClick={onNavigate}
+              className="rounded-full border border-dashed border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+            >
+              {item.navLabel}
+            </Link>
+          ))}
           {moreSections.map((item) => (
             <Link
               key={item.eyebrow}

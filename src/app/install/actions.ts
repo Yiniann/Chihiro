@@ -12,6 +12,7 @@ import { signIn } from "@/server/public-auth";
 import { isDatabaseUnavailableError } from "@/server/database-errors";
 import { getInstallationState } from "@/server/installation";
 import { hashPassword } from "@/server/passwords";
+import { ensureDefaultStandalonePages } from "@/server/repositories/standalone-pages";
 import { upsertSiteSettings } from "@/server/repositories/site";
 import {
   countLocalAdminUsers,
@@ -115,6 +116,8 @@ export async function initializeSiteAction(
       email: null,
       githubUrl: null,
     });
+
+    await ensureDefaultStandalonePages();
   } catch (error) {
     if (isDatabaseUnavailableError(error)) {
       return {
