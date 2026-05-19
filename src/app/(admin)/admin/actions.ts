@@ -18,6 +18,13 @@ import {
   restoreUpdateFromTrashById,
   unpublishUpdateById,
 } from "@/server/repositories/updates";
+import {
+  deleteStandalonePageById,
+  moveStandalonePageToTrashById,
+  publishStandalonePageById,
+  restoreStandalonePageFromTrashById,
+  unpublishStandalonePageById,
+} from "@/server/repositories/standalone-pages";
 
 export async function publishPostAction(formData: FormData) {
   await requireAdminSession();
@@ -95,9 +102,12 @@ export async function restoreTrashItemAction(formData: FormData) {
   if (entry.kind === "post") {
     const post = await restorePostFromTrashById(entry.id);
     revalidatePostSurface(post.slug, post.category?.slug);
-  } else {
+  } else if (entry.kind === "update") {
     await restoreUpdateFromTrashById(entry.id);
     revalidateUpdateSurface();
+  } else {
+    const page = await restoreStandalonePageFromTrashById(entry.id);
+    revalidateStandalonePageSurface(page.slug);
   }
 
   redirect("/admin/trash");
@@ -111,9 +121,12 @@ export async function restoreTrashItemsBulkAction(formData: FormData) {
     if (entry.kind === "post") {
       const post = await restorePostFromTrashById(entry.id);
       revalidatePostSurface(post.slug, post.category?.slug);
-    } else {
+    } else if (entry.kind === "update") {
       await restoreUpdateFromTrashById(entry.id);
       revalidateUpdateSurface();
+    } else {
+      const page = await restoreStandalonePageFromTrashById(entry.id);
+      revalidateStandalonePageSurface(page.slug);
     }
   }
 
@@ -127,9 +140,12 @@ export async function permanentlyDeleteTrashItemAction(formData: FormData) {
   if (entry.kind === "post") {
     const post = await deletePostById(entry.id);
     revalidatePostSurface(post.slug, post.category?.slug);
-  } else {
+  } else if (entry.kind === "update") {
     await deleteUpdateById(entry.id);
     revalidateUpdateSurface();
+  } else {
+    const page = await deleteStandalonePageById(entry.id);
+    revalidateStandalonePageSurface(page.slug);
   }
 
   redirect("/admin/trash");
@@ -143,9 +159,12 @@ export async function permanentlyDeleteTrashItemsBulkAction(formData: FormData) 
     if (entry.kind === "post") {
       const post = await deletePostById(entry.id);
       revalidatePostSurface(post.slug, post.category?.slug);
-    } else {
+    } else if (entry.kind === "update") {
       await deleteUpdateById(entry.id);
       revalidateUpdateSurface();
+    } else {
+      const page = await deleteStandalonePageById(entry.id);
+      revalidateStandalonePageSurface(page.slug);
     }
   }
 
@@ -245,6 +264,87 @@ export async function deleteUpdatesBulkAction(formData: FormData) {
   redirect("/admin/updates");
 }
 
+export async function publishStandalonePageAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const page = await publishStandalonePageById(id);
+
+  revalidateStandalonePageSurface(page.slug);
+  redirect("/admin/pages");
+}
+
+export async function publishStandalonePagesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一个独立页面。");
+
+  for (const id of ids) {
+    const page = await publishStandalonePageById(id);
+    revalidateStandalonePageSurface(page.slug);
+  }
+
+  redirect("/admin/pages");
+}
+
+export async function unpublishStandalonePageAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const page = await unpublishStandalonePageById(id);
+
+  revalidateStandalonePageSurface(page.slug);
+  redirect("/admin/pages");
+}
+
+export async function unpublishStandalonePagesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一个独立页面。");
+
+  for (const id of ids) {
+    const page = await unpublishStandalonePageById(id);
+    revalidateStandalonePageSurface(page.slug);
+  }
+
+  redirect("/admin/pages");
+}
+
+export async function deleteStandalonePageAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const page = await moveStandalonePageToTrashById(id);
+
+  revalidateStandalonePageSurface(page.slug);
+  redirect("/admin/pages");
+}
+
+export async function restoreStandalonePageAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const page = await restoreStandalonePageFromTrashById(id);
+
+  revalidateStandalonePageSurface(page.slug);
+  redirect("/admin/trash");
+}
+
+export async function permanentlyDeleteStandalonePageAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredId(formData, "id");
+  const page = await deleteStandalonePageById(id);
+
+  revalidateStandalonePageSurface(page.slug);
+  redirect("/admin/trash");
+}
+
+export async function deleteStandalonePagesBulkAction(formData: FormData) {
+  await requireAdminSession();
+  const ids = getRequiredIds(formData, "ids", "请至少选择一个独立页面。");
+
+  for (const id of ids) {
+    const page = await moveStandalonePageToTrashById(id);
+    revalidateStandalonePageSurface(page.slug);
+  }
+
+  redirect("/admin/pages");
+}
+
 function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/admin");
   revalidatePath("/admin/posts");
@@ -268,6 +368,16 @@ function revalidateUpdateSurface() {
   revalidatePath("/timeline");
   revalidatePath("/updates");
   revalidatePath("/rss.xml");
+  revalidatePath("/sitemap.xml");
+}
+
+function revalidateStandalonePageSurface(slug: string) {
+  revalidatePath("/admin");
+  revalidatePath("/admin/pages");
+  revalidatePath("/admin/trash");
+  revalidatePath("/");
+  revalidatePath("/more");
+  revalidatePath(`/${slug}`);
   revalidatePath("/sitemap.xml");
 }
 
@@ -340,14 +450,14 @@ function getRequiredTrashEntries(formData: FormData, key: string, message: strin
 }
 
 function parseTrashEntry(value: string) {
-  const match = value.match(/^(post|update):(\d+)$/);
+  const match = value.match(/^(post|update|page):(\d+)$/);
 
   if (!match) {
     return null;
   }
 
   return {
-    kind: match[1] as "post" | "update",
+    kind: match[1] as "post" | "update" | "page",
     id: Number(match[2]),
   };
 }

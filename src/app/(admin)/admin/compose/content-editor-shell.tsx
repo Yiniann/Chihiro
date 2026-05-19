@@ -36,6 +36,8 @@ export function ContentEditorShell({
   onSidebarOpenChange,
   sidebarTitle = "设置",
 }: ContentEditorShellProps) {
+  const hasStickySidebar = sidebarMode === "sticky" && sidebar !== null && sidebar !== undefined && sidebar !== false;
+
   return (
     <form
       ref={formRef}
@@ -48,13 +50,13 @@ export function ContentEditorShell({
 
       <section
         className={
-          sidebarMode === "drawer"
+          !hasStickySidebar
             ? "grid min-h-0 flex-1 gap-10"
             : "grid min-h-0 flex-1 gap-10 lg:min-h-[calc(100dvh-20rem)] lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start lg:gap-14"
         }
       >
         <div className="grid gap-8">{main}</div>
-        {sidebarMode === "sticky" ? (
+        {hasStickySidebar ? (
           <aside className="grid gap-8 lg:sticky lg:top-28">{sidebar}</aside>
         ) : null}
       </section>

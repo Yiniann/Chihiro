@@ -52,12 +52,17 @@ export async function saveStandalonePageAction(
     const standalonePageId = getOptionalStandalonePageId(formData, "standalonePageId");
     const publishedAtInput = getOptionalString(formData, "publishedAt");
     const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
-    const showInNav = getBoolean(formData, "showInNav");
     const navLabel = getOptionalString(formData, "navLabel");
     const navEyebrow = getOptionalString(formData, "navEyebrow");
-    const navGroup = getNavGroup(formData, "navGroup");
+    const navPlacement = getNavPlacement(formData, "navPlacement");
     const seoTitle = getOptionalString(formData, "seoTitle");
     const seoDescription = getOptionalString(formData, "seoDescription");
+
+    const showInNav = navPlacement !== "none";
+    const navGroup =
+      navPlacement === "more"
+        ? StandalonePageNavGroup.MORE
+        : StandalonePageNavGroup.HOME;
 
     const page = await saveStandalonePage({
       id: standalonePageId ?? undefined,
@@ -253,17 +258,18 @@ function parsePublishedAtInput(value: string) {
   return date;
 }
 
-function getBoolean(formData: FormData, key: string) {
-  const value = formData.get(key);
-  return value === "true" || value === "on";
-}
-
-function getNavGroup(formData: FormData, key: string) {
+function getNavPlacement(formData: FormData, key: string) {
   const value = getOptionalString(formData, key);
 
-  return value === StandalonePageNavGroup.MORE
-    ? StandalonePageNavGroup.MORE
-    : StandalonePageNavGroup.HOME;
+  if (value === "more") {
+    return "more";
+  }
+
+  if (value === "home") {
+    return "home";
+  }
+
+  return "none";
 }
 
 function isUniqueSlugError(error: unknown) {

@@ -1,6 +1,7 @@
 import {
   AdminPagesSection,
   filterAdminStandalonePages,
+  filterVisibleAdminStandalonePages,
   getAdminQueryValue,
   getAdminSortValue,
   sortAdminStandalonePages,
@@ -19,7 +20,10 @@ export default async function AdminPagesPage({ searchParams }: AdminPagesPagePro
   const sort = getAdminSortValue(resolvedSearchParams?.sort);
   const query = getAdminQueryValue(resolvedSearchParams?.q);
   const items = listStandalonePagesForAdmin();
-  const visibleItems = filterAdminStandalonePages(sortAdminStandalonePages(await items, sort), query);
+  const visibleItems = filterAdminStandalonePages(
+    filterVisibleAdminStandalonePages(sortAdminStandalonePages(await items, sort)),
+    query,
+  );
 
   return <AdminPagesSection items={visibleItems} sort={sort} query={query} />;
 }

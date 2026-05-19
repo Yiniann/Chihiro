@@ -1,31 +1,34 @@
-import { RotateCcw, Trash2 } from "lucide-react";
 import {
-  permanentlyDeleteTrashItemAction,
   permanentlyDeleteTrashItemsBulkAction,
-  restoreTrashItemAction,
   restoreTrashItemsBulkAction,
 } from "@/app/(admin)/admin/actions";
 import { BulkSelectToggle } from "@/app/(admin)/admin/bulk-select-toggle";
-import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
+import { TrashActionMenu } from "@/app/(admin)/admin/workbench/trash-action-menu";
 import {
   filterTrashedAdminPosts,
+  filterTrashedAdminStandalonePages,
   filterTrashedAdminUpdates,
 } from "@/app/(admin)/admin/content-sections";
 import { listPostsForAdmin } from "@/server/repositories/posts";
+import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 
 type TrashItem = {
   key: string;
-  kind: "post" | "update";
+  kind: "post" | "update" | "page";
   id: number;
   title: string;
   updatedAt: string;
 };
 
 export default async function AdminTrashPage() {
-  const [posts, updates] = await Promise.all([listPostsForAdmin(), listUpdatesForAdmin()]);
+  const [posts, updates, pages] = await Promise.all([
+    listPostsForAdmin(),
+    listUpdatesForAdmin(),
+    listStandalonePagesForAdmin(),
+  ]);
   const items: TrashItem[] = [
     ...filterTrashedAdminPosts(posts).map((item) => ({
       key: `post:${item.id}`,
@@ -41,6 +44,13 @@ export default async function AdminTrashPage() {
       title: item.title,
       updatedAt: item.updatedAt,
     })),
+    ...filterTrashedAdminStandalonePages(pages).map((item) => ({
+      key: `page:${item.id}`,
+      kind: "page" as const,
+      id: item.id,
+      title: item.title,
+      updatedAt: item.updatedAt,
+    })),
   ].sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
 
   return (
@@ -48,7 +58,7 @@ export default async function AdminTrashPage() {
       <section className="grid gap-2 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
         <p className="text-[14px] font-normal text-zinc-500">回收站</p>
         <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-          已移到回收站的文章和动态会统一放在这里。你可以恢复到草稿，或者彻底删除。
+          已移到回收站的文章、动态和独立页面会统一放在这里。你可以恢复到草稿，或者彻底删除。
         </p>
       </section>
 
@@ -79,7 +89,7 @@ export default async function AdminTrashPage() {
 
           <section className="relative overflow-visible rounded-[1.5rem] border border-zinc-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.03]">
             <div className="hidden border-b border-zinc-200/80 dark:border-white/10 lg:block">
-              <div className="grid items-center gap-3 px-5 py-4 text-[13px] font-medium text-zinc-700 dark:text-zinc-200 lg:grid-cols-[2.25rem_minmax(15rem,2.7fr)_6rem_8rem_4.5rem]">
+              <div className="grid items-center gap-2 px-5 py-4 text-[13px] font-medium text-zinc-700 dark:text-zinc-200 lg:grid-cols-[2.25rem_minmax(16rem,2.95fr)_5.25rem_7rem_4.5rem]">
                 <div>
                   <BulkSelectToggle formId="trash-bulk-form" checkboxName="items" />
                 </div>
@@ -96,7 +106,7 @@ export default async function AdminTrashPage() {
                   key={item.key}
                   className="px-4 py-4 transition hover:bg-zinc-50/70 dark:hover:bg-white/[0.03] lg:px-5 lg:py-4"
                 >
-                  <div className="hidden items-center gap-3 lg:grid lg:grid-cols-[2.25rem_minmax(15rem,2.7fr)_6rem_8rem_4.5rem]">
+                  <div className="hidden items-center gap-2 lg:grid lg:grid-cols-[2.25rem_minmax(16rem,2.95fr)_5.25rem_7rem_4.5rem]">
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -118,29 +128,7 @@ export default async function AdminTrashPage() {
                       {formatAdminDateTime(item.updatedAt)}
                     </div>
                     <div className="justify-self-start">
-                      <div className="flex items-center gap-2">
-                        <form action={restoreTrashItemAction}>
-                          <input type="hidden" name="item" value={item.key} />
-                          <button
-                            type="submit"
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200"
-                            aria-label="恢复内容"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </button>
-                        </form>
-                        <ConfirmActionDialog
-                          triggerLabel=""
-                          triggerClassName="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-rose-200 bg-rose-50 text-rose-600 transition hover:border-rose-300 hover:bg-rose-100 dark:border-rose-500/20 dark:bg-rose-500/10 dark:text-rose-300"
-                          title={`彻底删除这${item.kind === "post" ? "篇文章" : "条动态"}？`}
-                          description="这一步无法恢复，内容会被永久移除。"
-                          confirmLabel="彻底删除"
-                          action={permanentlyDeleteTrashItemAction}
-                          fields={[{ name: "item", value: item.key }]}
-                          confirmTone="danger"
-                          triggerContent={<Trash2 className="h-3.5 w-3.5" />}
-                        />
-                      </div>
+                      <TrashActionMenu itemKey={item.key} itemLabel={getTrashItemLabel(item.kind)} />
                     </div>
                   </div>
 
@@ -155,29 +143,11 @@ export default async function AdminTrashPage() {
                           <span>{formatAdminDateTime(item.updatedAt)}</span>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <form action={restoreTrashItemAction}>
-                          <input type="hidden" name="item" value={item.key} />
-                          <button
-                            type="submit"
-                            className="inline-flex h-9 w-9 items-center justify-center rounded-full text-zinc-400 transition hover:bg-primary/10 hover:text-primary dark:text-zinc-500"
-                            aria-label="恢复内容"
-                          >
-                            <RotateCcw className="h-4 w-4" />
-                          </button>
-                        </form>
-                        <ConfirmActionDialog
-                          triggerLabel=""
-                          triggerClassName="inline-flex h-9 w-9 items-center justify-center rounded-full text-rose-500 transition hover:bg-rose-500/10 hover:text-rose-500"
-                          title={`彻底删除这${item.kind === "post" ? "篇文章" : "条动态"}？`}
-                          description="这一步无法恢复，内容会被永久移除。"
-                          confirmLabel="彻底删除"
-                          action={permanentlyDeleteTrashItemAction}
-                          fields={[{ name: "item", value: item.key }]}
-                          confirmTone="danger"
-                          triggerContent={<Trash2 className="h-4 w-4" />}
-                        />
-                      </div>
+                      <TrashActionMenu
+                        itemKey={item.key}
+                        itemLabel={getTrashItemLabel(item.kind)}
+                        compact
+                      />
                     </div>
                   </div>
                 </article>
@@ -192,10 +162,14 @@ export default async function AdminTrashPage() {
   );
 }
 
-function TypeChip({ kind }: { kind: "post" | "update" }) {
+function TypeChip({ kind }: { kind: "post" | "update" | "page" }) {
   return (
     <span className="inline-flex rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-white/[0.06] dark:text-zinc-300">
-      {kind === "post" ? "文章" : "动态"}
+      {kind === "post" ? "文章" : kind === "update" ? "动态" : "独立页面"}
     </span>
   );
+}
+
+function getTrashItemLabel(kind: "post" | "update" | "page") {
+  return kind === "post" ? "篇文章" : kind === "update" ? "条动态" : "个独立页面";
 }

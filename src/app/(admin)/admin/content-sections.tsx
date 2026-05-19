@@ -2,10 +2,13 @@ import Link from "next/link";
 import { ContentStatus, StandalonePageNavGroup } from "@prisma/client";
 import {
   deletePostsBulkAction,
+  deleteStandalonePagesBulkAction,
   deleteUpdatesBulkAction,
   publishPostsBulkAction,
+  publishStandalonePagesBulkAction,
   publishUpdatesBulkAction,
   unpublishPostsBulkAction,
+  unpublishStandalonePagesBulkAction,
   unpublishUpdatesBulkAction,
 } from "@/app/(admin)/admin/actions";
 import {
@@ -25,6 +28,7 @@ import { BulkSelectToggle } from "@/app/(admin)/admin/bulk-select-toggle";
 import { LiveSearchInput } from "@/app/(admin)/admin/live-search-input";
 import { WorkbenchCategoryPanel } from "@/app/(admin)/admin/workbench/workbench-category-panel";
 import { PostActionMenu } from "@/app/(admin)/admin/workbench/post-action-menu";
+import { StandalonePageActionMenu } from "@/app/(admin)/admin/workbench/standalone-page-action-menu";
 import { TagCloudPanel } from "@/app/(admin)/admin/workbench/tag-cloud-panel";
 import { UpdateActionMenu } from "@/app/(admin)/admin/workbench/update-action-menu";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
@@ -174,6 +178,18 @@ export function filterAdminStandalonePages(
 
     return haystack.includes(normalizedQuery);
   });
+}
+
+export function filterVisibleAdminStandalonePages(
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+) {
+  return items.filter((item) => item.status !== ContentStatus.ARCHIVED);
+}
+
+export function filterTrashedAdminStandalonePages(
+  items: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+) {
+  return items.filter((item) => item.status === ContentStatus.ARCHIVED);
 }
 
 export function filterVisibleAdminPosts(items: Awaited<ReturnType<typeof listPostsForAdmin>>) {
@@ -589,84 +605,104 @@ function AdminStandalonePagesTable({
   }
 
   return (
-    <AdminDataTable
-      columns={[
-        { key: "title", label: "标题", className: "minmax(14rem,2.1fr)" },
-        { key: "slug", label: "路径", className: "minmax(8rem,1fr)" },
-        { key: "nav", label: "导航", className: "minmax(8rem,0.9fr)" },
-        { key: "created", label: "创建于", className: "6.5rem", sortable: "created", icon: CalendarDays, align: "right" },
-        { key: "updated", label: "修改于", className: "6.5rem", sortable: "updated", icon: Clock3, align: "right" },
-        { key: "status", label: "状态", className: "5.75rem" },
-        { key: "actions", label: "操作", className: "4.5rem" },
-      ]}
-      items={items}
-      sort={sort}
-      query={query}
-      basePath="/admin/pages"
-      emptyText="没有匹配的独立页面结果。"
-      renderMobileRow={(item) => <AdminStandalonePageMobileRow item={item} />}
-      renderRow={(item) => (
-        <>
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
-              <Link
-                href={`/admin/pages/${encodeURIComponent(item.id)}`}
-                className="truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
-              >
-                {item.title}
-              </Link>
-              {item.status === ContentStatus.PUBLISHED && item.draftSnapshot ? (
-                <span className="inline-flex h-6 items-center rounded-full bg-amber-100/70 px-2 text-[11px] font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-300">
-                  有修订
-                </span>
-              ) : null}
-              {item.status === ContentStatus.PUBLISHED ? (
-                <a
-                  href={`/${item.slug}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
-                  aria-label="查看站点页面"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              ) : (
-                <span
-                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 dark:text-zinc-700"
-                  aria-label="未发布，无法查看站点页面"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </span>
-              )}
-              <Link
-                href={`/admin/pages/${encodeURIComponent(item.id)}`}
-                className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
-                aria-label="编辑独立页面"
-              >
-                <FilePenLine className="h-3.5 w-3.5" />
-              </Link>
+    <div className="bulk-selection-form grid gap-3">
+      <form id="pages-bulk-form" />
+      <BulkActionBar
+        formId="pages-bulk-form"
+        publishAction={publishStandalonePagesBulkAction}
+        unpublishAction={unpublishStandalonePagesBulkAction}
+        deleteAction={deleteStandalonePagesBulkAction}
+        selectionLabel="已选独立页面"
+      />
+      <AdminDataTable
+        bulkFormId="pages-bulk-form"
+        bulkCheckboxName="ids"
+        columns={[
+          { key: "select", label: "", className: "2.25rem" },
+          { key: "title", label: "标题", className: "minmax(14rem,2.1fr)" },
+          { key: "slug", label: "路径", className: "minmax(8rem,1fr)" },
+          { key: "nav", label: "导航", className: "minmax(8rem,0.9fr)" },
+          { key: "created", label: "创建于", className: "6.5rem", sortable: "created", icon: CalendarDays, align: "right" },
+          { key: "updated", label: "修改于", className: "6.5rem", sortable: "updated", icon: Clock3, align: "right" },
+          { key: "status", label: "状态", className: "5.75rem" },
+          { key: "actions", label: "操作", className: "4.5rem" },
+        ]}
+        items={items}
+        sort={sort}
+        query={query}
+        basePath="/admin/pages"
+        emptyText="没有匹配的独立页面结果。"
+        renderMobileRow={(item) => <AdminStandalonePageMobileRow item={item} />}
+        renderRow={(item) => (
+          <>
+            <div className="hidden lg:flex items-center">
+              <input
+                type="checkbox"
+                name="ids"
+                value={item.id}
+                form="pages-bulk-form"
+                className="h-4 w-4 rounded-[5px] border-zinc-300 text-primary focus:ring-primary/30 dark:border-white/15"
+              />
             </div>
-          </div>
-          <div className="text-sm text-zinc-600 dark:text-zinc-300">/{item.slug}</div>
-          <div className="min-w-0 text-sm text-zinc-500 dark:text-zinc-400">
-            {item.showInNav ? `${item.navGroup === StandalonePageNavGroup.HOME ? "起点" : "更多"} · ${item.navLabel ?? item.title}` : "不显示"}
-          </div>
-          <TableDate value={item.createdAt} />
-          <TableDate value={item.updatedAt} />
-          <div>
-            <TableStatus status={item.status} />
-          </div>
-          <div className="justify-self-start text-sm">
-            <Link
-              href={`/admin/pages/${encodeURIComponent(item.id)}`}
-              className="inline-flex h-8 items-center rounded-full border border-zinc-200/80 px-3 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
-            >
-              编辑
-            </Link>
-          </div>
-        </>
-      )}
-    />
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <Link
+                  href={`/admin/pages/${encodeURIComponent(item.id)}`}
+                  className="truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
+                >
+                  {item.title}
+                </Link>
+                {item.status === ContentStatus.PUBLISHED && item.draftSnapshot ? (
+                  <span className="inline-flex h-6 items-center rounded-full bg-amber-100/70 px-2 text-[11px] font-medium text-amber-700 dark:bg-amber-400/10 dark:text-amber-300">
+                    有修订
+                  </span>
+                ) : null}
+                {item.status === ContentStatus.PUBLISHED ? (
+                  <a
+                    href={`/${item.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
+                    aria-label="查看站点页面"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                ) : (
+                  <span
+                    className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-300 dark:text-zinc-700"
+                    aria-label="未发布，无法查看站点页面"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </span>
+                )}
+                <Link
+                  href={`/admin/pages/${encodeURIComponent(item.id)}`}
+                  className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
+                  aria-label="编辑独立页面"
+                >
+                  <FilePenLine className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </div>
+            <div className="text-sm text-zinc-600 dark:text-zinc-300">/{item.slug}</div>
+            <div className="min-w-0 text-sm text-zinc-500 dark:text-zinc-400">
+              {item.showInNav ? `${item.navGroup === StandalonePageNavGroup.HOME ? "起点" : "更多"} · ${item.navLabel ?? item.title}` : "不显示"}
+            </div>
+            <TableDate value={item.createdAt} />
+            <TableDate value={item.updatedAt} />
+            <div>
+              <TableStatus status={item.status} />
+            </div>
+            <div className="justify-self-start text-sm">
+              <StandalonePageActionMenu
+                standalonePageId={item.id}
+                isPublished={item.status === ContentStatus.PUBLISHED}
+              />
+            </div>
+          </>
+        )}
+      />
+    </div>
   );
 }
 
@@ -754,8 +790,8 @@ function AdminDataTable<T>({
   const activeSort = getAdminSortMeta(sort);
 
   return (
-    <section className="relative overflow-visible rounded-[1.5rem] border border-zinc-200/80 bg-white/70 dark:border-white/10 dark:bg-white/[0.03]">
-      <div className="hidden border-b border-zinc-200/80 dark:border-white/10 lg:block">
+    <section className="relative overflow-visible">
+      <div className="hidden border-b border-zinc-200/80 lg:block dark:border-white/10">
         <div className="grid items-center gap-3 px-5 py-4 text-[13px] font-medium text-zinc-700 dark:text-zinc-200" style={{ gridTemplateColumns: templateColumns }}>
           {columns.map((column) => (
             <div
@@ -800,7 +836,7 @@ function AdminDataTable<T>({
 
       <div className="divide-y divide-zinc-200/80 dark:divide-white/10">
         {items.map((item, index) => (
-          <article key={index} className="px-4 py-4 transition hover:bg-zinc-50/70 dark:hover:bg-white/[0.03] lg:px-5 lg:py-4">
+          <article key={index} className="px-4 py-4 transition hover:bg-zinc-50/50 dark:hover:bg-white/[0.02] lg:px-5 lg:py-4">
             <div className="hidden items-center gap-3 lg:grid" style={{ gridTemplateColumns: templateColumns }}>
               {renderRow(item)}
             </div>
@@ -926,23 +962,11 @@ function AdminStandalonePageMobileRow({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-2 pl-1 text-zinc-400 dark:text-zinc-500">
-        {item.status === ContentStatus.PUBLISHED ? (
-          <a
-            href={`/${item.slug}`}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary"
-            aria-label="查看站点页面"
-          >
-            <ExternalLink className="h-4 w-4" />
-          </a>
-        ) : null}
-        <Link
-          href={`/admin/pages/${encodeURIComponent(item.id)}`}
-          className="inline-flex h-8 items-center rounded-full border border-zinc-200/80 px-3 text-xs font-medium text-zinc-600 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:text-zinc-300 dark:hover:border-white/20 dark:hover:text-white"
-        >
-          编辑
-        </Link>
+        <StandalonePageActionMenu
+          standalonePageId={item.id}
+          isPublished={item.status === ContentStatus.PUBLISHED}
+          compact
+        />
       </div>
       <div className="col-span-2 mt-1 flex items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
         <span className="min-w-0 truncate whitespace-nowrap">

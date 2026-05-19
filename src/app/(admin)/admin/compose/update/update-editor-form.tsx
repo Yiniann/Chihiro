@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentStatus } from "@prisma/client";
-import { Code2, FileText, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronUp, Code2, FileText, SlidersHorizontal } from "lucide-react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
@@ -84,35 +84,57 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
           </>
         }
         topBar={
-          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                Editor
-              </p>
-              <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
-                {update ? "编辑动态" : "撰写新动态"}
-              </h1>
+          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 border-b border-zinc-200/80 bg-white/92 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-3.5">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                  Editor
+                </p>
+                <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+                  {update ? "编辑动态" : "撰写新动态"}
+                </h1>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCodeView((current) => !current)}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
+                  title={isCodeView ? "切换到富文本" : "切换到源码"}
+                >
+                  {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen((current) => !current)}
+                  className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition ${
+                    isSettingsOpen
+                      ? "bg-primary/10 text-primary dark:bg-primary/15"
+                      : "text-zinc-500 hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  }`}
+                  aria-expanded={isSettingsOpen}
+                  aria-label={isSettingsOpen ? "收起设置" : "展开设置"}
+                  title={isSettingsOpen ? "收起设置" : "更多设置"}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>{isSettingsOpen ? "收起设置" : "更多设置"}</span>
+                  {isSettingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCodeView((current) => !current)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
-                title={isCodeView ? "切换到富文本" : "切换到源码"}
-              >
-                {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(true)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label="打开设置"
-                title="打开设置"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
-            </div>
+
+            {isSettingsOpen ? (
+              <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5">
+                <div className="grid gap-4 max-w-[14rem]">
+                  <label className="grid min-w-0 gap-2">
+                    <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                      发布日期
+                    </span>
+                    <PublishedAtField defaultValue={editableUpdate?.publishedAt} />
+                  </label>
+                </div>
+              </div>
+            ) : null}
           </div>
         }
         stateError={state.error}
@@ -132,20 +154,8 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
             </div>
           </article>
         }
-        sidebar={
-          <>
-            <label className="grid gap-2 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                发布日期
-              </span>
-              <PublishedAtField defaultValue={editableUpdate?.publishedAt} />
-            </label>
-          </>
-        }
-        sidebarMode="drawer"
-        sidebarOpen={isSettingsOpen}
-        onSidebarOpenChange={setIsSettingsOpen}
-        sidebarTitle="动态设置"
+        sidebar={null}
+        sidebarMode="sticky"
         footerLeft={
           <>
             <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>

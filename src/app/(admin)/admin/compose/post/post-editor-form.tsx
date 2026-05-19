@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentStatus } from "@prisma/client";
-import { Check, Code2, FileText, SlidersHorizontal } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Code2, FileText, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -106,35 +106,147 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
           </>
         }
         topBar={
-          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                Editor
-              </p>
-              <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
-                {post ? "编辑文章" : "撰写新文章"}
-              </h1>
+          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 border-b border-zinc-200/80 bg-white/92 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-3.5">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                  Editor
+                </p>
+                <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+                  {post ? "编辑文章" : "撰写新文章"}
+                </h1>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCodeView((current) => !current)}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
+                  title={isCodeView ? "切换到富文本" : "切换到源码"}
+                >
+                  {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen((current) => !current)}
+                  className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition ${
+                    isSettingsOpen
+                      ? "bg-primary/10 text-primary dark:bg-primary/15"
+                      : "text-zinc-500 hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  }`}
+                  aria-expanded={isSettingsOpen}
+                  aria-label={isSettingsOpen ? "收起设置" : "展开设置"}
+                  title={isSettingsOpen ? "收起设置" : "更多设置"}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>{isSettingsOpen ? "收起设置" : "更多设置"}</span>
+                  {isSettingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </button>
+              </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCodeView((current) => !current)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
-                title={isCodeView ? "切换到富文本" : "切换到源码"}
-              >
-                {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(true)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label="打开设置"
-                title="打开设置"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
-            </div>
+
+            {isSettingsOpen ? (
+              <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5">
+                <div className="grid gap-5">
+                  <div className="grid gap-4 max-w-[14rem]">
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        发布日期
+                      </span>
+                      <PublishedAtField defaultValue={editablePost?.publishedAt} />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4">
+                    <label className="grid min-w-0 gap-2">
+                      <div className="flex items-center justify-between gap-4">
+                        <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                          分类
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setIsCategoryDialogOpen(true)}
+                          className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+                        >
+                          创建分类
+                        </button>
+                      </div>
+                      <select
+                        name="categoryId"
+                        value={selectedCategoryId}
+                        onChange={(event) => setSelectedCategoryId(event.target.value)}
+                        className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-200"
+                      >
+                        <option value="">未分类</option>
+                        {categoryItems.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <fieldset className="grid gap-3">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        标签
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsTagDialogOpen(true)}
+                        className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+                      >
+                        创建标签
+                      </button>
+                    </div>
+                    {tagItems.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {tagItems.map((tag) => (
+                          <label
+                            key={tag.id}
+                            className={`inline-flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-xs font-medium transition ${
+                              selectedTagIds.has(tag.id)
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              name="tagIds"
+                              value={tag.id}
+                              checked={selectedTagIds.has(tag.id)}
+                              onChange={(event) => {
+                                setSelectedTagIds((current) => {
+                                  const next = new Set(current);
+                                  if (event.target.checked) next.add(tag.id);
+                                  else next.delete(tag.id);
+                                  return next;
+                                });
+                              }}
+                              className="sr-only"
+                            />
+                            <span>{tag.name}</span>
+                            <span
+                              aria-hidden="true"
+                              className={`inline-flex h-3.5 w-3.5 items-center justify-center rounded-[0.2rem] border ${
+                                selectedTagIds.has(tag.id)
+                                  ? "border-current/40 bg-white/15 dark:bg-zinc-950/15"
+                                  : "border-current/30"
+                              }`}
+                            >
+                              {selectedTagIds.has(tag.id) ? <Check className="h-3 w-3" /> : null}
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-zinc-500 dark:text-zinc-400">还没有可用标签。</p>
+                    )}
+                  </fieldset>
+                </div>
+              </div>
+            ) : null}
           </div>
         }
         stateError={state.error}
@@ -151,111 +263,8 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
             onCodeViewChange={setIsCodeView}
           />
         }
-        sidebar={
-          <>
-            <label className="grid gap-2 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                发布日期
-              </span>
-              <PublishedAtField defaultValue={editablePost?.publishedAt} />
-            </label>
-
-            <label className="grid gap-3 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                  分类
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsCategoryDialogOpen(true)}
-                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
-                >
-                  创建分类
-                </button>
-              </div>
-            <select
-              name="categoryId"
-              value={selectedCategoryId}
-              onChange={(event) => setSelectedCategoryId(event.target.value)}
-              className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-200"
-            >
-                <option value="">未分类</option>
-                {categoryItems.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <fieldset className="grid gap-4 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <div className="flex items-center justify-between gap-4">
-                <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                  标签
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setIsTagDialogOpen(true)}
-                  className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
-                >
-                  创建标签
-                </button>
-              </div>
-              {tagItems.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {tagItems.map((tag) => (
-                    <label
-                      key={tag.id}
-                      className={`inline-flex items-center gap-1.5 rounded-2xl px-3 py-1.5 text-xs font-medium transition ${
-                        selectedTagIds.has(tag.id)
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        name="tagIds"
-                        value={tag.id}
-                        checked={selectedTagIds.has(tag.id)}
-                        onChange={(event) => {
-                          setSelectedTagIds((current) => {
-                            const next = new Set(current);
-
-                            if (event.target.checked) {
-                              next.add(tag.id);
-                            } else {
-                              next.delete(tag.id);
-                            }
-
-                            return next;
-                          });
-                        }}
-                        className="sr-only"
-                      />
-                      <span>{tag.name}</span>
-                      <span
-                        aria-hidden="true"
-                        className={`inline-flex h-3.5 w-3.5 items-center justify-center rounded-[0.2rem] border ${
-                          selectedTagIds.has(tag.id)
-                            ? "border-current/40 bg-white/15 dark:bg-zinc-950/15"
-                            : "border-current/30"
-                        }`}
-                      >
-                        {selectedTagIds.has(tag.id) ? <Check className="h-3 w-3" /> : null}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-500 dark:text-zinc-400">还没有可用标签。</p>
-              )}
-            </fieldset>
-          </>
-        }
-        sidebarMode="drawer"
-        sidebarOpen={isSettingsOpen}
-        onSidebarOpenChange={setIsSettingsOpen}
-        sidebarTitle="文章设置"
+        sidebar={null}
+        sidebarMode="sticky"
         footerLeft={
           <>
             <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>

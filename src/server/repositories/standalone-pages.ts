@@ -239,6 +239,48 @@ export async function discardStandalonePageRevisionById(id: number): Promise<Sta
   return mapStandalonePageRecord(page);
 }
 
+export async function deleteStandalonePageById(id: number): Promise<StandalonePageItem> {
+  const page = await prisma.standalonePage.delete({
+    where: { id },
+  });
+
+  return mapStandalonePageRecord(page);
+}
+
+export async function moveStandalonePageToTrashById(id: number): Promise<StandalonePageItem> {
+  const page = await prisma.standalonePage.update({
+    where: { id },
+    data: {
+      status: ContentStatus.ARCHIVED,
+    },
+  });
+
+  return mapStandalonePageRecord(page);
+}
+
+export async function restoreStandalonePageFromTrashById(id: number): Promise<StandalonePageItem> {
+  const page = await prisma.standalonePage.update({
+    where: { id },
+    data: {
+      status: ContentStatus.DRAFT,
+    },
+  });
+
+  return mapStandalonePageRecord(page);
+}
+
+export async function unpublishStandalonePageById(id: number): Promise<StandalonePageItem> {
+  const page = await prisma.standalonePage.update({
+    where: { id },
+    data: {
+      status: ContentStatus.DRAFT,
+      publishedAt: null,
+    },
+  });
+
+  return mapStandalonePageRecord(page);
+}
+
 export async function ensureDefaultStandalonePages() {
   const defaults = [
     {

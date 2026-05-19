@@ -1,7 +1,7 @@
 "use client";
 
 import { ContentStatus, StandalonePageNavGroup } from "@prisma/client";
-import { Code2, FileText, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, ChevronUp, Code2, FileText, SlidersHorizontal } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
@@ -10,6 +10,10 @@ import {
   saveStandalonePageAction,
   type SaveStandalonePageEditorState,
 } from "@/app/(admin)/admin/compose/page/actions";
+import {
+  deleteStandalonePageAction,
+  unpublishStandalonePageAction,
+} from "@/app/(admin)/admin/actions";
 import { ContentEditorShell } from "@/app/(admin)/admin/compose/content-editor-shell";
 import { ContentPreviewDialog } from "@/app/(admin)/admin/compose/content-preview-dialog";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
@@ -89,35 +93,140 @@ export function StandalonePageEditorForm({
           </>
         }
         topBar={
-          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200/80 bg-white/92 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem] md:px-6 md:py-3.5">
-            <div className="min-w-0">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                Editor
-              </p>
-              <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
-                {standalonePage ? "编辑独立页面" : "新建独立页面"}
-              </h1>
+          <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 border-b border-zinc-200/80 bg-white/92 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem]">
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-3.5">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                  Editor
+                </p>
+                <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+                  {standalonePage ? "编辑独立页面" : "新建独立页面"}
+                </h1>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCodeView((current) => !current)}
+                  className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
+                  title={isCodeView ? "切换到富文本" : "切换到源码"}
+                >
+                  {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSettingsOpen((current) => !current)}
+                  className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition ${
+                    isSettingsOpen
+                      ? "bg-primary/10 text-primary dark:bg-primary/15"
+                      : "text-zinc-500 hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+                  }`}
+                  aria-expanded={isSettingsOpen}
+                  aria-label={isSettingsOpen ? "收起设置" : "展开设置"}
+                  title={isSettingsOpen ? "收起设置" : "更多设置"}
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                  <span>{isSettingsOpen ? "收起设置" : "更多设置"}</span>
+                  {isSettingsOpen ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsCodeView((current) => !current)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label={isCodeView ? "切换到富文本" : "切换到源码"}
-                title={isCodeView ? "切换到富文本" : "切换到源码"}
-              >
-                {isCodeView ? <FileText className="h-4 w-4" /> : <Code2 className="h-4 w-4" />}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsSettingsOpen(true)}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-zinc-500 transition hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
-                aria-label="打开设置"
-                title="打开设置"
-              >
-                <SlidersHorizontal className="h-4 w-4" />
-              </button>
-            </div>
+
+            {isSettingsOpen ? (
+              <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5">
+                <div className="grid gap-5">
+                  <div className="grid gap-4 max-w-[14rem]">
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        发布日期
+                      </span>
+                      <PublishedAtField defaultValue={editablePage?.publishedAt} />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-[10rem_minmax(0,1fr)_minmax(0,1fr)]">
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        导航位置
+                      </span>
+                      <select
+                        name="navPlacement"
+                        defaultValue={
+                          editablePage?.showInNav
+                            ? editablePage.navGroup === StandalonePageNavGroup.MORE
+                              ? "more"
+                              : "home"
+                            : "none"
+                        }
+                        className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
+                      >
+                        <option value="none">无</option>
+                        <option value="home">首页</option>
+                        <option value="more">更多</option>
+                      </select>
+                    </label>
+
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        导航名称
+                      </span>
+                      <input
+                        name="navLabel"
+                        type="text"
+                        defaultValue={editablePage?.navLabel ?? ""}
+                        placeholder="留空时跟随标题"
+                        className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
+                      />
+                    </label>
+
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        导航小标题
+                      </span>
+                      <input
+                        name="navEyebrow"
+                        type="text"
+                        defaultValue={editablePage?.navEyebrow ?? ""}
+                        placeholder="例如 About / Message"
+                        className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        SEO 标题
+                      </span>
+                      <input
+                        name="seoTitle"
+                        type="text"
+                        defaultValue={editablePage?.seoTitle ?? ""}
+                        placeholder="留空时使用后台标题"
+                        className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
+                      />
+                    </label>
+
+                    <label className="grid min-w-0 gap-2">
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        SEO 描述
+                      </span>
+                      <textarea
+                        name="seoDescription"
+                        rows={2}
+                        defaultValue={editablePage?.seoDescription ?? ""}
+                        placeholder="可选，用于 metadata 描述。"
+                        className="min-h-0 resize-none border-b border-zinc-200/80 bg-transparent px-0 py-2 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
+                      />
+                    </label>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </div>
         }
         stateError={state.error}
@@ -162,96 +271,15 @@ export function StandalonePageEditorForm({
             </div>
           </article>
         }
-        sidebar={
-          <>
-            <label className="grid gap-2 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                发布日期
-              </span>
-              <PublishedAtField defaultValue={editablePage?.publishedAt} />
-            </label>
-
-            <fieldset className="grid gap-4 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <legend className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                导航展示
-              </legend>
-              <label className="flex items-center justify-between gap-4 text-sm text-zinc-700 dark:text-zinc-200">
-                <span>加入导航</span>
-                <input
-                  type="checkbox"
-                  name="showInNav"
-                  value="true"
-                  defaultChecked={editablePage?.showInNav ?? false}
-                  className="h-4 w-4 rounded border-zinc-300 text-primary focus:ring-primary/30 dark:border-white/15"
-                />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">导航名称</span>
-                <input
-                  name="navLabel"
-                  type="text"
-                  defaultValue={editablePage?.navLabel ?? ""}
-                  placeholder="留空时跟随标题"
-                  className="h-11 rounded-2xl border border-zinc-200/80 bg-transparent px-4 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
-                />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">导航小标题</span>
-                <input
-                  name="navEyebrow"
-                  type="text"
-                  defaultValue={editablePage?.navEyebrow ?? ""}
-                  placeholder="例如 About / Message"
-                  className="h-11 rounded-2xl border border-zinc-200/80 bg-transparent px-4 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
-                />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">导航分组</span>
-                <select
-                  name="navGroup"
-                  defaultValue={editablePage?.navGroup ?? StandalonePageNavGroup.HOME}
-                  className="h-11 rounded-2xl border border-zinc-200/80 bg-transparent px-4 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
-                >
-                  <option value={StandalonePageNavGroup.HOME}>起点</option>
-                  <option value={StandalonePageNavGroup.MORE}>更多</option>
-                </select>
-              </label>
-            </fieldset>
-
-            <fieldset className="grid gap-4 border-t border-zinc-200/80 pt-5 dark:border-zinc-800/80">
-              <legend className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                SEO
-              </legend>
-              <label className="grid gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">SEO 标题</span>
-                <input
-                  name="seoTitle"
-                  type="text"
-                  defaultValue={editablePage?.seoTitle ?? ""}
-                  placeholder="留空时使用后台标题"
-                  className="h-11 rounded-2xl border border-zinc-200/80 bg-transparent px-4 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
-                />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-xs text-zinc-500 dark:text-zinc-400">SEO 描述</span>
-                <textarea
-                  name="seoDescription"
-                  rows={4}
-                  defaultValue={editablePage?.seoDescription ?? ""}
-                  placeholder="可选，用于 metadata 描述。"
-                  className="rounded-2xl border border-zinc-200/80 bg-transparent px-4 py-3 text-sm text-zinc-700 outline-none transition focus:border-primary/45 dark:border-zinc-800/80 dark:text-zinc-200"
-                />
-              </label>
-            </fieldset>
-          </>
-        }
-        sidebarMode="drawer"
-        sidebarOpen={isSettingsOpen}
-        onSidebarOpenChange={setIsSettingsOpen}
-        sidebarTitle="页面设置"
+        sidebar={null}
+        sidebarMode="sticky"
         footerLeft={
           <>
             <p className="min-w-0 text-xs text-zinc-500 dark:text-zinc-400">{bottomPrompt}</p>
+            {standalonePage && status === ContentStatus.PUBLISHED ? (
+              <UnpublishButton standalonePageId={standalonePage.id} />
+            ) : null}
+            {standalonePage ? <TrashButton standalonePageId={standalonePage.id} /> : null}
             {hasSavedRevision ? (
               <DiscardRevisionButton standalonePageId={standalonePage?.id ?? 0} />
             ) : null}
@@ -421,6 +449,35 @@ function DiscardRevisionButton({ standalonePageId }: { standalonePageId: number 
       confirmTone="danger"
       action={discardStandalonePageRevisionAction}
       fields={[{ name: "standalonePageId", value: standalonePageId }]}
+    />
+  );
+}
+
+function UnpublishButton({ standalonePageId }: { standalonePageId: number }) {
+  return (
+    <form action={unpublishStandalonePageAction}>
+      <input type="hidden" name="id" value={standalonePageId} />
+      <button
+        type="submit"
+        className="inline-flex items-center justify-center rounded-[0.95rem] border border-zinc-200/80 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:text-white"
+      >
+        转为草稿
+      </button>
+    </form>
+  );
+}
+
+function TrashButton({ standalonePageId }: { standalonePageId: number }) {
+  return (
+    <ConfirmActionDialog
+      triggerLabel="移到回收站"
+      triggerClassName="inline-flex items-center justify-center rounded-[0.95rem] border border-rose-200/80 px-3 py-2 text-xs font-medium text-rose-600 transition hover:border-rose-300 hover:text-rose-500 dark:border-rose-400/20 dark:text-rose-400 dark:hover:border-rose-400/30 dark:hover:text-rose-300"
+      title="将这个独立页面移到回收站？"
+      description="移入回收站后不会立刻彻底删除，你可以稍后恢复到草稿，或者永久移除。"
+      confirmLabel="移到回收站"
+      confirmTone="danger"
+      action={deleteStandalonePageAction}
+      fields={[{ name: "id", value: standalonePageId }]}
     />
   );
 }
