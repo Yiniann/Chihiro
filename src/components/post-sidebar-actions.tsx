@@ -120,7 +120,7 @@ export function PostSidebarActions({
   }
 
   return (
-    <section className="mt-5 border-t border-zinc-200/70 pt-4 dark:border-zinc-800/70">
+    <section className="mt-3 border-t border-zinc-200/70 pt-3 dark:border-zinc-800/70">
       <div className="flex flex-row gap-2 [@media(min-height:680px)]:flex-col">
         <div className="group relative flex w-fit items-center">
           <button

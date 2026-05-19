@@ -308,7 +308,7 @@ export function PostTableOfContents({
 
   return (
     <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] min-h-0 pl-5 text-sm lg:flex lg:w-64 lg:flex-col">
-      <div className="min-h-0 overflow-y-auto pr-2">
+      <div className="min-h-0 flex-1 overflow-y-auto pr-2">
         <nav ref={navRef} aria-label="文章目录" className="relative flex flex-col">
           <span
             ref={activeIndicatorRef}
@@ -350,14 +350,14 @@ export function PostTableOfContents({
             );
           })}
         </nav>
-        <ReadingProgress
-          value={readingProgress}
-          isComplete={isReadingComplete}
-          hideLabel={hideReadingProgressLabel}
-          hideCircle={hideReadingProgressCircle}
-          showCompleteCheck={showReadingCompleteCheck}
-        />
       </div>
+      <ReadingProgress
+        value={readingProgress}
+        isComplete={isReadingComplete}
+        hideLabel={hideReadingProgressLabel}
+        hideCircle={hideReadingProgressCircle}
+        showCompleteCheck={showReadingCompleteCheck}
+      />
       {children ? <div className="shrink-0 pr-2">{children}</div> : null}
     </aside>
   );
@@ -382,7 +382,7 @@ function ReadingProgress({
   const strokeDashoffset = isComplete ? 0 : circumference - (value / 100) * circumference;
 
   return (
-    <div className="mt-7">
+    <div className="mt-4 shrink-0 pr-2">
       <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-200">
         <span
           className={`relative h-6 w-6 shrink-0 transition-opacity duration-500 ease-out ${
