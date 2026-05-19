@@ -135,7 +135,7 @@ export function SiteFooter({
                     key={item.href}
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
-                    rel={item.external ? "noreferrer" : undefined}
+                    rel={item.external ? "noreferrer noopener" : undefined}
                     className="group inline-flex w-fit items-center gap-3 text-sm text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
                   >
                     <span>{item.label}</span>

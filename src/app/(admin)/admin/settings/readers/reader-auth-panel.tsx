@@ -1,5 +1,6 @@
 import { AccountLinkToast } from "@/app/(admin)/admin/settings/users/account-link-toast";
 import { OwnerSecurityForms } from "@/app/(admin)/admin/settings/users/owner-security-forms";
+import type { SocialLink } from "@/lib/social-links";
 import type { UserAuthMethods, UserListItem } from "@/server/repositories/users";
 
 export function ReaderAuthPanel({
@@ -25,6 +26,11 @@ export function ReaderAuthPanel({
     ownerUser?.email && ownerUser.email !== displayName
       ? ownerUser.email
       : null;
+  const defaultSocialLinks = buildDefaultSocialLinks(
+    ownerUser?.socialLinks ?? [],
+    ownerUser?.email ?? null,
+    ownerUser?.githubUrl ?? null,
+  );
 
   return (
     <section className="grid gap-5 border-b border-zinc-200/80 pb-8 dark:border-zinc-800/80">
@@ -54,8 +60,7 @@ export function ReaderAuthPanel({
           defaultUsername={ownerUser?.username ?? authMethods.username ?? ""}
           defaultName={ownerUser?.name ?? ""}
           defaultImage={ownerUser?.image ?? ""}
-          defaultGithubUrl={ownerUser?.githubUrl ?? ""}
-          defaultEmail={ownerUser?.email ?? ""}
+          defaultSocialLinks={defaultSocialLinks}
           githubEnabled={githubEnabled}
           googleEnabled={googleEnabled}
           linkedGithub={authMethods.providers.includes("github")}
@@ -65,4 +70,33 @@ export function ReaderAuthPanel({
       </div>
     </section>
   );
+}
+
+function buildDefaultSocialLinks(
+  socialLinks: SocialLink[],
+  email: string | null,
+  githubUrl: string | null,
+) {
+  const links = [...socialLinks];
+
+  if (email && !links.some((link) => link.platform === "email")) {
+    links.unshift({
+      platform: "email",
+      label: "Email",
+      href: email,
+    });
+  }
+
+  if (githubUrl && !links.some((link) => link.platform === "github")) {
+    const emailIndex = links.findIndex((link) => link.platform === "email");
+    const insertIndex = emailIndex >= 0 ? emailIndex + 1 : 0;
+
+    links.splice(insertIndex, 0, {
+      platform: "github",
+      label: "GitHub",
+      href: githubUrl,
+    });
+  }
+
+  return links;
 }

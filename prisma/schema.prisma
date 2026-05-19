@@ -103,6 +103,7 @@ model User {
   emailVerified DateTime?     @map("email_verified")
   image         String?
   githubUrl     String?
+  socialLinks   Json?
   role          UserRole      @default(USER)
   accounts      Account[]
   sessions      Session[]

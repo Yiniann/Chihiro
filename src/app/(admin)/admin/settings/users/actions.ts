@@ -10,6 +10,13 @@ import { isSupportedAccountLinkProvider } from "@/lib/account-linking";
 import { isOwnerAuthenticated } from "@/server/auth";
 import { auth } from "@/server/public-auth";
 import {
+  getSocialLinkLabel,
+  normalizeSocialLinkInput,
+  SOCIAL_LINK_PLATFORM_ORDER,
+  type SocialLink,
+  type SocialLinkPlatform,
+} from "@/lib/social-links";
+import {
   deleteUser,
   findUserRole,
   getUserAuthMethods,
@@ -131,14 +138,16 @@ export async function saveOwnerSettingsAction(
   const usernameValue = formData.get("username");
   const nameValue = formData.get("name");
   const imageValue = formData.get("image");
-  const githubUrlValue = formData.get("githubUrl");
-  const emailValue = formData.get("email");
+  const socialLinkPlatforms = formData
+    .getAll("socialLinkPlatform")
+    .map((value) => (typeof value === "string" ? value.trim() : ""));
+  const socialLinkUrls = formData
+    .getAll("socialLinkUrl")
+    .map((value) => (typeof value === "string" ? value.trim() : ""));
   const username =
     typeof usernameValue === "string" ? normalizeAdminUsername(usernameValue) : "";
   const name = typeof nameValue === "string" ? nameValue.trim() : "";
   const imageInput = typeof imageValue === "string" ? imageValue.trim() : "";
-  const githubUrlInput = typeof githubUrlValue === "string" ? githubUrlValue.trim() : "";
-  const email = typeof emailValue === "string" ? emailValue.trim().toLowerCase() : "";
 
   if (!currentUserId) {
     return {
@@ -168,17 +177,11 @@ export async function saveOwnerSettingsAction(
     };
   }
 
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-  if (email && !emailPattern.test(email)) {
-    return {
-      error: "请输入有效邮箱。",
-      success: null,
-    };
-  }
-
   let image: string | null = null;
   let githubUrl: string | null = null;
+  const socialLinks: SocialLink[] = [];
+  let email: string | null = null;
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (imageInput) {
     if (imageInput.startsWith("/") && !imageInput.startsWith("//")) {
@@ -204,24 +207,71 @@ export async function saveOwnerSettingsAction(
     }
   }
 
-  if (githubUrlInput) {
-    try {
-      const url = new URL(githubUrlInput);
+  for (let index = 0; index < Math.max(socialLinkPlatforms.length, socialLinkUrls.length); index += 1) {
+    const platformValue = socialLinkPlatforms[index] ?? "";
+    const input = socialLinkUrls[index] ?? "";
 
-      if (url.protocol === "http:" || url.protocol === "https:") {
-        githubUrl = url.toString().replace(/\/$/, "");
-      } else {
-        return {
-          error: "请填写有效 GitHub 链接。",
-          success: null,
-        };
-      }
-    } catch {
+    if (!platformValue && !input) {
+      continue;
+    }
+
+    if (!platformValue) {
       return {
-        error: "请填写有效 GitHub 链接。",
+        error: "请选择社交平台。",
         success: null,
       };
     }
+
+    if (!SOCIAL_LINK_PLATFORM_ORDER.includes(platformValue as SocialLinkPlatform)) {
+      return {
+        error: "社交平台无效。",
+        success: null,
+      };
+    }
+
+    if (!input) {
+      continue;
+    }
+
+    const platform = platformValue as SocialLinkPlatform;
+    const normalized = normalizeSocialLinkInput(platform, input);
+
+    if (!normalized) {
+      return {
+        error: `请填写有效的 ${getSocialLinkLabel(platform)} 链接。`,
+        success: null,
+      };
+    }
+
+    if (socialLinks.some((link) => link.platform === platform)) {
+      return {
+        error: `${getSocialLinkLabel(platform)} 只能保留一条。`,
+        success: null,
+      };
+    }
+
+    if (platform === "email") {
+      const normalizedEmail = normalized.replace(/^mailto:/i, "").trim().toLowerCase();
+
+      if (!emailPattern.test(normalizedEmail)) {
+        return {
+          error: "请输入有效邮箱。",
+          success: null,
+        };
+      }
+
+      email = normalizedEmail;
+    }
+
+    if (platform === "github") {
+      githubUrl = normalized;
+    }
+
+    socialLinks.push({
+      platform,
+      label: getSocialLinkLabel(platform),
+      href: normalized,
+    });
   }
 
   try {
@@ -232,6 +282,7 @@ export async function saveOwnerSettingsAction(
       name,
       image,
       githubUrl,
+      socialLinks,
     });
   } catch (error) {
     if (

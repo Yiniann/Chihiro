@@ -13,7 +13,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
       <aside className="lg:sticky lg:top-8 lg:self-start lg:border-r lg:border-dashed lg:border-zinc-200/80 lg:pr-4 dark:lg:border-white/8">
         <nav
           aria-label="设置导航"
-          className="flex flex-wrap gap-1 pb-2 lg:grid lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
+          className="grid grid-cols-4 gap-1 pb-2 lg:grid-cols-1 lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
         >
           {SETTINGS_NAV_ITEMS.map((item) => {
             const isActive =
@@ -24,7 +24,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`group flex shrink-0 items-center gap-2 border-b px-3 py-2 transition lg:-ml-px lg:items-start lg:border-b-0 lg:border-l ${
+                className={`group flex min-w-0 items-center gap-2 border-b px-3 py-2 transition lg:-ml-px lg:items-start lg:border-b-0 lg:border-l ${
                   isActive
                     ? "border-primary text-primary"
                     : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-primary dark:text-zinc-400 dark:hover:border-white/20 dark:hover:text-primary"
@@ -40,7 +40,10 @@ export function SettingsShell({ children }: { children: ReactNode }) {
                   <Icon className="h-4 w-4" />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[0.88rem] font-medium">{item.label}</span>
+                  <span className="block text-[0.88rem] font-medium">
+                    <span className="sm:hidden">{item.label.replace(/设置$/u, "")}</span>
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </span>
                   <span
                     className={`mt-0.5 hidden text-xs leading-5 lg:block ${
                       isActive

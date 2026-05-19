@@ -2,6 +2,7 @@ import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailabl
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { HeroIntro } from "@/components/hero-intro";
 import { RelativeDate } from "@/components/relative-date";
+import { SocialIconLinks } from "@/components/social-icon-links";
 import {
   getContentText,
   getRenderedContentHtml,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
 import { siteConfig } from "@/lib/site";
+import type { SocialLink } from "@/lib/social-links";
 import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
@@ -44,6 +46,11 @@ export default async function HomePage() {
   const avatarUrl = ownerProfile?.image ?? siteConfig.avatar;
   const heroIntro = siteSettings.heroIntro ?? siteConfig.heroIntro;
   const summary = siteSettings.summary ?? siteConfig.summary;
+  const heroSocialLinks = buildHeroSocialLinks(
+    ownerProfile?.socialLinks ?? [],
+    ownerProfile?.email ?? null,
+    ownerProfile?.githubUrl ?? null,
+  );
   const recentPosts = posts.slice(0, 5);
   const latestUpdate = updates[0] ?? null;
   const latestUpdateHtml = latestUpdate
@@ -74,6 +81,9 @@ export default async function HomePage() {
           <p className="hero-copy-summary reading-copy mt-5 max-w-2xl text-base leading-8 text-zinc-500 dark:text-zinc-400">
             {summary}
           </p>
+          {heroSocialLinks.length > 0 ? (
+            <SocialIconLinks links={heroSocialLinks} className="mt-7" />
+          ) : null}
         </div>
       </section>
 
@@ -187,4 +197,49 @@ function EmptyHomeFeed({ copy }: { copy: string }) {
       {copy}
     </p>
   );
+}
+
+function buildHeroSocialLinks(
+  socialLinks: SocialLink[],
+  email: string | null,
+  githubUrl: string | null,
+): SocialLink[] {
+  const links = [
+    ...(email
+      ? [
+          {
+            platform: "email" as const,
+            label: "Email",
+            href: `mailto:${email}`,
+          },
+        ]
+      : []),
+    ...(githubUrl
+      ? [
+          {
+            platform: "github" as const,
+            label: "GitHub",
+            href: githubUrl,
+          },
+        ]
+      : []),
+    ...socialLinks.map((link) => ({
+      platform: link.platform,
+      label: link.label,
+      href: link.href,
+    })),
+  ];
+
+  const seen = new Set<string>();
+
+  return links.filter((link) => {
+    const key = link.label.toLowerCase();
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 }

@@ -1,4 +1,5 @@
-import { UserRole } from "@prisma/client";
+import { Prisma, UserRole } from "@prisma/client";
+import { parseSocialLinks, type SocialLink } from "@/lib/social-links";
 import { prisma } from "@/server/db/client";
 
 export type UserListItem = {
@@ -8,6 +9,7 @@ export type UserListItem = {
   email: string | null;
   image: string | null;
   githubUrl: string | null;
+  socialLinks: SocialLink[];
   role: UserRole;
   accounts: Array<{
     provider: string;
@@ -28,6 +30,7 @@ export type UserSecurityProfile = {
   email: string | null;
   image: string | null;
   githubUrl: string | null;
+  socialLinks: SocialLink[];
   passwordHash: string | null;
 };
 
@@ -37,6 +40,7 @@ export type OwnerDisplayProfile = {
   image: string | null;
   email: string | null;
   githubUrl: string | null;
+  socialLinks: SocialLink[];
 };
 
 export async function listUsersForAdmin(): Promise<UserListItem[]> {
@@ -49,6 +53,7 @@ export async function listUsersForAdmin(): Promise<UserListItem[]> {
       email: true,
       image: true,
       githubUrl: true,
+      socialLinks: true,
       role: true,
       accounts: {
         select: {
@@ -65,18 +70,23 @@ export async function listUsersForAdmin(): Promise<UserListItem[]> {
     USER: 2,
   };
 
-  return users.sort((left, right) => {
-    const roleDifference = roleOrder[left.role] - roleOrder[right.role];
+  return users
+    .map((user) => ({
+      ...user,
+      socialLinks: parseSocialLinks(user.socialLinks),
+    }))
+    .sort((left, right) => {
+      const roleDifference = roleOrder[left.role] - roleOrder[right.role];
 
-    if (roleDifference !== 0) {
-      return roleDifference;
-    }
+      if (roleDifference !== 0) {
+        return roleDifference;
+      }
 
-    const leftLabel = left.email ?? left.name ?? left.username ?? "";
-    const rightLabel = right.email ?? right.name ?? right.username ?? "";
+      const leftLabel = left.email ?? left.name ?? left.username ?? "";
+      const rightLabel = right.email ?? right.name ?? right.username ?? "";
 
-    return leftLabel.localeCompare(rightLabel, "zh-Hans-CN");
-  });
+      return leftLabel.localeCompare(rightLabel, "zh-Hans-CN");
+    });
 }
 
 export async function countLocalAdminUsers() {
@@ -209,7 +219,7 @@ export async function unlinkUserProviderAccount(userId: string, provider: string
 }
 
 export async function findUserSecurityProfileById(userId: string): Promise<UserSecurityProfile | null> {
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: {
       id: userId,
     },
@@ -220,13 +230,23 @@ export async function findUserSecurityProfileById(userId: string): Promise<UserS
       email: true,
       image: true,
       githubUrl: true,
+      socialLinks: true,
       passwordHash: true,
     },
   });
+
+  if (!user) {
+    return null;
+  }
+
+  return {
+    ...user,
+    socialLinks: parseSocialLinks(user.socialLinks),
+  };
 }
 
 export async function getOwnerDisplayProfile(): Promise<OwnerDisplayProfile | null> {
-  return prisma.user.findFirst({
+  const owner = await prisma.user.findFirst({
     where: {
       role: UserRole.OWNER,
     },
@@ -239,8 +259,18 @@ export async function getOwnerDisplayProfile(): Promise<OwnerDisplayProfile | nu
       image: true,
       email: true,
       githubUrl: true,
+      socialLinks: true,
     },
   });
+
+  if (!owner) {
+    return null;
+  }
+
+  return {
+    ...owner,
+    socialLinks: parseSocialLinks(owner.socialLinks),
+  };
 }
 
 export function getOwnerDisplayName(
@@ -274,6 +304,7 @@ export async function updateUserProfile(
     name: string;
     image: string | null;
     githubUrl: string | null;
+    socialLinks: SocialLink[];
   },
 ) {
   return prisma.user.update({
@@ -285,6 +316,7 @@ export async function updateUserProfile(
       name: input.name,
       image: input.image,
       githubUrl: input.githubUrl,
+      socialLinks: input.socialLinks as Prisma.InputJsonValue,
     },
     select: {
       id: true,
@@ -292,6 +324,7 @@ export async function updateUserProfile(
       name: true,
       image: true,
       githubUrl: true,
+      socialLinks: true,
     },
   });
 }

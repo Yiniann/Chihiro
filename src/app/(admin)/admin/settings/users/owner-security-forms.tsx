@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { AccountLinkButton } from "@/app/(admin)/admin/settings/users/account-link-button";
 import {
   saveOwnerSettingsAction,
@@ -8,6 +9,13 @@ import {
   unlinkOwnerProviderAction,
 } from "@/app/(admin)/admin/settings/users/actions";
 import { getProviderLabel } from "@/lib/account-linking";
+import {
+  getSocialLinkLabel,
+  getSocialLinkPlaceholder,
+  SOCIAL_LINK_PLATFORM_ORDER,
+  type SocialLink,
+  type SocialLinkPlatform,
+} from "@/lib/social-links";
 import { useToast } from "@/components/toast-provider";
 
 const initialSettingsState: SaveOwnerSettingsState = {
@@ -16,13 +24,16 @@ const initialSettingsState: SaveOwnerSettingsState = {
 };
 
 const OWNER_SETTINGS_FORM_ID = "owner-settings-form";
+const DEFAULT_SOCIAL_ROWS: SocialLink[] = [
+  { platform: "email", label: "Email", href: "" },
+  { platform: "github", label: "GitHub", href: "" },
+];
 
 export function OwnerSecurityForms({
   defaultUsername,
   defaultName,
   defaultImage,
-  defaultGithubUrl,
-  defaultEmail,
+  defaultSocialLinks,
   githubEnabled,
   googleEnabled,
   linkedGithub,
@@ -32,8 +43,7 @@ export function OwnerSecurityForms({
   defaultUsername: string;
   defaultName: string;
   defaultImage: string;
-  defaultGithubUrl: string;
-  defaultEmail: string;
+  defaultSocialLinks: SocialLink[];
   githubEnabled: boolean;
   googleEnabled: boolean;
   linkedGithub: boolean;
@@ -54,9 +64,8 @@ export function OwnerSecurityForms({
           defaultUsername={defaultUsername}
           defaultName={defaultName}
           defaultImage={defaultImage}
-          defaultGithubUrl={defaultGithubUrl}
-          defaultEmail={defaultEmail}
         />
+        <OwnerSocialLinksSection defaultSocialLinks={defaultSocialLinks} />
       </form>
       <OwnerBindingSection
         githubEnabled={githubEnabled}
@@ -73,18 +82,14 @@ function OwnerProfileSection({
   defaultUsername,
   defaultName,
   defaultImage,
-  defaultGithubUrl,
-  defaultEmail,
 }: {
   defaultUsername: string;
   defaultName: string;
   defaultImage: string;
-  defaultGithubUrl: string;
-  defaultEmail: string;
 }) {
   return (
     <section className="grid gap-5 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
-      <SectionTitle title="基本信息" description="公开展示的名称、头像、邮箱和 GitHub 链接。" />
+      <SectionTitle title="基本信息" description="公开展示的名称和头像。" />
       <div className="grid gap-0">
         <FormRow label="昵称">
           <input
@@ -116,27 +121,148 @@ function OwnerProfileSection({
             placeholder="/avatar.png 或 https://example.com/avatar.png"
           />
         </FormRow>
-        <FormRow label="邮箱">
-          <input
-            name="email"
-            type="email"
-            defaultValue={defaultEmail}
-            className="h-12 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
-            placeholder="name@example.com"
-          />
-        </FormRow>
-        <FormRow label="GitHub">
-          <input
-            name="githubUrl"
-            type="url"
-            defaultValue={defaultGithubUrl}
-            className="h-12 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
-            placeholder="https://github.com/username"
-          />
-        </FormRow>
       </div>
     </section>
   );
+}
+
+function OwnerSocialLinksSection({
+  defaultSocialLinks,
+}: {
+  defaultSocialLinks: SocialLink[];
+}) {
+  const [rows, setRows] = useState<SocialLinkRow[]>(() =>
+    buildInitialSocialLinkRows(defaultSocialLinks),
+  );
+
+  function handleAddRow() {
+    setRows((current) => [
+      ...current,
+      {
+        id: createSocialLinkRowId(),
+        platform: "telegram",
+        href: "",
+      },
+    ]);
+  }
+
+  return (
+    <section className="grid gap-5 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
+      <div className="flex items-center justify-between gap-4">
+        <SectionTitle title="社交链接" />
+        <button
+          type="button"
+          onClick={handleAddRow}
+          className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          添加链接
+        </button>
+      </div>
+      <div className="grid gap-3 border-b border-zinc-200/80 py-5 dark:border-zinc-800/80">
+        {rows.map((row) => (
+          <SocialLinkRowEditor
+            key={row.id}
+            row={row}
+            onChange={(nextRow) => {
+              setRows((current) =>
+                current.map((item) => (item.id === nextRow.id ? nextRow : item)),
+              );
+            }}
+            onRemove={() => {
+              setRows((current) => current.filter((item) => item.id !== row.id));
+            }}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+type SocialLinkRow = {
+  id: string;
+  platform: SocialLinkPlatform;
+  href: string;
+};
+
+function SocialLinkRowEditor({
+  row,
+  onChange,
+  onRemove,
+}: {
+  row: SocialLinkRow;
+  onChange: (row: SocialLinkRow) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="grid gap-3 border-b border-zinc-200/70 pb-3 last:border-b-0 dark:border-zinc-800/70">
+      <div className="grid gap-3 md:grid-cols-[12rem_minmax(0,1fr)_auto] md:items-center">
+        <select
+          name="socialLinkPlatform"
+          value={row.platform}
+          onChange={(event) =>
+            onChange({
+              ...row,
+              platform: event.target.value as SocialLinkPlatform,
+            })
+          }
+          className="h-11 rounded-2xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-700 outline-none transition focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:focus:border-zinc-600"
+        >
+          {SOCIAL_LINK_PLATFORM_ORDER.map((platform) => (
+            <option key={platform} value={platform}>
+              {getSocialLinkLabel(platform)}
+            </option>
+          ))}
+        </select>
+        <input
+          name="socialLinkUrl"
+          type="text"
+          value={row.href}
+          onChange={(event) =>
+            onChange({
+              ...row,
+              href: event.target.value,
+            })
+          }
+          className="h-11 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
+          placeholder={getSocialLinkPlaceholder(row.platform)}
+        />
+        <div className="flex items-center gap-3 text-sm">
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-zinc-400 transition hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400"
+          >
+            删除
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function buildInitialSocialLinkRows(defaultSocialLinks: SocialLink[]) {
+  const rows = defaultSocialLinks.map((link) => ({
+    id: createSocialLinkRowId(),
+    platform: link.platform,
+    href: link.platform === "email" ? link.href.replace(/^mailto:/i, "") : link.href,
+  }));
+
+  for (const defaultRow of [...DEFAULT_SOCIAL_ROWS].reverse()) {
+    if (!rows.some((row) => row.platform === defaultRow.platform)) {
+      rows.unshift({
+        id: createSocialLinkRowId(),
+        platform: defaultRow.platform,
+        href: defaultRow.href,
+      });
+    }
+  }
+
+  return rows;
+}
+
+function createSocialLinkRowId() {
+  return `social-link-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 function OwnerBindingSection({
@@ -178,12 +304,14 @@ function SectionTitle({
   description,
 }: {
   title: string;
-  description: string;
+  description?: string;
 }) {
   return (
     <div className="grid gap-1">
       <p className="text-lg font-medium tracking-tight text-zinc-950 dark:text-zinc-50">{title}</p>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+      {description ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+      ) : null}
     </div>
   );
 }
@@ -193,14 +321,16 @@ function FormRow({
   description,
   children,
 }: {
-  label: string;
+  label?: string;
   description?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="grid gap-3 border-b border-zinc-200/80 py-5 dark:border-zinc-800/80 md:grid-cols-[11rem_minmax(0,1fr)] md:items-start md:gap-6">
       <div className="grid gap-1">
-        <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{label}</p>
+        {label ? (
+          <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{label}</p>
+        ) : null}
         {description ? (
           <p className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">{description}</p>
         ) : null}
