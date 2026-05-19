@@ -300,14 +300,14 @@ export function PostTableOfContents({
 
   if (items.length === 0) {
     return children ? (
-      <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] pl-5 text-sm lg:block">
+      <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] pl-5 text-sm lg:block lg:w-64">
         {children}
       </aside>
     ) : null;
   }
 
   return (
-    <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] min-h-0 pl-5 text-sm lg:flex lg:flex-col">
+    <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] min-h-0 pl-5 text-sm lg:flex lg:w-64 lg:flex-col">
       <div className="min-h-0 overflow-y-auto pr-2">
         <nav ref={navRef} aria-label="文章目录" className="relative flex flex-col">
           <span

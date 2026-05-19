@@ -1,10 +1,11 @@
 import { PublicAuthStatus } from "@/components/public-auth-status";
 import { PostCommentList } from "@/components/post-comment-list";
 import { PostCommentForm } from "@/components/post-comment-form";
-import { resolveCanonicalSiteUrl } from "@/lib/site";
+import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { auth } from "@/server/public-auth";
 import { listApprovedCommentsForPost } from "@/server/repositories/comments";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
+import { getOwnerDisplayProfile } from "@/server/repositories/users";
 import { getSiteSettings } from "@/server/repositories/site";
 
 type PostCommentsProps = {
@@ -19,14 +20,16 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
     return null;
   }
 
-  const [comments, session, siteSettings] = await Promise.all([
+  const [comments, session, siteSettings, ownerProfile] = await Promise.all([
     listApprovedCommentsForPost(postId),
     auth(),
     getSiteSettings(),
+    getOwnerDisplayProfile(),
   ]);
   const user = session?.user ?? null;
   const canComment = Boolean(user) || !settings.loginRequiredToComment;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+  const ownerAvatarUrl = ownerProfile?.image ?? siteConfig.avatar;
   const githubAuthAvailable =
     settings.githubLoginEnabled &&
     (Boolean(settings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
@@ -69,6 +72,7 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
         pathname={pathname}
         showGuestFields={!user && !settings.loginRequiredToComment}
         user={user}
+        ownerAvatarUrl={ownerAvatarUrl}
       />
     </section>
   );

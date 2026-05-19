@@ -13,6 +13,7 @@ type PostCommentListProps = {
   postId: number;
   pathname: string;
   showGuestFields: boolean;
+  ownerAvatarUrl?: string | null;
   user: {
     name?: string | null;
     email?: string | null;
@@ -27,6 +28,7 @@ export function PostCommentList({
   postId,
   pathname,
   showGuestFields,
+  ownerAvatarUrl,
   user,
 }: PostCommentListProps) {
   const [sortOrder, setSortOrder] = useState<"latest" | "earliest">("latest");
@@ -86,6 +88,7 @@ export function PostCommentList({
           postId={postId}
           pathname={pathname}
           showGuestFields={showGuestFields}
+          ownerAvatarUrl={ownerAvatarUrl}
           user={user}
         />
         ))}
@@ -101,6 +104,7 @@ function CommentItem({
   postId,
   pathname,
   showGuestFields,
+  ownerAvatarUrl,
   user,
 }: {
   comment: PublicPostComment;
@@ -109,6 +113,7 @@ function CommentItem({
   postId: number;
   pathname: string;
   showGuestFields: boolean;
+  ownerAvatarUrl?: string | null;
   user: PostCommentListProps["user"];
 }) {
   const [isReplying, setIsReplying] = useState(false);
@@ -118,7 +123,7 @@ function CommentItem({
   return (
     <article className="grid grid-cols-[2.25rem_1fr] gap-3 border-b border-zinc-200/70 py-4 first:pt-0 last:border-b-0 dark:border-zinc-800/70">
       <div className="pt-0.5">
-        <CommentAvatar comment={comment} />
+        <CommentAvatar comment={comment} ownerAvatarUrl={ownerAvatarUrl} />
       </div>
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -175,6 +180,7 @@ function CommentItem({
                 postId={postId}
                 pathname={pathname}
                 showGuestFields={showGuestFields}
+                ownerAvatarUrl={ownerAvatarUrl}
                 user={user}
               />
             ))}
@@ -293,12 +299,21 @@ function sortComments(
     .sort(compare);
 }
 
-function CommentAvatar({ comment }: { comment: PublicPostComment }) {
-  if (comment.author.image) {
+function CommentAvatar({
+  comment,
+  ownerAvatarUrl,
+}: {
+  comment: PublicPostComment;
+  ownerAvatarUrl?: string | null;
+}) {
+  const avatarUrl =
+    comment.author.image ?? (comment.author.role === "OWNER" ? ownerAvatarUrl ?? null : null);
+
+  if (avatarUrl) {
     return (
       <span
         className="block size-9 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-zinc-200/80 dark:ring-zinc-800/80"
-        style={{ backgroundImage: `url(${comment.author.image})` }}
+        style={{ backgroundImage: `url(${avatarUrl})` }}
       />
     );
   }

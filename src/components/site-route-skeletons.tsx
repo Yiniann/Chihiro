@@ -110,7 +110,7 @@ export function PostsPageContentSkeleton() {
 export function PostDetailPageSkeleton() {
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
-      <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_13rem] lg:items-start lg:justify-center">
+      <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_16rem] lg:items-start lg:justify-center">
         <article className="min-w-0">
           <SkeletonBlock className="h-3.5 w-36" />
           <div className="mt-5 space-y-4">
@@ -159,7 +159,7 @@ export function PostDetailPageSkeleton() {
           </div>
         </article>
 
-        <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block">
+        <aside className="sticky top-28 hidden max-h-[calc(100vh-8rem)] overflow-y-auto pl-5 text-sm lg:block lg:w-64">
           <nav aria-label="文章目录加载中" className="relative flex flex-col gap-3">
             <span
               aria-hidden="true"

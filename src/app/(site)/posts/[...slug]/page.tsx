@@ -155,7 +155,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
     return (
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_13rem] lg:items-start lg:justify-center">
+        <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_16rem] lg:items-start lg:justify-center">
           <article className="min-w-0">
             <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
               {post.title}
