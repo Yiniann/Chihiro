@@ -117,7 +117,7 @@ export default async function HomePage() {
                     className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   />
                   <div className="pointer-events-none relative flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                    <p className="home-feed-item-title text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
+                    <p className="home-feed-item-title min-w-0 flex-1 truncate whitespace-nowrap text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
                       {post.title}
                     </p>
                     <p className="home-feed-date text-zinc-500 dark:text-zinc-400">
