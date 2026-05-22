@@ -55,13 +55,6 @@ export default async function AdminTrashPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="grid gap-2 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
-        <p className="text-[14px] font-normal text-zinc-500">回收站</p>
-        <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-          已移到回收站的文章、动态和独立页面会统一放在这里。你可以恢复到草稿，或者彻底删除。
-        </p>
-      </section>
-
       {items.length > 0 ? (
         <div className="bulk-selection-form grid gap-3">
           <form id="trash-bulk-form" />

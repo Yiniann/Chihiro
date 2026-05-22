@@ -17,7 +17,6 @@ const initialState: SaveLoginCommentsSettingsState = {
 
 type BaseSettingsFormProps = {
   defaults: PublicInteractionSettingsRecord;
-  canEdit: boolean;
 };
 
 type LoginSettingsFormProps = BaseSettingsFormProps & {
@@ -34,7 +33,6 @@ type LoginSettingsFormProps = BaseSettingsFormProps & {
 
 export function LoginSettingsForm({
   defaults,
-  canEdit,
   authStatus,
 }: LoginSettingsFormProps) {
   const [state, formAction] = useActionState(saveLoginSettingsAction, initialState);
@@ -60,7 +58,7 @@ export function LoginSettingsForm({
     github: boolean;
     google: boolean;
   }) {
-    if (!canEdit || isSubmitting) {
+    if (isSubmitting) {
       return;
     }
 
@@ -135,7 +133,7 @@ export function LoginSettingsForm({
             description="允许访客使用 Google 登录。"
             checked={watchedGoogleLoginEnabled}
             onCheckedChange={handleGoogleLoginEnabledChange}
-            disabled={!canEdit || isSubmitting}
+            disabled={isSubmitting}
           />
           {watchedGoogleLoginEnabled ? (
             <div className="grid gap-5 md:grid-cols-2">
@@ -179,7 +177,7 @@ export function LoginSettingsForm({
             description="允许访客使用 GitHub 登录。"
             checked={watchedGithubLoginEnabled}
             onCheckedChange={handleGithubLoginEnabledChange}
-            disabled={!canEdit || isSubmitting}
+            disabled={isSubmitting}
           />
           {watchedGithubLoginEnabled ? (
             <div className="grid gap-5 md:grid-cols-2">
@@ -214,21 +212,12 @@ export function LoginSettingsForm({
           ) : null}
         </div>
       </section>
-
-      <section className="grid gap-3">
-        {!canEdit ? (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            只有 Owner 可以修改设置。
-          </div>
-        ) : null}
-      </section>
     </form>
   );
 }
 
 export function CommentSettingsForm({
   defaults,
-  canEdit,
 }: BaseSettingsFormProps) {
   const { showToast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -247,7 +236,7 @@ export function CommentSettingsForm({
     loginRequiredToComment: boolean;
     commentModeration: boolean;
   }) {
-    if (!canEdit || isSubmitting) {
+    if (isSubmitting) {
       return;
     }
 
@@ -315,7 +304,7 @@ export function CommentSettingsForm({
           description="打开后文章页可以展示评论入口。"
           checked={watchedCommentsEnabled}
           onCheckedChange={handleCommentsEnabledChange}
-          disabled={!canEdit || isSubmitting}
+          disabled={isSubmitting}
         />
         {watchedCommentsEnabled ? (
           <div className="grid gap-3 md:grid-cols-2">
@@ -324,23 +313,15 @@ export function CommentSettingsForm({
               description="建议开启，避免匿名垃圾评论。"
               checked={watchedLoginRequiredToComment}
               onCheckedChange={handleLoginRequiredToCommentChange}
-              disabled={!canEdit || isSubmitting}
+              disabled={isSubmitting}
             />
             <SwitchField
               title="评论需要审核"
               description="建议开启，审核通过后再公开展示。"
               checked={watchedCommentModeration}
               onCheckedChange={handleCommentModerationChange}
-              disabled={!canEdit || isSubmitting}
+              disabled={isSubmitting}
             />
-          </div>
-        ) : null}
-      </div>
-
-      <div className="grid gap-3">
-        {!canEdit ? (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            只有 Owner 可以修改设置。
           </div>
         ) : null}
       </div>

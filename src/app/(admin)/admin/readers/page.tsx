@@ -1,26 +1,63 @@
 import { UserRole } from "@prisma/client";
-import { AdminPageHeader, EmptyPanel } from "@/app/(admin)/admin/ui";
+import Link from "next/link";
+import { LiveSearchInput } from "@/app/(admin)/admin/live-search-input";
+import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { deleteUserAction, setUserRoleAction } from "@/app/(admin)/admin/settings/users/actions";
 import { isOwnerAuthenticated } from "@/server/auth";
 import { listUsersForAdmin, type UserListItem } from "@/server/repositories/users";
 
-export default async function AdminReadersPage() {
+type AdminReadersSearchParams = Promise<{
+  q?: string;
+}>;
+
+export default async function AdminReadersPage({
+  searchParams,
+}: {
+  searchParams: AdminReadersSearchParams;
+}) {
+  const { q } = await searchParams;
   const [users, canManageReaders] = await Promise.all([
     listUsersForAdmin(),
     isOwnerAuthenticated(),
   ]);
-  const managedUsers = users.filter((user) => user.role !== UserRole.OWNER);
+  const query = (q ?? "").trim();
+  const managedUsers = users
+    .filter((user) => user.role !== UserRole.OWNER)
+    .filter((user) => matchesReaderQuery(user, query));
 
   return (
     <div className="grid gap-8">
-      <div className="grid gap-3">
-        <AdminPageHeader eyebrow="Readers" title="读者" />
-        {!canManageReaders ? (
-          <p className="max-w-2xl text-sm leading-7 text-zinc-400 dark:text-zinc-500">
-            当前帐号不是 Owner，以下按钮仅展示为禁用态。
-          </p>
-        ) : null}
-      </div>
+      {!canManageReaders ? (
+        <p className="max-w-2xl text-sm leading-7 text-zinc-400 dark:text-zinc-500">
+          当前帐号不是 Owner，以下按钮仅展示为禁用态。
+        </p>
+      ) : null}
+
+      <section className="grid gap-3 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+          <div className="min-w-0">
+            <LiveSearchInput
+              defaultValue={query}
+              placeholder="搜索姓名、邮箱、用户名或登录方式"
+            />
+          </div>
+
+          <div className="flex items-center gap-3 lg:self-end">
+            {query ? (
+              <Link
+                href="/admin/readers"
+                className="border-b border-transparent px-0 py-1 text-sm text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
+              >
+                清除
+              </Link>
+            ) : null}
+          </div>
+        </div>
+
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {query ? `找到 ${managedUsers.length} 位匹配读者` : `共 ${managedUsers.length} 位读者`}
+        </p>
+      </section>
 
       {managedUsers.length > 0 ? (
         <section className="grid gap-0">
@@ -29,7 +66,13 @@ export default async function AdminReadersPage() {
           ))}
         </section>
       ) : (
-        <EmptyPanel text="还没有公开登录用户。先用右上角登录一次，再回到这里设置管理员权限。" />
+        <EmptyPanel
+          text={
+            query
+              ? "没有找到匹配的读者。换个关键词试试。"
+              : "还没有公开登录用户。先用右上角登录一次，再回到这里设置管理员权限。"
+          }
+        />
       )}
     </div>
   );
@@ -163,5 +206,24 @@ function RoleBadge({ role }: { role: UserRole }) {
     >
       {isOwner ? "Owner" : isAdmin ? "管理员" : "用户"}
     </span>
+  );
+}
+
+function matchesReaderQuery(user: UserListItem, query: string) {
+  if (!query) {
+    return true;
+  }
+
+  const normalizedQuery = query.toLocaleLowerCase();
+  const haystacks = [
+    user.name,
+    user.email,
+    user.username,
+    user.role,
+    ...user.accounts.flatMap((account) => [account.provider, account.providerAccountId]),
+  ];
+
+  return haystacks.some(
+    (value) => typeof value === "string" && value.toLocaleLowerCase().includes(normalizedQuery),
   );
 }

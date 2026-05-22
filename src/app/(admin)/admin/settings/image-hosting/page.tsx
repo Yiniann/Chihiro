@@ -1,13 +1,9 @@
 import { AssetProvider } from "@prisma/client";
 import { ImageHostingSettingsForm } from "@/app/(admin)/admin/settings/image-hosting/image-hosting-settings-form";
-import { isOwnerAuthenticated } from "@/server/auth";
 import { getObjectStorageSettings } from "@/server/repositories/object-storage";
 
 export default async function AdminImageHostingSettingsPage() {
-  const [settings, canEdit] = await Promise.all([
-    getObjectStorageSettings(),
-    isOwnerAuthenticated(),
-  ]);
+  const settings = await getObjectStorageSettings();
   const defaults = {
     provider: settings?.provider ?? AssetProvider.R2,
     endpoint: settings?.endpoint ?? "",
@@ -31,18 +27,16 @@ export default async function AdminImageHostingSettingsPage() {
             图床设置
           </h1>
         </div>
-        {canEdit ? (
-          <button
-            type="submit"
-            form="image-hosting-settings-form"
-            className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
-          >
-            保存设置
-          </button>
-        ) : null}
+        <button
+          type="submit"
+          form="image-hosting-settings-form"
+          className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+        >
+          保存设置
+        </button>
       </div>
       <div className="mx-auto w-full max-w-2xl">
-        <ImageHostingSettingsForm defaults={defaults} canEdit={canEdit} />
+        <ImageHostingSettingsForm defaults={defaults} />
       </div>
     </div>
   );

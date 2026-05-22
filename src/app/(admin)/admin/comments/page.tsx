@@ -1,13 +1,9 @@
 import { CommentStatus } from "@prisma/client";
+import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
-import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
-import {
-  approveCommentAction,
-  deleteCommentAction,
-  holdCommentAction,
-  markCommentSpamAction,
-} from "@/app/(admin)/admin/comments/actions";
-import { EmptyPanel, StatCard } from "@/app/(admin)/admin/ui";
+import { CommentActionMenu } from "@/app/(admin)/admin/comments/comment-action-menu";
+import { LiveSearchInput } from "@/app/(admin)/admin/live-search-input";
+import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import {
   getCommentStatsForAdmin,
@@ -18,14 +14,14 @@ import {
 
 type AdminCommentsSearchParams = Promise<{
   status?: string;
+  q?: string;
 }>;
 
-const statusFilters: Array<{
+const groupedStatusFilters: Array<{
   label: string;
-  value: AdminCommentStatusFilter;
+  value: Exclude<AdminCommentStatusFilter, "pending">;
 }> = [
   { label: "全部", value: "all" },
-  { label: "待审核", value: "pending" },
   { label: "已公开", value: "approved" },
   { label: "垃圾", value: "spam" },
 ];
@@ -35,149 +31,187 @@ export default async function AdminCommentsPage({
 }: {
   searchParams: AdminCommentsSearchParams;
 }) {
-  const { status } = await searchParams;
-  const activeStatus = getCommentStatusFilter(status);
-  const [comments, stats] = await Promise.all([
+  const { status, q } = await searchParams;
+  const activeStatus = getGroupedCommentStatusFilter(status);
+  const query = q?.trim() ?? "";
+  const [pendingComments, groupedComments, stats] = await Promise.all([
+    listCommentsForAdmin("pending"),
     listCommentsForAdmin(activeStatus),
     getCommentStatsForAdmin(),
   ]);
+  const filteredPendingComments = filterComments(pendingComments, query);
+  const filteredGroupedComments = filterComments(
+    activeStatus === "all"
+      ? groupedComments.filter((comment) => comment.status !== CommentStatus.PENDING)
+      : groupedComments,
+    query,
+  );
 
   return (
-    <div className="grid gap-10">
-      <section className="grid grid-cols-4 gap-2 sm:gap-4">
-        <BoardStat>
-          <StatCard label="全部评论" value={stats.total} />
-        </BoardStat>
-        <BoardStat>
-          <StatCard label="待审核" value={stats.pending} tone="muted" />
-        </BoardStat>
-        <BoardStat>
-          <StatCard label="已公开" value={stats.approved} tone="success" />
-        </BoardStat>
-        <BoardStat>
-          <StatCard label="垃圾评论" value={stats.spam} tone="neutral" />
-        </BoardStat>
-      </section>
+    <div className="grid gap-6">
+      <section className="grid gap-4 border-b border-zinc-200/80 pb-5 dark:border-zinc-800/80">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">评论管理</p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              待审核评论会单独显示在上面，已处理评论放在下方分组查看。
+            </p>
+          </div>
 
-      <section className="grid gap-5">
-        <div className="flex flex-wrap items-center gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
-          {statusFilters.map((item) => (
-            <Link
-              key={item.value}
-              href={item.value === "all" ? "/admin/comments" : `/admin/comments?status=${item.value}`}
-              className={[
-                "inline-flex h-9 items-center rounded-2xl px-3 text-sm font-medium transition",
-                item.value === activeStatus
-                  ? "bg-primary/10 text-primary"
-                  : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100",
-              ].join(" ")}
-            >
-              {item.label}
-            </Link>
-          ))}
+          <LiveSearchInput
+            defaultValue={query}
+            placeholder="搜索评论、作者、邮箱或文章"
+          />
         </div>
 
-        {comments.length > 0 ? (
-          <div className="grid gap-0">
-            {comments.map((comment) => (
-              <CommentRow key={comment.id} comment={comment} />
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          {query
+            ? `待审核 ${filteredPendingComments.length} 条，已处理 ${filteredGroupedComments.length} 条匹配评论`
+            : `待审核 ${stats.pending} 条，下方显示 ${getGroupedFilterCount(activeStatus, stats)} 条已处理评论`}
+        </p>
+      </section>
+
+      <CommentSection
+        title="待审核评论"
+        description={query ? `匹配到 ${filteredPendingComments.length} 条待审核评论` : "需要你优先处理的评论会显示在这里。"}
+        comments={filteredPendingComments}
+        emptyText={query ? "没有找到匹配的待审核评论。" : "当前没有待审核评论。"}
+      />
+
+      <CommentSection
+        title="已处理评论"
+        description={
+          query
+            ? `匹配到 ${filteredGroupedComments.length} 条评论`
+            : `当前筛选 ${getGroupedFilterLabel(activeStatus)}，共 ${getGroupedFilterCount(activeStatus, stats)} 条`
+        }
+        comments={filteredGroupedComments}
+        emptyText={query ? "没有找到匹配的评论。" : "当前筛选下还没有评论。"}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {groupedStatusFilters.map((item) => (
+              <Link
+                key={item.value}
+                href={getCommentsFilterHref(item.value, query)}
+                className={[
+                  "inline-flex h-9 items-center gap-2 rounded-2xl px-3 text-sm font-medium transition",
+                  item.value === activeStatus
+                    ? "bg-primary/10 text-primary"
+                    : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-900 dark:hover:text-zinc-100",
+                ].join(" ")}
+              >
+                {item.label}
+                <span
+                  className={[
+                    "inline-flex min-w-6 items-center justify-center rounded-full px-1.5 py-0.5 text-[0.68rem]",
+                    item.value === activeStatus
+                      ? "bg-white/80 text-primary dark:bg-white/10"
+                      : "bg-zinc-100 text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400",
+                  ].join(" ")}
+                >
+                  {getGroupedFilterCount(item.value, stats)}
+                </span>
+              </Link>
             ))}
           </div>
-        ) : (
-          <EmptyPanel text="当前筛选下还没有评论。" />
-        )}
-      </section>
+        }
+      />
     </div>
   );
 }
 
-function BoardStat({ children }: { children: React.ReactNode }) {
-  return <div className="min-w-0 px-5 py-4">{children}</div>;
+function CommentSection({
+  title,
+  description,
+  comments,
+  emptyText,
+  actions,
+}: {
+  title: string;
+  description: string;
+  comments: AdminCommentItem[];
+  emptyText: string;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <section className="grid gap-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div className="grid gap-1">
+          <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{title}</h2>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
+        </div>
+        {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
+      </div>
+
+      {comments.length > 0 ? (
+        <div className="grid gap-0">
+          {comments.map((comment) => (
+            <CommentRow key={comment.id} comment={comment} />
+          ))}
+        </div>
+      ) : (
+        <EmptyPanel text={emptyText} />
+      )}
+    </section>
+  );
 }
 
 function CommentRow({ comment }: { comment: AdminCommentItem }) {
+  const isPending = comment.status === CommentStatus.PENDING;
+  const summaryMeta = [
+    comment.author.source === "user" ? "登录用户" : "访客",
+    comment.author.email,
+    formatAdminDateTime(comment.createdAt),
+  ].filter(Boolean);
+
   return (
-    <article className="grid gap-4 border-b border-zinc-200/80 py-5 first:pt-0 last:border-b-0 dark:border-zinc-800/80 lg:grid-cols-[1fr_auto]">
+    <article
+      className={[
+        "grid gap-4 border-b py-5 first:pt-0 last:border-b-0 last:pb-0 lg:grid-cols-[minmax(0,1fr)_auto]",
+        isPending
+          ? "border-amber-200/80 dark:border-amber-400/20"
+          : "border-zinc-200/80 dark:border-zinc-800/80",
+      ].join(" ")}
+    >
       <div className="min-w-0">
-        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
           <AuthorAvatar comment={comment} />
           <p className="font-medium text-zinc-950 dark:text-zinc-50">{comment.author.name}</p>
           <CommentStatusBadge status={comment.status} />
-          <span className="text-xs text-zinc-400 dark:text-zinc-500">
-            {comment.author.source === "user" ? "登录用户" : "访客"}
-          </span>
         </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
+          {summaryMeta.map((item, index) => (
+            <span key={`${comment.id}-meta-${index}`}>{item}</span>
+          ))}
+        </div>
+
+        {comment.parent ? (
+          <p className="mt-3 text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+            回复 <span className="font-medium text-zinc-700 dark:text-zinc-300">{comment.parent.authorName}</span>
+          </p>
+        ) : null}
 
         <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-zinc-700 dark:text-zinc-200">
           {comment.body}
         </p>
 
-        {comment.parent ? (
-          <div className="mt-3 border-l border-zinc-200/80 pl-3 text-xs leading-6 text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
-            <span>回复 {comment.parent.authorName}：</span>
-            <span className="line-clamp-2">{comment.parent.body}</span>
-          </div>
-        ) : null}
-
-        <div className="mt-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500 dark:text-zinc-400">
-          {comment.author.email ? <span>{comment.author.email}</span> : null}
-          {comment.author.email ? <span>·</span> : null}
-          <span>{formatAdminDateTime(comment.createdAt)}</span>
-          <span>·</span>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
             href={comment.post.href}
             target="_blank"
-            className="border-b border-transparent text-primary transition hover:border-primary/40"
+            className="inline-flex items-center gap-2 border-b border-transparent py-1 text-sm text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
           >
-            {comment.post.title}
+            <span className="max-w-[22rem] truncate">{comment.post.title}</span>
+            <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 lg:flex-col lg:items-end">
-        {comment.status !== CommentStatus.APPROVED ? (
-          <CommentActionForm action={approveCommentAction} id={comment.id} label="通过" />
-        ) : null}
-        {comment.status !== CommentStatus.PENDING ? (
-          <CommentActionForm action={holdCommentAction} id={comment.id} label="待审" />
-        ) : null}
-        {comment.status !== CommentStatus.SPAM ? (
-          <CommentActionForm action={markCommentSpamAction} id={comment.id} label="垃圾" />
-        ) : null}
-        <ConfirmActionDialog
-          triggerLabel="删除"
-          triggerClassName="border-b border-transparent px-0 py-1 text-xs font-medium text-rose-600 transition hover:border-rose-300 dark:text-rose-400 dark:hover:border-rose-800"
-          title="删除这条评论？"
-          description="删除后无法撤销，这条评论会从文章下永久移除。"
-          confirmLabel="删除评论"
-          action={deleteCommentAction}
-          fields={[{ name: "id", value: comment.id }]}
-          confirmTone="danger"
-        />
+      <div className="flex min-w-[14rem] justify-start lg:justify-end">
+        <CommentActionMenu commentId={comment.id} status={comment.status} />
       </div>
     </article>
-  );
-}
-
-function CommentActionForm({
-  action,
-  id,
-  label,
-}: {
-  action: (formData: FormData) => void | Promise<void>;
-  id: string;
-  label: string;
-}) {
-  return (
-    <form action={action}>
-      <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="border-b border-transparent px-0 py-1 text-xs font-medium text-zinc-500 transition hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
-      >
-        {label}
-      </button>
-    </form>
   );
 }
 
@@ -203,10 +237,10 @@ function CommentStatusBadge({ status }: { status: CommentStatus }) {
     status === CommentStatus.APPROVED ? "已公开" : status === CommentStatus.PENDING ? "待审核" : "垃圾";
   const className =
     status === CommentStatus.APPROVED
-      ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/25 dark:text-emerald-300"
+      ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100 dark:bg-emerald-950/25 dark:text-emerald-300 dark:ring-emerald-400/10"
       : status === CommentStatus.PENDING
-        ? "bg-amber-50 text-amber-700 dark:bg-amber-950/25 dark:text-amber-300"
-        : "bg-zinc-100 text-zinc-600 dark:bg-zinc-900/60 dark:text-zinc-400";
+        ? "bg-amber-50 text-amber-700 ring-1 ring-amber-100 dark:bg-amber-950/25 dark:text-amber-300 dark:ring-amber-400/10"
+        : "bg-zinc-100 text-zinc-600 ring-1 ring-zinc-200 dark:bg-zinc-900/60 dark:text-zinc-400 dark:ring-zinc-800";
 
   return (
     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>
@@ -215,8 +249,75 @@ function CommentStatusBadge({ status }: { status: CommentStatus }) {
   );
 }
 
-function getCommentStatusFilter(value?: string): AdminCommentStatusFilter {
-  if (value === "pending" || value === "approved" || value === "spam") {
+function getGroupedFilterCount(
+  filter: Exclude<AdminCommentStatusFilter, "pending">,
+  stats: Awaited<ReturnType<typeof getCommentStatsForAdmin>>,
+) {
+  if (filter === "approved") {
+    return stats.approved;
+  }
+
+  if (filter === "spam") {
+    return stats.spam;
+  }
+
+  return stats.approved + stats.spam;
+}
+
+function getGroupedFilterLabel(filter: Exclude<AdminCommentStatusFilter, "pending">) {
+  if (filter === "approved") {
+    return "已公开";
+  }
+
+  if (filter === "spam") {
+    return "垃圾";
+  }
+
+  return "全部";
+}
+
+function getCommentsFilterHref(filter: Exclude<AdminCommentStatusFilter, "pending">, query: string) {
+  const params = new URLSearchParams();
+
+  if (filter !== "all") {
+    params.set("status", filter);
+  }
+
+  if (query) {
+    params.set("q", query);
+  }
+
+  const nextQuery = params.toString();
+  return nextQuery ? `/admin/comments?${nextQuery}` : "/admin/comments";
+}
+
+function filterComments(comments: AdminCommentItem[], query: string) {
+  if (!query) {
+    return comments;
+  }
+
+  const normalizedQuery = query.toLocaleLowerCase("zh-CN");
+
+  return comments.filter((comment) => {
+    const haystack = [
+      comment.body,
+      comment.author.name,
+      comment.author.email ?? "",
+      comment.post.title,
+      comment.parent?.authorName ?? "",
+      comment.parent?.body ?? "",
+    ]
+      .join(" ")
+      .toLocaleLowerCase("zh-CN");
+
+    return haystack.includes(normalizedQuery);
+  });
+}
+
+function getGroupedCommentStatusFilter(
+  value?: string,
+): Exclude<AdminCommentStatusFilter, "pending"> {
+  if (value === "all" || value === "approved" || value === "spam") {
     return value;
   }
 

@@ -97,7 +97,10 @@ export async function listCommentsForAdmin(
   const comments = await prisma.postComment.findMany({
     where: getAdminCommentWhere(filter),
     include: adminCommentInclude,
-    orderBy: [{ createdAt: Prisma.SortOrder.desc }],
+    orderBy:
+      filter === "all"
+        ? [{ status: Prisma.SortOrder.asc }, { createdAt: Prisma.SortOrder.desc }]
+        : [{ createdAt: Prisma.SortOrder.desc }],
   });
 
   return comments.map(mapAdminCommentRecord);

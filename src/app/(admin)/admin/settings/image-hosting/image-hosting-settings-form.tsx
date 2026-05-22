@@ -24,10 +24,9 @@ type ImageHostingSettingsFormProps = {
     forcePathStyle: boolean;
     hasSecretAccessKey: boolean;
   };
-  canEdit: boolean;
 };
 
-export function ImageHostingSettingsForm({ defaults, canEdit }: ImageHostingSettingsFormProps) {
+export function ImageHostingSettingsForm({ defaults }: ImageHostingSettingsFormProps) {
   const [state, formAction] = useActionState(saveImageHostingSettingsAction, initialState);
   useSettingsToast(state);
 
@@ -170,14 +169,6 @@ export function ImageHostingSettingsForm({ defaults, canEdit }: ImageHostingSett
             </span>
           </span>
         </label>
-      </section>
-
-      <section className="grid gap-3">
-        {!canEdit ? (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            只有 Owner 可以修改设置。
-          </div>
-        ) : null}
       </section>
     </form>
   );

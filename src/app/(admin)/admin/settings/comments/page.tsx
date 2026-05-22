@@ -1,12 +1,8 @@
 import { CommentSettingsForm } from "@/app/(admin)/admin/settings/login-comments/login-comments-settings-form";
-import { isOwnerAuthenticated } from "@/server/auth";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 
 export default async function AdminCommentSettingsPage() {
-  const [settings, canEdit] = await Promise.all([
-    getPublicInteractionSettings(),
-    isOwnerAuthenticated(),
-  ]);
+  const settings = await getPublicInteractionSettings();
 
   return (
     <div className="grid gap-8">
@@ -21,7 +17,7 @@ export default async function AdminCommentSettingsPage() {
         </div>
       </div>
       <div className="mx-auto w-full max-w-2xl">
-        <CommentSettingsForm defaults={settings} canEdit={canEdit} />
+        <CommentSettingsForm defaults={settings} />
       </div>
     </div>
   );

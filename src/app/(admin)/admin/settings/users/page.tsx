@@ -1,7 +1,6 @@
 import { UserRole } from "@prisma/client";
 import { EmptyPanel } from "@/app/(admin)/admin/ui";
 import { ReaderAuthPanel } from "@/app/(admin)/admin/settings/readers/reader-auth-panel";
-import { isOwnerAuthenticated } from "@/server/auth";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { auth } from "@/server/public-auth";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
@@ -19,15 +18,13 @@ export default async function AdminUsersSettingsPage({
 }: AdminUsersSettingsPageProps) {
   const session = await auth();
   const currentUserId = session?.user?.id ?? null;
-  const [params, users, canManageUsers, authMethods, interactionSettings, siteSettings] =
-    await Promise.all([
-      searchParams ? searchParams : Promise.resolve<{ linked?: string }>({}),
-      listUsersForAdmin(),
-      isOwnerAuthenticated(),
-      currentUserId ? getUserAuthMethods(currentUserId) : Promise.resolve(null),
-      getPublicInteractionSettings(),
-      getSiteSettings(),
-    ]);
+  const [params, users, authMethods, interactionSettings, siteSettings] = await Promise.all([
+    searchParams ? searchParams : Promise.resolve<{ linked?: string }>({}),
+    listUsersForAdmin(),
+    currentUserId ? getUserAuthMethods(currentUserId) : Promise.resolve(null),
+    getPublicInteractionSettings(),
+    getSiteSettings(),
+  ]);
   const linkedProvider = typeof params.linked === "string" ? params.linked : null;
   const githubEnabled =
     interactionSettings.githubLoginEnabled &&
@@ -55,19 +52,17 @@ export default async function AdminUsersSettingsPage({
             用户设置
           </h1>
         </div>
-        {canManageUsers ? (
-          <button
-            type="submit"
-            form="owner-settings-form"
-            className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
-          >
-            保存设置
-          </button>
-        ) : null}
+        <button
+          type="submit"
+          form="owner-settings-form"
+          className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+        >
+          保存设置
+        </button>
       </div>
 
       <div className="mx-auto w-full max-w-2xl">
-        {canManageUsers && authMethods ? (
+        {authMethods ? (
           <ReaderAuthPanel
             ownerUser={ownerUser}
             ownerAvatarUrl={ownerAvatarUrl}
@@ -78,16 +73,8 @@ export default async function AdminUsersSettingsPage({
             siteUrl={siteUrl}
           />
         ) : (
-          <EmptyPanel text="只有 Owner 可以管理用户登录方式与第三方绑定。" />
+          <EmptyPanel text="当前未能读取用户登录方式，请重新登录后再试。" />
         )}
-
-        {!canManageUsers ? (
-          <div className="grid gap-3">
-            <p className="max-w-2xl text-sm leading-7 text-zinc-400 dark:text-zinc-500">
-              当前帐号不是 Owner，上面的登录方式面板不会开放编辑。
-            </p>
-          </div>
-        ) : null}
       </div>
     </div>
   );

@@ -20,10 +20,9 @@ type GeneralSettingsFormProps = {
     summary: string;
     motto: string;
   };
-  canEdit: boolean;
 };
 
-export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormProps) {
+export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
   const [state, formAction] = useActionState(saveGeneralSettingsAction, initialState);
   useSettingsToast(state);
 
@@ -111,14 +110,6 @@ export function GeneralSettingsForm({ defaults, canEdit }: GeneralSettingsFormPr
           </label>
         </div>
 
-      </section>
-
-      <section className="grid gap-3">
-        {!canEdit ? (
-          <div className="text-xs text-zinc-500 dark:text-zinc-400">
-            只有 Owner 可以修改设置。
-          </div>
-        ) : null}
       </section>
     </form>
   );

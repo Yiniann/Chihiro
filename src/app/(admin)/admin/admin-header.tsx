@@ -65,13 +65,13 @@ const adminNavMeta: Record<
   },
 };
 
-export function AdminHeader() {
+export function AdminHeader({ canViewSettings }: { canViewSettings: boolean }) {
   const pathname = usePathname();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const mobileMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
-  const activeItem = getActiveAdminItem(pathname);
+  const activeItem = getActiveAdminItem(pathname, canViewSettings);
 
   useEffect(() => {
     if (!isMobileNavOpen) {
@@ -136,6 +136,7 @@ export function AdminHeader() {
       >
         <SidebarContent
           pathname={pathname}
+          canViewSettings={canViewSettings}
           isCollapsed={isDesktopCollapsed}
           onToggleCollapse={() => setIsDesktopCollapsed((current) => !current)}
         />
@@ -160,6 +161,7 @@ export function AdminHeader() {
             >
               <SidebarContent
                 pathname={pathname}
+                canViewSettings={canViewSettings}
                 onNavigate={() => setIsMobileNavOpen(false)}
                 isMobile
               />
@@ -173,17 +175,23 @@ export function AdminHeader() {
 
 function SidebarContent({
   pathname,
+  canViewSettings,
   isCollapsed = false,
   isMobile = false,
   onNavigate,
   onToggleCollapse,
 }: {
   pathname: string;
+  canViewSettings: boolean;
   isCollapsed?: boolean;
   isMobile?: boolean;
   onNavigate?: () => void;
   onToggleCollapse?: () => void;
 }) {
+  const navItems = canViewSettings
+    ? ADMIN_NAV_ITEMS
+    : ADMIN_NAV_ITEMS.filter((item) => item.href !== "/admin/settings");
+
   return (
     <div className="flex h-full flex-col px-3 pb-4 pt-4">
       <div
@@ -217,7 +225,7 @@ function SidebarContent({
 
       <div className="mt-3 flex-1">
         <nav className="grid gap-1">
-          {ADMIN_NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = isActiveAdminPath(pathname, item.href);
             const { icon: Icon } = adminNavMeta[item.href];
 
@@ -282,8 +290,12 @@ function SidebarContent({
   );
 }
 
-function getActiveAdminItem(pathname: string) {
-  return ADMIN_NAV_ITEMS.find((item) => isActiveAdminPath(pathname, item.href)) ?? null;
+function getActiveAdminItem(pathname: string, canViewSettings: boolean) {
+  const navItems = canViewSettings
+    ? ADMIN_NAV_ITEMS
+    : ADMIN_NAV_ITEMS.filter((item) => item.href !== "/admin/settings");
+
+  return navItems.find((item) => isActiveAdminPath(pathname, item.href)) ?? null;
 }
 
 function isActiveAdminPath(pathname: string, href: string) {

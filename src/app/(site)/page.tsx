@@ -204,42 +204,26 @@ function buildHeroSocialLinks(
   email: string | null,
   githubUrl: string | null,
 ): SocialLink[] {
-  const links = [
-    ...(email
-      ? [
-          {
-            platform: "email" as const,
-            label: "Email",
-            href: `mailto:${email}`,
-          },
-        ]
-      : []),
-    ...(githubUrl
-      ? [
-          {
-            platform: "github" as const,
-            label: "GitHub",
-            href: githubUrl,
-          },
-        ]
-      : []),
-    ...socialLinks.map((link) => ({
-      platform: link.platform,
-      label: link.label,
-      href: link.href,
-    })),
-  ];
+  const links = [...socialLinks];
 
-  const seen = new Set<string>();
+  if (email && !links.some((link) => link.platform === "email")) {
+    links.unshift({
+      platform: "email",
+      label: "Email",
+      href: `mailto:${email}`,
+    });
+  }
 
-  return links.filter((link) => {
-    const key = link.label.toLowerCase();
+  if (githubUrl && !links.some((link) => link.platform === "github")) {
+    const emailIndex = links.findIndex((link) => link.platform === "email");
+    const insertIndex = emailIndex >= 0 ? emailIndex + 1 : 0;
 
-    if (seen.has(key)) {
-      return false;
-    }
+    links.splice(insertIndex, 0, {
+      platform: "github",
+      label: "GitHub",
+      href: githubUrl,
+    });
+  }
 
-    seen.add(key);
-    return true;
-  });
+  return links;
 }

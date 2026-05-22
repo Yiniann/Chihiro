@@ -1,10 +1,9 @@
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { GeneralSettingsForm } from "@/app/(admin)/admin/settings/general/general-settings-form";
-import { isOwnerAuthenticated } from "@/server/auth";
 import { getSiteSettings } from "@/server/repositories/site";
 
 export default async function AdminGeneralSettingsPage() {
-  const [siteSettings, canEdit] = await Promise.all([getSiteSettings(), isOwnerAuthenticated()]);
+  const siteSettings = await getSiteSettings();
   const defaults = {
     siteName: siteSettings?.siteName ?? siteConfig.name,
     siteUrl: resolveCanonicalSiteUrl(siteSettings),
@@ -24,18 +23,16 @@ export default async function AdminGeneralSettingsPage() {
             站点设置
           </h1>
         </div>
-        {canEdit ? (
-          <button
-            type="submit"
-            form="general-settings-form"
-            className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
-          >
-            保存设置
-          </button>
-        ) : null}
+        <button
+          type="submit"
+          form="general-settings-form"
+          className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+        >
+          保存设置
+        </button>
       </div>
       <div className="mx-auto w-full max-w-2xl">
-        <GeneralSettingsForm defaults={defaults} canEdit={canEdit} />
+        <GeneralSettingsForm defaults={defaults} />
       </div>
     </div>
   );

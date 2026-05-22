@@ -1,14 +1,12 @@
 import { LoginSettingsForm } from "@/app/(admin)/admin/settings/login-comments/login-comments-settings-form";
 import { resolveCanonicalSiteUrl } from "@/lib/site";
-import { isOwnerAuthenticated } from "@/server/auth";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getSiteSettings } from "@/server/repositories/site";
 
 export default async function AdminLoginSettingsPage() {
-  const [settings, siteSettings, canEdit] = await Promise.all([
+  const [settings, siteSettings] = await Promise.all([
     getPublicInteractionSettings(),
     getSiteSettings(),
-    isOwnerAuthenticated(),
   ]);
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
 
@@ -23,20 +21,17 @@ export default async function AdminLoginSettingsPage() {
             登录设置
           </h1>
         </div>
-        {canEdit ? (
-          <button
-            type="submit"
-            form="login-settings-form"
-            className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
-          >
-            保存设置
-          </button>
-        ) : null}
+        <button
+          type="submit"
+          form="login-settings-form"
+          className="inline-flex h-11 shrink-0 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+        >
+          保存设置
+        </button>
       </div>
       <div className="mx-auto w-full max-w-2xl">
         <LoginSettingsForm
           defaults={settings}
-          canEdit={canEdit}
           authStatus={{
             authSecret: Boolean(process.env.AUTH_SECRET?.trim()),
             githubId: Boolean(process.env.AUTH_GITHUB_ID?.trim()),

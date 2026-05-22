@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdminSession } from "@/server/auth";
 import { AdminHeader } from "@/app/(admin)/admin/admin-header";
 import { getAdminBackendStatus, getAdminBackendStatusMessage } from "@/server/admin-backend";
+import { auth } from "@/server/public-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -56,11 +57,13 @@ export default async function AdminLayout({
   }
 
   await requireAdminSession();
+  const session = await auth();
+  const canViewSettings = session?.user?.role === "OWNER";
 
   return (
     <div className="min-h-screen bg-zinc-100 text-zinc-950 dark:bg-[#050505] dark:text-zinc-100 md:h-screen md:overflow-hidden">
       <div className="md:flex md:h-screen">
-        <AdminHeader />
+        <AdminHeader canViewSettings={canViewSettings} />
         <main className="min-w-0 flex-1 px-4 pb-4 pt-4 md:h-screen md:overflow-y-auto md:px-6 md:py-6">
           <section className="mx-auto min-h-[calc(100vh-5.5rem)] min-w-0 max-w-7xl md:min-h-full">
             {children}
