@@ -3,6 +3,7 @@ import { ProfileAvatar } from "@/components/profile-avatar";
 import { HeroIntro } from "@/components/hero-intro";
 import { RelativeDate } from "@/components/relative-date";
 import { SocialIconLinks } from "@/components/social-icon-links";
+import { ChevronDown } from "lucide-react";
 import {
   getContentText,
   getRenderedContentHtml,
@@ -85,9 +86,20 @@ export default async function HomePage() {
             <SocialIconLinks links={heroSocialLinks} className="mt-7" />
           ) : null}
         </div>
+
+        <Link
+          href="#home-feed"
+          aria-label="Scroll to home feed"
+          className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center justify-center p-2 text-primary transition hover:opacity-80 lg:inline-flex"
+        >
+          <ChevronDown className="h-6 w-6" strokeWidth={2.2} />
+        </Link>
       </section>
 
-      <section className="home-feed mx-auto grid w-full max-w-5xl gap-12 border-t border-zinc-200/80 py-14 dark:border-zinc-800/80 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-16">
+      <section
+        id="home-feed"
+        className="home-feed mx-auto grid w-full max-w-5xl gap-12 border-t border-zinc-200/80 py-14 dark:border-zinc-800/80 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:gap-16"
+      >
         <HomeFeedSection
           eyebrow="Latest writing"
           title="最近写作"
@@ -179,10 +191,10 @@ function HomeFeedSection({
   return (
     <section>
       <div className="mb-3">
-        <p className="home-feed-eyebrow uppercase text-zinc-900 dark:text-zinc-100">
+        <p className="home-feed-eyebrow font-normal uppercase text-zinc-500 dark:text-zinc-400">
           {eyebrow}
         </p>
-        <p className="home-feed-title mt-1 text-zinc-900 dark:text-zinc-100">
+        <p className="home-feed-title mt-1 font-bold text-zinc-900 dark:text-zinc-100">
           {title}
         </p>
       </div>
