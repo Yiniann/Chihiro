@@ -14,6 +14,7 @@ export type SaveCategoryEditorState = {
   error: string | null;
   redirectTo: string | null;
   createdCategory: Awaited<ReturnType<typeof createCategory>> | null;
+  nonce: number;
 };
 
 export async function saveCategoryAction(
@@ -41,6 +42,7 @@ export async function saveCategoryAction(
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
         createdCategory: null,
+        nonce: Date.now(),
       };
     }
 
@@ -48,6 +50,7 @@ export async function saveCategoryAction(
       error: error instanceof Error ? error.message : "保存分类时出错了。",
       redirectTo: null,
       createdCategory: null,
+      nonce: Date.now(),
     };
   }
 
@@ -55,6 +58,7 @@ export async function saveCategoryAction(
     error: null,
     redirectTo: "/admin/categories",
     createdCategory: null,
+    nonce: Date.now(),
   };
 }
 
@@ -82,6 +86,7 @@ export async function createCategoryAction(
         error: null,
         redirectTo: null,
         createdCategory: category,
+        nonce: Date.now(),
       };
     }
   } catch (error) {
@@ -90,6 +95,7 @@ export async function createCategoryAction(
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
         createdCategory: null,
+        nonce: Date.now(),
       };
     }
 
@@ -97,6 +103,7 @@ export async function createCategoryAction(
       error: error instanceof Error ? error.message : "创建分类时出错了。",
       redirectTo: null,
       createdCategory: null,
+      nonce: Date.now(),
     };
   }
 
@@ -104,6 +111,7 @@ export async function createCategoryAction(
     error: null,
     redirectTo: "/admin/categories",
     createdCategory: null,
+    nonce: Date.now(),
   };
 }
 

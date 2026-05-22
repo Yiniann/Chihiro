@@ -19,9 +19,8 @@ type AdminCommentsSearchParams = Promise<{
 
 const groupedStatusFilters: Array<{
   label: string;
-  value: Exclude<AdminCommentStatusFilter, "pending">;
+  value: Exclude<AdminCommentStatusFilter, "pending" | "all">;
 }> = [
-  { label: "全部", value: "all" },
   { label: "已公开", value: "approved" },
   { label: "垃圾", value: "spam" },
 ];
@@ -40,12 +39,7 @@ export default async function AdminCommentsPage({
     getCommentStatsForAdmin(),
   ]);
   const filteredPendingComments = filterComments(pendingComments, query);
-  const filteredGroupedComments = filterComments(
-    activeStatus === "all"
-      ? groupedComments.filter((comment) => comment.status !== CommentStatus.PENDING)
-      : groupedComments,
-    query,
-  );
+  const filteredGroupedComments = filterComments(groupedComments, query);
 
   return (
     <div className="grid gap-6">
@@ -250,38 +244,30 @@ function CommentStatusBadge({ status }: { status: CommentStatus }) {
 }
 
 function getGroupedFilterCount(
-  filter: Exclude<AdminCommentStatusFilter, "pending">,
+  filter: Exclude<AdminCommentStatusFilter, "pending" | "all">,
   stats: Awaited<ReturnType<typeof getCommentStatsForAdmin>>,
 ) {
   if (filter === "approved") {
     return stats.approved;
   }
 
-  if (filter === "spam") {
-    return stats.spam;
-  }
-
-  return stats.approved + stats.spam;
+  return stats.spam;
 }
 
-function getGroupedFilterLabel(filter: Exclude<AdminCommentStatusFilter, "pending">) {
+function getGroupedFilterLabel(filter: Exclude<AdminCommentStatusFilter, "pending" | "all">) {
   if (filter === "approved") {
     return "已公开";
   }
 
-  if (filter === "spam") {
-    return "垃圾";
-  }
-
-  return "全部";
+  return "垃圾";
 }
 
-function getCommentsFilterHref(filter: Exclude<AdminCommentStatusFilter, "pending">, query: string) {
+function getCommentsFilterHref(
+  filter: Exclude<AdminCommentStatusFilter, "pending" | "all">,
+  query: string,
+) {
   const params = new URLSearchParams();
-
-  if (filter !== "all") {
-    params.set("status", filter);
-  }
+  params.set("status", filter);
 
   if (query) {
     params.set("q", query);
@@ -316,10 +302,10 @@ function filterComments(comments: AdminCommentItem[], query: string) {
 
 function getGroupedCommentStatusFilter(
   value?: string,
-): Exclude<AdminCommentStatusFilter, "pending"> {
-  if (value === "all" || value === "approved" || value === "spam") {
+): Exclude<AdminCommentStatusFilter, "pending" | "all"> {
+  if (value === "approved" || value === "spam") {
     return value;
   }
 
-  return "all";
+  return "approved";
 }

@@ -9,6 +9,7 @@ import {
 const INITIAL_STATE: SaveMediaMetadataState = {
   error: null,
   success: null,
+  nonce: 0,
 };
 
 export function MediaMetadataForm({

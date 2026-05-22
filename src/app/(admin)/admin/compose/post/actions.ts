@@ -18,6 +18,7 @@ import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositori
 export type SavePostEditorState = {
   error: string | null;
   redirectTo: string | null;
+  nonce: number;
 };
 
 export async function savePostDraftAction(
@@ -75,6 +76,7 @@ export async function savePostDraftAction(
       return {
         error: null,
         redirectTo: `/admin/posts/${encodeURIComponent(post.id)}`,
+        nonce: Date.now(),
       };
     }
   } catch (error) {
@@ -82,12 +84,14 @@ export async function savePostDraftAction(
       return {
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
+        nonce: Date.now(),
       };
     }
 
     return {
       error: error instanceof Error ? error.message : "保存文章时出错了。",
       redirectTo: null,
+      nonce: Date.now(),
     };
   }
 
@@ -98,6 +102,7 @@ export async function savePostDraftAction(
   return {
     error: null,
     redirectTo: null,
+    nonce: Date.now(),
   };
 }
 

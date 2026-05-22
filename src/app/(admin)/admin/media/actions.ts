@@ -11,6 +11,7 @@ import {
 export type SaveMediaMetadataState = {
   error: string | null;
   success: string | null;
+  nonce: number;
 };
 
 export async function saveMediaMetadataAction(
@@ -27,6 +28,7 @@ export async function saveMediaMetadataAction(
     return {
       error: "缺少媒体 ID。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -40,6 +42,7 @@ export async function saveMediaMetadataAction(
     return {
       error: error instanceof Error ? error.message : "保存媒体信息时出错了。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -48,6 +51,7 @@ export async function saveMediaMetadataAction(
   return {
     error: null,
     success: "媒体信息已更新。",
+    nonce: Date.now(),
   };
 }
 

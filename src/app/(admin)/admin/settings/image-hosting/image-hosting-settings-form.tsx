@@ -10,6 +10,7 @@ import { useToast } from "@/components/toast-provider";
 const initialState: SaveImageHostingSettingsState = {
   error: null,
   success: null,
+  nonce: 0,
 };
 
 type ImageHostingSettingsFormProps = {
@@ -186,5 +187,5 @@ function useSettingsToast(state: SaveImageHostingSettingsState) {
     if (state.success) {
       showToast(state.success);
     }
-  }, [showToast, state.error, state.success]);
+  }, [showToast, state.error, state.nonce, state.success]);
 }

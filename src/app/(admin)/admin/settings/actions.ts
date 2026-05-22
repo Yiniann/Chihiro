@@ -8,6 +8,7 @@ import { siteConfig } from "@/lib/site";
 export type SaveGeneralSettingsState = {
   error: string | null;
   success: string | null;
+  nonce: number;
 };
 
 export async function saveGeneralSettingsAction(
@@ -18,6 +19,7 @@ export async function saveGeneralSettingsAction(
     return {
       error: "只有 Owner 才能修改设置。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -47,6 +49,7 @@ export async function saveGeneralSettingsAction(
     return {
       error: error instanceof Error ? error.message : "保存常规设置时出错了。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -64,6 +67,7 @@ export async function saveGeneralSettingsAction(
   return {
     error: null,
     success: "常规设置已更新。",
+    nonce: Date.now(),
   };
 }
 

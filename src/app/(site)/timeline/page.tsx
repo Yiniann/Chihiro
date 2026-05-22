@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { getContentPreview, getContentText } from "@/lib/content";
-import { getPostPath, getTimelinePath, getUpdateAnchorPath } from "@/lib/routes";
+import { getTimelinePath } from "@/lib/routes";
+import { getTimelineItems, type TimelineItem, type TimelineSourceType } from "@/lib/timeline-items";
 import { ArchiveTimeline, type ArchiveYearGroup } from "@/components/archive-timeline";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { SearchDialog } from "@/components/search-dialog";
@@ -23,28 +23,13 @@ type TimelinePageProps = {
   }>;
 };
 
-type ArchiveType = "all" | "posts" | "updates";
-
-type ArchiveItem = {
-  id: string | number;
-  href?: string;
-  title: string;
-  publishedAt: string | null;
-  categoryLabel: string;
-  kindLabel: "Posts" | "Updates";
-  meta?: string;
-  summary: string;
-  searchText: string;
-  authorName?: string | null;
-};
+type ArchiveType = TimelineSourceType;
 
 const archiveTypes: Array<{ value: ArchiveType; label: string }> = [
   { value: "all", label: "All" },
   { value: "posts", label: "Posts" },
   { value: "updates", label: "Updates" },
 ];
-const UPDATES_PER_PAGE = 10;
-
 export default async function TimelinePage({ searchParams }: TimelinePageProps) {
   const { type } = await searchParams;
   const archiveType = normalizeArchiveType(type);
@@ -165,72 +150,13 @@ function normalizeArchiveType(value?: string): ArchiveType {
   return "all";
 }
 
-function getTimelineItems(
-  type: ArchiveType,
-  posts: Awaited<ReturnType<typeof listPublicPosts>>,
-  updates: Awaited<ReturnType<typeof listPublicUpdates>>,
-): ArchiveItem[] {
-  const postItems: ArchiveItem[] = posts.map((post) => ({
-    id: post.id,
-    href: getPostPath({ slug: post.slug, categorySlug: post.category?.slug }),
-    title: post.title,
-    publishedAt: post.publishedAt,
-    categoryLabel: post.category?.name ?? "Uncategorized",
-    kindLabel: "Posts",
-    meta: post.authorName ?? undefined,
-    summary: post.summary ?? getContentPreview(post.contentHtml, post.content),
-    searchText: [
-      post.title,
-      post.summary ?? "",
-      post.category?.name ?? "",
-      post.authorName ?? "",
-      ...post.tags.map((tag) => tag.name),
-      getContentText(post.contentHtml, post.content),
-    ].join(" "),
-  }));
-
-  const updateItems: ArchiveItem[] = updates.map((update, index) => ({
-    id: update.id,
-    href: getUpdateAnchorPath({
-      updateId: update.id,
-      page: Math.floor(index / UPDATES_PER_PAGE) + 1,
-    }),
-    title: update.title,
-    publishedAt: update.publishedAt,
-    categoryLabel: "动态",
-    kindLabel: "Updates",
-    meta: update.authorName ?? undefined,
-    authorName: update.authorName,
-    summary: getContentPreview(update.contentHtml, update.content),
-    searchText: [
-      update.title,
-      "Updates",
-      update.authorName ?? "",
-      getContentText(update.contentHtml, update.content),
-    ].join(" "),
-  }));
-
-  const items =
-    type === "posts"
-      ? postItems
-      : type === "updates"
-        ? updateItems
-        : [...postItems, ...updateItems];
-
-  return items.sort((a, b) => {
-    const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
-    const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
-    return bTime - aTime;
-  });
-}
-
-function groupTimelineItemsByYearAndMonth(items: ArchiveItem[]): ArchiveYearGroup[] {
-  const yearGroups = new Map<string, Map<string, ArchiveItem[]>>();
+function groupTimelineItemsByYearAndMonth(items: TimelineItem[]): ArchiveYearGroup[] {
+  const yearGroups = new Map<string, Map<string, TimelineItem[]>>();
 
   for (const item of items) {
     const year = item.publishedAt ? String(new Date(item.publishedAt).getFullYear()) : "Unknown";
     const month = item.publishedAt ? formatTimelineMonth(item.publishedAt) : "未知";
-    const currentYear = yearGroups.get(year) ?? new Map<string, ArchiveItem[]>();
+    const currentYear = yearGroups.get(year) ?? new Map<string, TimelineItem[]>();
     const currentMonthItems = currentYear.get(month) ?? [];
 
     currentMonthItems.push(item);

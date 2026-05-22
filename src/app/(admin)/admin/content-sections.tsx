@@ -40,7 +40,7 @@ import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pa
 import { listTags } from "@/server/repositories/tags";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 
-export type AdminSortField = "created" | "updated" | "category";
+export type AdminSortField = "created" | "published" | "updated" | "category";
 export type AdminSortDirection = "asc" | "desc";
 export type AdminSortValue = `${AdminSortField}-${AdminSortDirection}`;
 
@@ -48,6 +48,8 @@ export function getAdminSortValue(value?: string) {
   if (
     value === "created-asc" ||
     value === "created-desc" ||
+    value === "published-asc" ||
+    value === "published-desc" ||
     value === "updated-asc" ||
     value === "updated-desc" ||
     value === "category-asc" ||
@@ -79,8 +81,18 @@ export function sortAdminPosts(
       return direction === "asc" ? compared : -compared;
     }
 
-    const leftValue = field === "created" ? left.createdAt : left.updatedAt;
-    const rightValue = field === "created" ? right.createdAt : right.updatedAt;
+    const leftValue =
+      field === "created"
+        ? left.createdAt
+        : field === "published"
+          ? left.publishedAt
+          : left.updatedAt;
+    const rightValue =
+      field === "created"
+        ? right.createdAt
+        : field === "published"
+          ? right.publishedAt
+          : right.updatedAt;
 
     return direction === "asc"
       ? compareDates(leftValue, rightValue)
@@ -98,8 +110,9 @@ export function sortAdminUpdates(
   const { field, direction } = getAdminSortMeta(sort);
 
   nextItems.sort((left, right) => {
-    const leftValue = field === "created" ? left.createdAt : left.updatedAt;
-    const rightValue = field === "created" ? right.createdAt : right.updatedAt;
+    const resolvedField = field === "published" ? "updated" : field;
+    const leftValue = resolvedField === "created" ? left.createdAt : left.updatedAt;
+    const rightValue = resolvedField === "created" ? right.createdAt : right.updatedAt;
 
     return direction === "asc"
       ? compareDates(leftValue, rightValue)
@@ -141,7 +154,7 @@ export function sortAdminStandalonePages(
 ) {
   const nextItems = [...items];
   const { field, direction } = getAdminSortMeta(sort);
-  const resolvedField = field === "category" ? "updated" : field;
+  const resolvedField = field === "category" || field === "published" ? "updated" : field;
 
   nextItems.sort((left, right) => {
     const leftValue = resolvedField === "created" ? left.createdAt : left.updatedAt;
@@ -409,7 +422,7 @@ function AdminPostsTable({
           { key: "words", label: "字数", className: "4.1rem", align: "right", icon: AlignLeft },
           { key: "comments", label: "评论", className: "4.75rem", align: "right", icon: MessageSquare },
           { key: "likes", label: "点赞", className: "4.75rem", align: "right", icon: Heart },
-          { key: "created", label: "创建于", className: "6.5rem", sortable: "created", icon: CalendarDays, align: "right" },
+          { key: "published", label: "发布于", className: "6.5rem", sortable: "published", icon: CalendarDays, align: "right" },
           { key: "updated", label: "修改于", className: "6.5rem", sortable: "updated", icon: Clock3, align: "right" },
           { key: "status", label: "状态", className: "5.75rem" },
           { key: "actions", label: "操作", className: "4.5rem" },
@@ -480,7 +493,7 @@ function AdminPostsTable({
             <TableMetric value={formatAdminNumber(getTableWordCount(item.contentHtml, item.content))} />
             <TableMetric value={formatAdminNumber(item.commentCount)} />
             <TableMetric value={formatAdminNumber(item.likeCount)} />
-            <TableDate value={item.createdAt} />
+            <TableDate value={item.publishedAt} emptyText="未发布" />
             <TableDate value={item.updatedAt} />
             <div>
               <TableStatus status={item.status} />
@@ -895,7 +908,7 @@ function AdminPostMobileRow({
           {formatAdminNumber(item.likeCount)}
         </span>
         <span className="min-w-0 truncate whitespace-nowrap">
-          {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+          {formatRelativeAdminTime(item.publishedAt, "未发布")}
         </span>
         <div className="shrink-0">
           <TableStatus status={item.status} />
@@ -1004,10 +1017,10 @@ function TableMetric({ value }: { value: string }) {
   return <div className="text-right text-sm text-zinc-700 dark:text-zinc-200">{value}</div>;
 }
 
-function TableDate({ value }: { value: string | null }) {
+function TableDate({ value, emptyText = "—" }: { value: string | null; emptyText?: string }) {
   return (
     <div className="w-full text-right text-sm text-zinc-500 dark:text-zinc-400">
-      {formatRelativeAdminTime(value)}
+      {formatRelativeAdminTime(value, emptyText)}
     </div>
   );
 }
@@ -1061,9 +1074,9 @@ function getAdminSortMeta(sort: AdminSortValue) {
   };
 }
 
-function formatRelativeAdminTime(value: string | null) {
+function formatRelativeAdminTime(value: string | null, emptyText = "—") {
   if (!value) {
-    return "—";
+    return emptyText;
   }
 
   const date = new Date(value);

@@ -1,11 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { AccountLinkButton } from "@/app/(admin)/admin/settings/users/account-link-button";
 import {
   saveOwnerSettingsAction,
-  type SaveOwnerSettingsState,
   unlinkOwnerProviderAction,
 } from "@/app/(admin)/admin/settings/users/actions";
 import { getProviderLabel } from "@/lib/account-linking";
@@ -18,7 +18,7 @@ import {
 } from "@/lib/social-links";
 import { useToast } from "@/components/toast-provider";
 
-const initialSettingsState: SaveOwnerSettingsState = {
+const initialSettingsState = {
   error: null,
   success: null,
 };
@@ -50,22 +50,91 @@ export function OwnerSecurityForms({
   linkedGoogle: boolean;
   siteUrl: string;
 }) {
-  const [state, formAction] = useActionState(saveOwnerSettingsAction, initialSettingsState);
-  useToastFeedback(state);
+  const router = useRouter();
+  const { showToast } = useToast();
+  const profileDefaults = useMemo(
+    () => ({
+      username: defaultUsername,
+      name: defaultName,
+      image: defaultImage,
+    }),
+    [defaultImage, defaultName, defaultUsername],
+  );
+  const socialDefaultsKey = useMemo(
+    () =>
+      JSON.stringify(
+        defaultSocialLinks.map((link) => ({
+          platform: link.platform,
+          href: link.href,
+        })),
+      ),
+    [defaultSocialLinks],
+  );
+  const lastSyncedSocialDefaultsKeyRef = useRef(socialDefaultsKey);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [profile, setProfile] = useState(() => ({
+    username: defaultUsername,
+    name: defaultName,
+    image: defaultImage,
+  }));
+  const [socialRows, setSocialRows] = useState<SocialLinkRow[]>(() =>
+    buildInitialSocialLinkRows(defaultSocialLinks),
+  );
+
+  useEffect(() => {
+    setProfile(profileDefaults);
+  }, [profileDefaults]);
+
+  useEffect(() => {
+    if (lastSyncedSocialDefaultsKeyRef.current === socialDefaultsKey) {
+      return;
+    }
+
+    lastSyncedSocialDefaultsKeyRef.current = socialDefaultsKey;
+    setSocialRows(buildInitialSocialLinkRows(defaultSocialLinks));
+  }, [defaultSocialLinks, socialDefaultsKey]);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (isSubmitting) {
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const result = await saveOwnerSettingsAction(
+      initialSettingsState,
+      new FormData(event.currentTarget),
+    );
+
+    if (result.error) {
+      showToast(result.error, "error");
+      setIsSubmitting(false);
+      return;
+    }
+
+    if (result.success) {
+      showToast(result.success);
+      router.refresh();
+    }
+
+    setIsSubmitting(false);
+  }
 
   return (
     <div className="mt-8 grid gap-10">
       <form
         id={OWNER_SETTINGS_FORM_ID}
-        action={formAction}
+        onSubmit={handleSubmit}
         className="grid gap-10"
       >
         <OwnerProfileSection
-          defaultUsername={defaultUsername}
-          defaultName={defaultName}
-          defaultImage={defaultImage}
+          profile={profile}
+          onChange={setProfile}
+          disabled={isSubmitting}
         />
-        <OwnerSocialLinksSection defaultSocialLinks={defaultSocialLinks} />
+        <OwnerSocialLinksSection rows={socialRows} onChange={setSocialRows} disabled={isSubmitting} />
       </form>
       <OwnerBindingSection
         githubEnabled={githubEnabled}
@@ -79,13 +148,35 @@ export function OwnerSecurityForms({
 }
 
 function OwnerProfileSection({
-  defaultUsername,
-  defaultName,
-  defaultImage,
+  profile,
+  onChange,
+  disabled,
 }: {
-  defaultUsername: string;
-  defaultName: string;
-  defaultImage: string;
+  profile: {
+    username: string;
+    name: string;
+    image: string;
+  };
+  onChange: (
+    updater:
+      | {
+          username: string;
+          name: string;
+          image: string;
+        }
+      | ((
+          current: {
+            username: string;
+            name: string;
+            image: string;
+          },
+        ) => {
+          username: string;
+          name: string;
+          image: string;
+        }),
+  ) => void;
+  disabled: boolean;
 }) {
   return (
     <section className="grid gap-5 border-t border-zinc-200/80 pt-6 dark:border-zinc-800/80">
@@ -95,7 +186,14 @@ function OwnerProfileSection({
           <input
             name="name"
             type="text"
-            defaultValue={defaultName}
+            value={profile.name}
+            disabled={disabled}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                name: event.target.value,
+              }))
+            }
             className="h-12 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
             placeholder="输入公开显示名称"
           />
@@ -104,7 +202,14 @@ function OwnerProfileSection({
           <input
             name="username"
             type="text"
-            defaultValue={defaultUsername}
+            value={profile.username}
+            disabled={disabled}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                username: event.target.value,
+              }))
+            }
             className="h-12 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
             placeholder="输入登录用户名"
           />
@@ -116,7 +221,14 @@ function OwnerProfileSection({
           <input
             name="image"
             type="text"
-            defaultValue={defaultImage}
+            value={profile.image}
+            disabled={disabled}
+            onChange={(event) =>
+              onChange((current) => ({
+                ...current,
+                image: event.target.value,
+              }))
+            }
             className="h-12 w-full rounded-2xl border border-zinc-200/80 bg-white px-4 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
             placeholder="/avatar.png 或 https://example.com/avatar.png"
           />
@@ -127,16 +239,20 @@ function OwnerProfileSection({
 }
 
 function OwnerSocialLinksSection({
-  defaultSocialLinks,
+  rows,
+  onChange,
+  disabled,
 }: {
-  defaultSocialLinks: SocialLink[];
+  rows: SocialLinkRow[];
+  onChange: React.Dispatch<React.SetStateAction<SocialLinkRow[]>>;
+  disabled: boolean;
 }) {
-  const [rows, setRows] = useState<SocialLinkRow[]>(() =>
-    buildInitialSocialLinkRows(defaultSocialLinks),
-  );
-
   function handleAddRow() {
-    setRows((current) => [
+    if (disabled) {
+      return;
+    }
+
+    onChange((current) => [
       ...current,
       {
         id: createSocialLinkRowId(),
@@ -153,6 +269,7 @@ function OwnerSocialLinksSection({
         <button
           type="button"
           onClick={handleAddRow}
+          disabled={disabled}
           className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-zinc-500 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
         >
           <Plus className="h-4 w-4" aria-hidden="true" />
@@ -164,13 +281,14 @@ function OwnerSocialLinksSection({
           <SocialLinkRowEditor
             key={row.id}
             row={row}
+            disabled={disabled}
             onChange={(nextRow) => {
-              setRows((current) =>
+              onChange((current) =>
                 current.map((item) => (item.id === nextRow.id ? nextRow : item)),
               );
             }}
             onRemove={() => {
-              setRows((current) => current.filter((item) => item.id !== row.id));
+              onChange((current) => current.filter((item) => item.id !== row.id));
             }}
           />
         ))}
@@ -189,10 +307,12 @@ function SocialLinkRowEditor({
   row,
   onChange,
   onRemove,
+  disabled,
 }: {
   row: SocialLinkRow;
   onChange: (row: SocialLinkRow) => void;
   onRemove: () => void;
+  disabled: boolean;
 }) {
   return (
     <div className="grid gap-3 border-b border-zinc-200/70 pb-3 last:border-b-0 dark:border-zinc-800/70">
@@ -200,6 +320,7 @@ function SocialLinkRowEditor({
         <select
           name="socialLinkPlatform"
           value={row.platform}
+          disabled={disabled}
           onChange={(event) =>
             onChange({
               ...row,
@@ -218,6 +339,7 @@ function SocialLinkRowEditor({
           name="socialLinkUrl"
           type="text"
           value={row.href}
+          disabled={disabled}
           onChange={(event) =>
             onChange({
               ...row,
@@ -231,6 +353,7 @@ function SocialLinkRowEditor({
           <button
             type="button"
             onClick={onRemove}
+            disabled={disabled}
             className="text-zinc-400 transition hover:text-rose-600 dark:text-zinc-500 dark:hover:text-rose-400"
           >
             删除
@@ -385,25 +508,4 @@ function ProviderLinkRow({
       )}
     </div>
   );
-}
-
-function useToastFeedback(
-  state: { error: string | null; success: string | null },
-  options?: {
-    onSuccess?: () => void;
-  },
-) {
-  const { showToast } = useToast();
-
-  useEffect(() => {
-    if (state.error) {
-      showToast(state.error, "error");
-      return;
-    }
-
-    if (state.success) {
-      options?.onSuccess?.();
-      showToast(state.success);
-    }
-  }, [options, showToast, state.error, state.success]);
 }

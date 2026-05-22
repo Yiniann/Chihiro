@@ -34,6 +34,7 @@ const RESERVED_STANDALONE_PAGE_SLUGS = new Set([
 export type SaveStandalonePageEditorState = {
   error: string | null;
   redirectTo: string | null;
+  nonce: number;
 };
 
 export async function saveStandalonePageAction(
@@ -93,6 +94,7 @@ export async function saveStandalonePageAction(
       return {
         error: null,
         redirectTo: `/admin/pages/${encodeURIComponent(page.id)}`,
+        nonce: Date.now(),
       };
     }
   } catch (error) {
@@ -100,12 +102,14 @@ export async function saveStandalonePageAction(
       return {
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
+        nonce: Date.now(),
       };
     }
 
     return {
       error: error instanceof Error ? error.message : "保存独立页面时出错了。",
       redirectTo: null,
+        nonce: Date.now(),
     };
   }
 
@@ -116,6 +120,7 @@ export async function saveStandalonePageAction(
   return {
     error: null,
     redirectTo: null,
+    nonce: Date.now(),
   };
 }
 

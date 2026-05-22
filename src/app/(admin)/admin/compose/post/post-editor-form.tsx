@@ -29,6 +29,7 @@ import type { PostItem } from "@/server/repositories/posts";
 const initialState: SavePostEditorState = {
   error: null,
   redirectTo: null,
+  nonce: 0,
 };
 
 type PostEditorFormProps = {
@@ -88,7 +89,7 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
     if (state.error && wasDirtyBeforeSubmitRef.current) {
       queueMicrotask(() => setIsEditorDirty(true));
     }
-  }, [state.error]);
+  }, [state.error, state.nonce]);
 
   return (
     <>
@@ -145,8 +146,9 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
               </div>
             </div>
 
-            {isSettingsOpen ? (
-              <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5">
+            <div
+              className={`${isSettingsOpen ? "block" : "hidden"} border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5`}
+            >
                 <div className="grid gap-5">
                   <div className="grid gap-4 max-w-[14rem]">
                     <label className="grid min-w-0 gap-2">
@@ -246,7 +248,6 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
                   </fieldset>
                 </div>
               </div>
-            ) : null}
           </div>
         }
         stateError={state.error}
@@ -516,6 +517,7 @@ function InlineCreateCategoryDialog({
     error: null,
     redirectTo: null,
     createdCategory: null,
+    nonce: 0,
   });
 
   useEffect(() => {
@@ -645,6 +647,7 @@ function InlineCreateTagDialog({
     error: null,
     redirectTo: null,
     createdTag: null,
+    nonce: 0,
   });
 
   useEffect(() => {

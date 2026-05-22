@@ -17,6 +17,7 @@ const initialState: SaveTagEditorState = {
   error: null,
   redirectTo: null,
   createdTag: null,
+  nonce: 0,
 };
 
 type TagEditorFormProps = {

@@ -29,6 +29,7 @@ import type { StandalonePageItem } from "@/server/repositories/standalone-pages"
 const initialState: SaveStandalonePageEditorState = {
   error: null,
   redirectTo: null,
+  nonce: 0,
 };
 
 type StandalonePageEditorFormProps = {
@@ -75,7 +76,7 @@ export function StandalonePageEditorForm({
     if (state.error && wasDirtyBeforeSubmitRef.current) {
       queueMicrotask(() => setIsEditorDirty(true));
     }
-  }, [state.error]);
+  }, [state.error, state.nonce]);
 
   return (
     <>

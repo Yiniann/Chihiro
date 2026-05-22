@@ -15,6 +15,7 @@ const initialState: SaveCategoryEditorState = {
   error: null,
   redirectTo: null,
   createdCategory: null,
+  nonce: 0,
 };
 
 type CategoryEditorFormProps = {

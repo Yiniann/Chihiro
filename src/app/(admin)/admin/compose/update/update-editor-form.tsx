@@ -25,6 +25,7 @@ import type { UpdateItem } from "@/server/repositories/updates";
 const initialState: SaveUpdateEditorState = {
   error: null,
   redirectTo: null,
+  nonce: 0,
 };
 
 type UpdateEditorFormProps = {
@@ -66,7 +67,7 @@ export function UpdateEditorForm({ update, authorName }: UpdateEditorFormProps) 
     if (state.error && wasDirtyBeforeSubmitRef.current) {
       queueMicrotask(() => setIsEditorDirty(true));
     }
-  }, [state.error]);
+  }, [state.error, state.nonce]);
 
   return (
     <>

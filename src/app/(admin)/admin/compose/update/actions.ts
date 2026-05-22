@@ -17,6 +17,7 @@ import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositori
 export type SaveUpdateEditorState = {
   error: string | null;
   redirectTo: string | null;
+  nonce: number;
 };
 
 export async function saveUpdateAction(
@@ -58,6 +59,7 @@ export async function saveUpdateAction(
       return {
         error: null,
         redirectTo: `/admin/updates/${encodeURIComponent(update.id)}`,
+        nonce: Date.now(),
       };
     }
   } catch (error) {
@@ -65,12 +67,14 @@ export async function saveUpdateAction(
       return {
         error: "保存动态时遇到了重复值，请稍后再试。",
         redirectTo: null,
+        nonce: Date.now(),
       };
     }
 
     return {
       error: error instanceof Error ? error.message : "保存动态时出错了。",
       redirectTo: null,
+      nonce: Date.now(),
     };
   }
 
@@ -81,6 +85,7 @@ export async function saveUpdateAction(
   return {
     error: null,
     redirectTo: null,
+    nonce: Date.now(),
   };
 }
 

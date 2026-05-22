@@ -11,6 +11,7 @@ import {
 export type SaveImageHostingSettingsState = {
   error: string | null;
   success: string | null;
+  nonce: number;
 };
 
 export async function saveImageHostingSettingsAction(
@@ -21,6 +22,7 @@ export async function saveImageHostingSettingsAction(
     return {
       error: "只有 Owner 才能修改设置。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -60,6 +62,7 @@ export async function saveImageHostingSettingsAction(
     return {
       error: error instanceof Error ? error.message : "保存图床设置时出错了。",
       success: null,
+      nonce: Date.now(),
     };
   }
 
@@ -69,6 +72,7 @@ export async function saveImageHostingSettingsAction(
   return {
     error: null,
     success: "图床设置已更新。",
+    nonce: Date.now(),
   };
 }
 

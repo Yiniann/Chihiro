@@ -16,6 +16,7 @@ export type SaveTagEditorState = {
   error: string | null;
   redirectTo: string | null;
   createdTag: TagItem | null;
+  nonce: number;
 };
 
 export async function createTagAction(
@@ -40,6 +41,7 @@ export async function createTagAction(
         error: null,
         redirectTo: null,
         createdTag: tag,
+        nonce: Date.now(),
       };
     }
   } catch (error) {
@@ -48,6 +50,7 @@ export async function createTagAction(
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
         createdTag: null,
+        nonce: Date.now(),
       };
     }
 
@@ -55,6 +58,7 @@ export async function createTagAction(
       error: error instanceof Error ? error.message : "创建标签时出错了。",
       redirectTo: null,
       createdTag: null,
+      nonce: Date.now(),
     };
   }
 
@@ -62,6 +66,7 @@ export async function createTagAction(
     error: null,
     redirectTo: "/admin/categories?tab=tags",
     createdTag: null,
+    nonce: Date.now(),
   };
 }
 
@@ -81,6 +86,7 @@ export async function saveTagAction(
         error: "标签不存在。",
         redirectTo: null,
         createdTag: null,
+        nonce: Date.now(),
       };
     }
 
@@ -98,6 +104,7 @@ export async function saveTagAction(
         error: "这个 slug 已经被占用了，请换一个。",
         redirectTo: null,
         createdTag: null,
+        nonce: Date.now(),
       };
     }
 
@@ -105,6 +112,7 @@ export async function saveTagAction(
       error: error instanceof Error ? error.message : "保存标签时出错了。",
       redirectTo: null,
       createdTag: null,
+      nonce: Date.now(),
     };
   }
 
@@ -112,6 +120,7 @@ export async function saveTagAction(
     error: null,
     redirectTo: "/admin/categories?tab=tags",
     createdTag: null,
+    nonce: Date.now(),
   };
 }
 
