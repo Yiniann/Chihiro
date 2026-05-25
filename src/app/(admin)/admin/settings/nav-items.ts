@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Image, LogIn, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
+import { Image, LogIn, Mail, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
 
 export type SettingsNavItem = {
   href: string;
@@ -26,6 +26,12 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     label: "图床设置",
     description: "对象存储与图片上传",
     icon: Image,
+  },
+  {
+    href: "/admin/settings/email",
+    label: "邮件设置",
+    description: "SMTP 发信与发件人配置",
+    icon: Mail,
   },
   {
     href: "/admin/settings/login",

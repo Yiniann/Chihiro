@@ -13,7 +13,7 @@ export function SettingsShell({ children }: { children: ReactNode }) {
       <aside className="lg:sticky lg:top-8 lg:self-start lg:border-r lg:border-dashed lg:border-zinc-200/80 lg:pr-4 dark:lg:border-white/8">
         <nav
           aria-label="设置导航"
-          className="grid grid-cols-4 gap-1 pb-2 lg:grid-cols-1 lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
+          className="grid grid-cols-2 gap-1 pb-2 sm:grid-cols-3 lg:grid-cols-1 lg:gap-1 lg:overflow-visible lg:pb-0 lg:pl-3"
         >
           {SETTINGS_NAV_ITEMS.map((item) => {
             const isActive =

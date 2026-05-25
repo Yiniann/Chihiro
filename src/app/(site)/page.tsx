@@ -3,6 +3,7 @@ import { HomeTimelineRail } from "@/components/home-timeline-rail";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { HeroIntro } from "@/components/hero-intro";
 import { RelativeDate } from "@/components/relative-date";
+import { ScrollToSectionLink } from "@/components/scroll-to-section-link";
 import { SocialIconLinks } from "@/components/social-icon-links";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
 import { ChevronDown } from "lucide-react";
@@ -96,14 +97,17 @@ export default async function HomePage() {
             ) : null}
           </StaggerRevealItem>
 
-          <StaggerRevealItem offset={14}>
-            <Link
-              href="#home-feed"
-              aria-label="Scroll to home feed"
-              className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 items-center justify-center p-2 text-primary transition hover:opacity-80 lg:inline-flex"
+          <StaggerRevealItem
+            offset={14}
+            className="pointer-events-none absolute inset-x-0 bottom-6 hidden justify-center lg:flex"
+          >
+            <ScrollToSectionLink
+              targetId="home-feed"
+              ariaLabel="Scroll to home feed"
+              className="pointer-events-auto inline-flex items-center justify-center p-2 text-primary transition hover:opacity-80"
             >
               <ChevronDown className="h-6 w-6" strokeWidth={2.2} />
-            </Link>
+            </ScrollToSectionLink>
           </StaggerRevealItem>
         </section>
 

@@ -268,6 +268,20 @@ model ObjectStorageSettings {
   updatedAt       DateTime      @updatedAt
 }
 
+model EmailSettings {
+  id                   String   @id @default("default")
+  smtpHost             String
+  smtpPort             Int
+  smtpSecure           Boolean  @default(false)
+  smtpUser             String
+  smtpPass             String
+  smtpFromEmail        String
+  smtpFromName         String?
+  subscriptionReplyTo  String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
 model Category {
   id          Int          @id @default(autoincrement())
   kind        CategoryKind
