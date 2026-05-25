@@ -28,6 +28,10 @@ import {
   type StandalonePageItem,
   type StandalonePageNavigationItem,
 } from "@/server/repositories/standalone-pages";
+import {
+  getPublicInteractionSettings as getRepositoryPublicInteractionSettings,
+  type PublicInteractionSettingsRecord,
+} from "@/server/repositories/public-interactions";
 import { StandalonePageNavGroup } from "@prisma/client";
 
 export class PublicSiteUnavailableError extends Error {
@@ -182,6 +186,24 @@ export async function listPublicUpdates(): Promise<UpdateItem[]> {
 
   try {
     return await listAllPublishedUpdates();
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function getPublicInteractionSettingsForSite(): Promise<PublicInteractionSettingsRecord> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await getRepositoryPublicInteractionSettings();
   } catch (error) {
     if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
       throw new PublicSiteUnavailableError();

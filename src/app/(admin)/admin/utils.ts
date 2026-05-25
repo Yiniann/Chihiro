@@ -11,6 +11,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/admin/pages", label: "独立页面" },
   { href: "/admin/categories", label: "分类标签" },
   { href: "/admin/readers", label: "读者" },
+  { href: "/admin/subscribers", label: "订阅者" },
   { href: "/admin/comments", label: "评论" },
   { href: "/admin/media", label: "媒体库" },
   { href: "/admin/trash", label: "回收站" },

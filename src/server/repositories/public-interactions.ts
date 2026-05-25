@@ -3,6 +3,7 @@ import { randomBytes } from "node:crypto";
 
 export type PublicInteractionSettingsRecord = {
   commentsEnabled: boolean;
+  subscriptionsEnabled: boolean;
   loginRequiredToComment: boolean;
   commentModeration: boolean;
   githubLoginEnabled: boolean;
@@ -25,6 +26,7 @@ export type PublicInteractionSettingsInput = Omit<
 
 export const defaultPublicInteractionSettings: PublicInteractionSettingsRecord = {
   commentsEnabled: false,
+  subscriptionsEnabled: true,
   loginRequiredToComment: true,
   commentModeration: true,
   githubLoginEnabled: true,
@@ -49,6 +51,7 @@ export async function getPublicInteractionSettings(): Promise<PublicInteractionS
 
   return {
     commentsEnabled: settings.commentsEnabled,
+    subscriptionsEnabled: settings.subscriptionsEnabled,
     loginRequiredToComment: settings.loginRequiredToComment,
     commentModeration: settings.commentModeration,
     githubLoginEnabled: settings.githubLoginEnabled,
@@ -88,6 +91,7 @@ export async function upsertPublicInteractionSettings(
 
   return {
     commentsEnabled: settings.commentsEnabled,
+    subscriptionsEnabled: settings.subscriptionsEnabled,
     loginRequiredToComment: settings.loginRequiredToComment,
     commentModeration: settings.commentModeration,
     githubLoginEnabled: settings.githubLoginEnabled,
@@ -107,6 +111,7 @@ export async function getPublicAuthConfig() {
     },
     select: {
       authSecret: true,
+      subscriptionsEnabled: true,
       githubLoginEnabled: true,
       githubClientId: true,
       githubClientSecret: true,
@@ -127,12 +132,14 @@ export async function getPublicAuthConfig() {
       create: {
         id: "default",
         authSecret,
+        subscriptionsEnabled: defaultPublicInteractionSettings.subscriptionsEnabled,
       },
       update: {
         authSecret,
       },
       select: {
         authSecret: true,
+        subscriptionsEnabled: true,
         githubLoginEnabled: true,
         githubClientId: true,
         githubClientSecret: true,

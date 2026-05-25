@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Image, LogIn, Mail, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
+import { Bell, Image, LogIn, Mail, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
 
 export type SettingsNavItem = {
   href: string;
@@ -32,6 +32,12 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     label: "邮件设置",
     description: "SMTP 发信与发件人配置",
     icon: Mail,
+  },
+  {
+    href: "/admin/settings/subscriptions",
+    label: "订阅设置",
+    description: "邮件订阅入口与开关",
+    icon: Bell,
   },
   {
     href: "/admin/settings/login",

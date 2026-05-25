@@ -2,11 +2,14 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { Bell, Gift, Heart, MessageCircle, Share2 } from "lucide-react";
+import { SubscribeDialogTrigger } from "@/components/subscription-form";
 
 type PostSidebarActionsProps = {
   postId: number;
   title: string;
   initialLikeCount: number;
+  siteName: string;
+  subscriptionsEnabled: boolean;
 };
 
 type LikeState = {
@@ -18,6 +21,8 @@ export function PostSidebarActions({
   postId,
   title,
   initialLikeCount,
+  siteName,
+  subscriptionsEnabled,
 }: PostSidebarActionsProps) {
   const [likeState, setLikeState] = useState<LikeState>({
     likeCount: initialLikeCount,
@@ -154,16 +159,19 @@ export function PostSidebarActions({
           <ActionTooltip>分享文章</ActionTooltip>
         </div>
         <div className="group relative flex w-fit items-center">
-          <button
-            type="button"
-            disabled
-            title="订阅"
-            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-zinc-700"
+          <SubscribeDialogTrigger
+            siteName={siteName}
+            disabled={!subscriptionsEnabled}
+            className={
+              subscriptionsEnabled
+                ? "inline-flex size-9 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-zinc-400"
+                : "inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-zinc-700"
+            }
           >
             <Bell className="size-4" aria-hidden="true" />
             <span className="sr-only">订阅</span>
-          </button>
-          <ActionTooltip>订阅</ActionTooltip>
+          </SubscribeDialogTrigger>
+          <ActionTooltip>{subscriptionsEnabled ? "订阅" : "订阅未开启"}</ActionTooltip>
         </div>
         <div className="group relative flex w-fit items-center">
           <button

@@ -48,11 +48,9 @@ export function LoginSettingsForm({
   const authSecretReady = defaults.hasAuthSecret || authStatus.authSecret;
   const githubClientIdReady = Boolean(defaults.githubClientId) || authStatus.githubId;
   const githubClientSecretReady = defaults.hasGithubClientSecret || authStatus.githubSecret;
-  const githubReady = authSecretReady && githubClientIdReady && githubClientSecretReady;
   const googleClientIdReady = Boolean(defaults.googleClientId) || authStatus.googleId;
   const googleClientSecretReady =
     defaults.hasGoogleClientSecret || authStatus.googleSecret;
-  const googleReady = authSecretReady && googleClientIdReady && googleClientSecretReady;
 
   async function updateLoginToggles(nextState: {
     github: boolean;
@@ -460,7 +458,7 @@ function AuthSecretField({
   );
 }
 
-function SwitchField({
+export function SwitchField({
   title,
   description,
   defaultChecked,

@@ -45,6 +45,7 @@ export async function saveLoginSettingsAction(
 
     await upsertPublicInteractionSettings({
       commentsEnabled: currentSettings.commentsEnabled,
+      subscriptionsEnabled: currentSettings.subscriptionsEnabled,
       loginRequiredToComment: currentSettings.loginRequiredToComment,
       commentModeration: currentSettings.commentModeration,
       githubLoginEnabled,
@@ -110,6 +111,7 @@ export async function saveCommentSettingsAction(
 
     await upsertPublicInteractionSettings({
       commentsEnabled,
+      subscriptionsEnabled: currentSettings.subscriptionsEnabled,
       loginRequiredToComment,
       commentModeration,
       githubLoginEnabled: currentSettings.githubLoginEnabled,

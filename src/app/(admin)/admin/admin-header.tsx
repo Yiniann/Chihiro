@@ -13,6 +13,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Settings2,
+  Mail,
   Tags,
   Trash2,
   Users,
@@ -44,6 +45,9 @@ const adminNavMeta: Record<
   },
   "/admin/readers": {
     icon: Users,
+  },
+  "/admin/subscribers": {
+    icon: Mail,
   },
   "/admin/pages": {
     icon: FileText,

@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { FooterSubscribeLink } from "@/components/subscription-form";
 
-const footerFeedLinks = [
+const footerFeedLinks: ReadonlyArray<{
+  href: string;
+  label: string;
+  openInNewTab: boolean;
+  isSubscriptionTrigger?: boolean;
+}> = [
   {
     href: "/rss.xml",
     label: "RSS",
@@ -12,9 +18,10 @@ const footerFeedLinks = [
     openInNewTab: true,
   },
   {
-    href: "/more",
+    href: "/subscribe",
     label: "Subscribe",
     openInNewTab: false,
+    isSubscriptionTrigger: true,
   },
 ] as const;
 
@@ -24,12 +31,14 @@ export function SiteFooter({
   motto,
   email,
   githubUrl,
+  subscriptionsEnabled,
 }: {
   siteName: string;
   authorName: string;
   motto: string;
   email: string | null;
   githubUrl: string | null;
+  subscriptionsEnabled: boolean;
 }) {
   const currentYear = new Date().getFullYear();
   const mottoLines = getFooterMottoLines(motto);
@@ -91,6 +100,10 @@ export function SiteFooter({
               </p>
               <div className="mt-4 grid gap-3">
                 {footerFeedLinks.map((item) => {
+                  if (item.isSubscriptionTrigger && !subscriptionsEnabled) {
+                    return null;
+                  }
+
                   const className =
                     "group inline-flex w-fit items-center gap-3 text-sm text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100";
                   const content = (
@@ -101,6 +114,18 @@ export function SiteFooter({
                       </span>
                     </>
                   );
+
+                  if (item.isSubscriptionTrigger) {
+                    return (
+                      <FooterSubscribeLink
+                        key={item.label}
+                        className={className}
+                        siteName={siteName}
+                      >
+                        {content}
+                      </FooterSubscribeLink>
+                    );
+                  }
 
                   if (item.openInNewTab) {
                     return (

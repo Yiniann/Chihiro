@@ -13,12 +13,15 @@ import {
   normalizeHtmlForHydration,
 } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
+import { siteConfig } from "@/lib/site";
 import { RelativeDate } from "@/components/relative-date";
 import {
+  getPublicInteractionSettingsForSite,
   getPublicPostByCategoryAndSlug,
   getPublicPostBySlug,
   getPublicPostRouteParams,
   getPublicPostSlugs,
+  getPublicSiteSettings,
   isPublicSiteUnavailableError,
   isUninstalledSiteError,
 } from "@/server/public-content";
@@ -152,6 +155,10 @@ export default async function PostPage({ params }: PostPageProps) {
     const postContentHtml = normalizeHtmlForHydration(contentWithToc?.html ?? highlightedContentHtml ?? "");
     const tocItems = contentWithToc?.items ?? [];
     const postPath = getPostPath({ slug: post.slug, categorySlug: post.category?.slug });
+    const [interactionSettings, siteSettings] = await Promise.all([
+      getPublicInteractionSettingsForSite(),
+      getPublicSiteSettings(),
+    ]);
 
     return (
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
@@ -228,6 +235,8 @@ export default async function PostPage({ params }: PostPageProps) {
               postId={post.id}
               title={post.title}
               initialLikeCount={post.likeCount}
+              siteName={siteSettings.siteName ?? siteConfig.name}
+              subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
             />
           </PostTableOfContents>
         </div>

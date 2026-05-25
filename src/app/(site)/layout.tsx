@@ -9,6 +9,7 @@ import { getInstallationState, isInstallationComplete } from "@/server/installat
 import { auth } from "@/server/public-auth";
 import {
   getPublicAdminState,
+  getPublicInteractionSettingsForSite,
   listPublicHeaderPostCategories,
   listPublicRecentArchiveItems,
   listPublicRecentUpdateItems,
@@ -16,7 +17,6 @@ import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
 } from "@/server/public-content";
-import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export const dynamic = "force-dynamic";
@@ -65,7 +65,7 @@ export default async function SiteLayout({
         getPublicSiteSettings(),
         getPublicAdminState(),
         auth(),
-        getPublicInteractionSettings(),
+        getPublicInteractionSettingsForSite(),
         getOwnerDisplayProfile(),
       ]);
   } catch (error) {
@@ -128,6 +128,7 @@ export default async function SiteLayout({
         motto={siteMotto}
         email={siteEmail}
         githubUrl={siteGithubUrl}
+        subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
       />
     </div>
   );

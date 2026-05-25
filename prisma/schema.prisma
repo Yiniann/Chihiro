@@ -41,6 +41,12 @@ enum UserRole {
   OWNER
 }
 
+enum SubscriberStatus {
+  PENDING
+  ACTIVE
+  UNSUBSCRIBED
+}
+
 enum StandalonePageNavGroup {
   HOME
   MORE
@@ -183,6 +189,7 @@ model VerificationToken {
 model PublicInteractionSettings {
   id                     String   @id @default("default")
   commentsEnabled        Boolean  @default(false)
+  subscriptionsEnabled   Boolean  @default(true)
   loginRequiredToComment Boolean  @default(true)
   commentModeration      Boolean  @default(true)
   githubLoginEnabled     Boolean  @default(true)
@@ -280,6 +287,24 @@ model EmailSettings {
   subscriptionReplyTo  String?
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
+}
+
+model Subscriber {
+  id                String           @id @default(cuid())
+  email             String           @unique
+  status            SubscriberStatus @default(PENDING)
+  confirmToken      String           @unique
+  unsubscribeToken  String           @unique
+  subscribedToPosts Boolean          @default(true)
+  subscribedToUpdates Boolean        @default(true)
+  confirmedAt       DateTime?
+  unsubscribedAt    DateTime?
+  lastEmailSentAt   DateTime?
+  source            String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([status, createdAt])
 }
 
 model Category {
