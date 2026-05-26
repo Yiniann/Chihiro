@@ -632,6 +632,9 @@ export function SimpleEditor({
       StarterKit.configure({
         codeBlock: false,
         horizontalRule: false,
+        heading: {
+          levels: [1, 2, 3, 4],
+        },
         link: {
           openOnClick: false,
           enableClickSelection: true,
