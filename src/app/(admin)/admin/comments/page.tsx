@@ -54,7 +54,7 @@ export default async function AdminCommentsPage({
 
           <LiveSearchInput
             defaultValue={query}
-            placeholder="搜索评论、作者、邮箱或文章"
+            placeholder="搜索评论、作者、邮箱或内容"
           />
         </div>
 
@@ -192,11 +192,13 @@ function CommentRow({ comment }: { comment: AdminCommentItem }) {
 
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Link
-            href={comment.post.href}
+            href={comment.target.href}
             target="_blank"
             className="inline-flex items-center gap-2 border-b border-transparent py-1 text-sm text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:text-zinc-100"
           >
-            <span className="max-w-[22rem] truncate">{comment.post.title}</span>
+            <span className="max-w-[22rem] truncate">
+              {comment.target.type === "post" ? "文章" : "页面"} · {comment.target.title}
+            </span>
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
@@ -289,7 +291,7 @@ function filterComments(comments: AdminCommentItem[], query: string) {
       comment.body,
       comment.author.name,
       comment.author.email ?? "",
-      comment.post.title,
+      comment.target.title,
       comment.parent?.authorName ?? "",
       comment.parent?.body ?? "",
     ]

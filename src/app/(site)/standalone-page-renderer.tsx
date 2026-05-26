@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PostComments } from "@/components/post-comments";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
 import { getRenderedContentHtml, normalizeHtmlForHydration } from "@/lib/content";
@@ -83,6 +84,12 @@ export async function StandalonePageRenderer({ slug }: { slug: string }) {
           <p>暂无内容。</p>
         </div>
       )}
+      <PostComments
+        targetType="standalone-page"
+        targetId={page.id}
+        pathname={`/${page.slug}`}
+        commentsEnabled={page.commentsEnabled}
+      />
     </main>
   );
 }

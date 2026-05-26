@@ -3,25 +3,27 @@ import { PostCommentList } from "@/components/post-comment-list";
 import { PostCommentForm } from "@/components/post-comment-form";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { auth } from "@/server/public-auth";
-import { listApprovedCommentsForPost } from "@/server/repositories/comments";
+import { listApprovedCommentsForTarget, type CommentTargetType } from "@/server/repositories/comments";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getOwnerDisplayProfile } from "@/server/repositories/users";
 import { getSiteSettings } from "@/server/repositories/site";
 
 type PostCommentsProps = {
-  postId: number;
+  targetType: CommentTargetType;
+  targetId: number;
   pathname: string;
+  commentsEnabled: boolean;
 };
 
-export async function PostComments({ postId, pathname }: PostCommentsProps) {
+export async function PostComments({ targetType, targetId, pathname, commentsEnabled }: PostCommentsProps) {
   const settings = await getPublicInteractionSettings();
 
-  if (!settings.commentsEnabled) {
+  if (!settings.commentsEnabled || !commentsEnabled) {
     return null;
   }
 
   const [comments, session, siteSettings, ownerProfile] = await Promise.all([
-    listApprovedCommentsForPost(postId),
+    listApprovedCommentsForTarget({ type: targetType, id: targetId }),
     auth(),
     getSiteSettings(),
     getOwnerDisplayProfile(),
@@ -40,7 +42,8 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
       <div>
         {canComment ? (
           <PostCommentForm
-            postId={postId}
+            targetType={targetType}
+            targetId={targetId}
             pathname={pathname}
             formId="post-comment-form"
             showGuestFields={!user && !settings.loginRequiredToComment}
@@ -68,7 +71,8 @@ export async function PostComments({ postId, pathname }: PostCommentsProps) {
       <PostCommentList
         comments={comments}
         canComment={canComment}
-        postId={postId}
+        targetType={targetType}
+        targetId={targetId}
         pathname={pathname}
         showGuestFields={!user && !settings.loginRequiredToComment}
         user={user}

@@ -2,12 +2,13 @@
 
 import EmojiPicker, { Theme, type EmojiClickData } from "emoji-picker-react";
 import { Send, Smile } from "lucide-react";
-import { useActionState, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useActionState, useRef, useState, type CSSProperties } from "react";
 import { useFormStatus } from "react-dom";
 import {
   submitPostCommentAction,
   type SubmitCommentState,
 } from "@/app/(site)/posts/[...slug]/comment-actions";
+import type { CommentTargetType } from "@/server/repositories/comments";
 import {
   Popover,
   PopoverContent,
@@ -376,7 +377,8 @@ function getStableKaomojiTriggerLabel(seed: string) {
 }
 
 type PostCommentFormProps = {
-  postId: number;
+  targetType: CommentTargetType;
+  targetId: number;
   parentId?: string | null;
   pathname: string;
   formId?: string;
@@ -393,7 +395,8 @@ type PostCommentFormProps = {
 };
 
 export function PostCommentForm({
-  postId,
+  targetType,
+  targetId,
   parentId = null,
   pathname,
   formId,
@@ -409,9 +412,8 @@ export function PostCommentForm({
   const isMobile = useIsBreakpoint();
   const [bodyLength, setBodyLength] = useState(0);
   const stableKaomojiTriggerLabel = getStableKaomojiTriggerLabel(
-    `${postId}:${parentId ?? "root"}:${pathname}:${compact ? "compact" : "default"}`,
+    `${targetType}:${targetId}:${parentId ?? "root"}:${pathname}:${compact ? "compact" : "default"}`,
   );
-  const [kaomojiTriggerLabel, setKaomojiTriggerLabel] = useState(stableKaomojiTriggerLabel);
   const { showToast } = useToast();
   const [, formAction] = useActionState(async (previousState: SubmitCommentState, formData: FormData) => {
     const nextState = await submitPostCommentAction(previousState, formData);
@@ -430,12 +432,6 @@ export function PostCommentForm({
 
     return nextState;
   }, initialState);
-
-  useEffect(() => {
-    setKaomojiTriggerLabel(
-      KAOMOJI_LIST[Math.floor(Math.random() * KAOMOJI_LIST.length)] ?? stableKaomojiTriggerLabel,
-    );
-  }, [stableKaomojiTriggerLabel]);
 
   function insertText(text: string) {
     const textarea = textareaRef.current;
@@ -461,7 +457,8 @@ export function PostCommentForm({
 
   return (
     <form id={formId} ref={formRef} action={formAction} className="grid gap-3">
-      <input type="hidden" name="postId" value={postId} />
+      <input type="hidden" name="targetType" value={targetType} />
+      <input type="hidden" name="targetId" value={targetId} />
       {parentId ? <input type="hidden" name="parentId" value={parentId} /> : null}
       <input type="hidden" name="pathname" value={pathname} />
       {showGuestFields ? (
@@ -521,7 +518,7 @@ export function PostCommentForm({
               <div className="flex items-center gap-3 text-xs text-primary/80 dark:text-primary/75">
                 <EmojiInsertPopover onSelect={insertText} />
                 <CommentInsertPopover
-                  label={kaomojiTriggerLabel}
+                  label={stableKaomojiTriggerLabel}
                   items={KAOMOJI_LIST}
                   onSelect={insertText}
                   itemClassName="text-xs"

@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { auth } from "@/server/public-auth";
-import { createCommentForPost } from "@/server/repositories/comments";
+import { createCommentForPost, type CommentTargetType } from "@/server/repositories/comments";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
+import { getPublicPostById } from "@/server/repositories/posts";
+import { getPublicStandalonePageById } from "@/server/repositories/standalone-pages";
 
 export type SubmitCommentState = {
   error: string | null;
@@ -35,7 +37,8 @@ export async function submitPostCommentAction(
     };
   }
 
-  let postId;
+  let targetId;
+  let targetType;
   let parentId;
   let body;
   let pathname;
@@ -43,7 +46,8 @@ export async function submitPostCommentAction(
   let authorEmail;
 
   try {
-    postId = getPostId(formData);
+    targetType = getTargetType(formData);
+    targetId = getTargetId(formData);
     parentId = getParentCommentId(formData);
     body = getCommentBody(formData);
     pathname = getOptionalString(formData, "pathname");
@@ -56,9 +60,21 @@ export async function submitPostCommentAction(
     };
   }
 
-  if (!postId) {
+  if (!targetId) {
     return {
-      error: "文章信息无效。",
+      error: "内容信息无效。",
+      success: null,
+    };
+  }
+
+  const target =
+    targetType === "post"
+      ? await getPublicPostById(targetId)
+      : await getPublicStandalonePageById(targetId);
+
+  if (!target || !target.commentsEnabled) {
+    return {
+      error: targetType === "post" ? "这篇文章暂未开放评论。" : "这个页面暂未开放评论。",
       success: null,
     };
   }
@@ -79,7 +95,8 @@ export async function submitPostCommentAction(
 
   try {
     const comment = await createCommentForPost({
-      postId,
+      targetType,
+      targetId,
       userId,
       parentId,
       authorName: userId ? null : authorName,
@@ -140,8 +157,14 @@ function getAuthorName(formData: FormData) {
   return value;
 }
 
-function getPostId(formData: FormData) {
-  const value = Number(formData.get("postId"));
+function getTargetType(formData: FormData) {
+  const value = getOptionalString(formData, "targetType");
+  const targetType: CommentTargetType = value === "standalone-page" ? "standalone-page" : "post";
+  return targetType;
+}
+
+function getTargetId(formData: FormData) {
+  const value = Number(formData.get("targetId"));
   return Number.isInteger(value) && value > 0 ? value : null;
 }
 

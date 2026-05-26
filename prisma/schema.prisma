@@ -62,6 +62,7 @@ model Post {
   contentHtml       String?
   authorName        String?
   publishedAt       DateTime?
+  commentsEnabled   Boolean       @default(true)
   publishedSnapshot Json?
   draftSnapshot     Json?
   createdAt         DateTime      @default(now())
@@ -125,7 +126,8 @@ model User {
 
 model PostComment {
   id            String        @id @default(cuid())
-  postId        Int
+  postId        Int?
+  standalonePageId Int?
   parentId      String?
   threadRootId  String?
   userId        String?
@@ -135,7 +137,8 @@ model PostComment {
   status        CommentStatus @default(PENDING)
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
-  post          Post          @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post          Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  standalonePage StandalonePage? @relation(fields: [standalonePageId], references: [id], onDelete: Cascade)
   parent        PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
   replies       PostComment[] @relation("CommentReplies")
   threadRoot    PostComment?  @relation("CommentThread", fields: [threadRootId], references: [id], onDelete: Cascade)
@@ -143,6 +146,7 @@ model PostComment {
   user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([postId, status, createdAt])
+  @@index([standalonePageId, status, createdAt])
   @@index([parentId])
   @@index([threadRootId])
   @@index([userId])
@@ -226,6 +230,7 @@ model StandalonePage {
   content        Json?
   contentHtml    String?
   publishedAt    DateTime?
+  commentsEnabled Boolean               @default(false)
   draftSnapshot  Json?
   showInNav      Boolean                @default(false)
   navLabel       String?
@@ -235,6 +240,7 @@ model StandalonePage {
   seoDescription String?
   createdAt      DateTime               @default(now())
   updatedAt      DateTime               @updatedAt
+  comments       PostComment[]
 
   @@index([status, publishedAt])
   @@index([showInNav, navGroup, status, publishedAt])

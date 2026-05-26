@@ -5,12 +5,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useMemo, useState } from "react";
 import { PostCommentForm } from "@/components/post-comment-form";
-import type { PublicPostComment } from "@/server/repositories/comments";
+import type { CommentTargetType, PublicPostComment } from "@/server/repositories/comments";
 
 type PostCommentListProps = {
   comments: PublicPostComment[];
   canComment: boolean;
-  postId: number;
+  targetType: CommentTargetType;
+  targetId: number;
   pathname: string;
   showGuestFields: boolean;
   ownerAvatarUrl?: string | null;
@@ -25,7 +26,8 @@ type PostCommentListProps = {
 export function PostCommentList({
   comments,
   canComment,
-  postId,
+  targetType,
+  targetId,
   pathname,
   showGuestFields,
   ownerAvatarUrl,
@@ -85,7 +87,8 @@ export function PostCommentList({
           comment={comment}
           depth={0}
           canComment={canComment}
-          postId={postId}
+          targetType={targetType}
+          targetId={targetId}
           pathname={pathname}
           showGuestFields={showGuestFields}
           ownerAvatarUrl={ownerAvatarUrl}
@@ -101,7 +104,8 @@ function CommentItem({
   comment,
   depth,
   canComment,
-  postId,
+  targetType,
+  targetId,
   pathname,
   showGuestFields,
   ownerAvatarUrl,
@@ -110,7 +114,8 @@ function CommentItem({
   comment: PublicPostComment;
   depth: number;
   canComment: boolean;
-  postId: number;
+  targetType: CommentTargetType;
+  targetId: number;
   pathname: string;
   showGuestFields: boolean;
   ownerAvatarUrl?: string | null;
@@ -156,7 +161,8 @@ function CommentItem({
         {isReplying ? (
           <div className="mt-3">
             <PostCommentForm
-              postId={postId}
+              targetType={targetType}
+              targetId={targetId}
               parentId={comment.id}
               pathname={pathname}
               showGuestFields={showGuestFields}
@@ -177,7 +183,8 @@ function CommentItem({
                 comment={reply}
                 depth={1}
                 canComment={canComment}
-                postId={postId}
+                targetType={targetType}
+                targetId={targetId}
                 pathname={pathname}
                 showGuestFields={showGuestFields}
                 ownerAvatarUrl={ownerAvatarUrl}

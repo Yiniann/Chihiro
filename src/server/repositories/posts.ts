@@ -33,6 +33,7 @@ export type PostItem = {
   contentHtml: string | null;
   authorName: string | null;
   publishedAt: string | null;
+  commentsEnabled: boolean;
   createdAt: string;
   updatedAt: string;
   viewCount: number;
@@ -103,6 +104,7 @@ type PublishedPostSnapshot = {
   contentHtml: string | null;
   authorName: string | null;
   publishedAt: string | null;
+  commentsEnabled: boolean;
   category: {
     id: number;
     name: string;
@@ -153,6 +155,7 @@ export type SavePostDraftInput = {
   status: ContentStatus;
   categoryId: number | null;
   publishedAt: Date | null;
+  commentsEnabled: boolean;
   tagIds: string[];
   authorName: string | null;
 };
@@ -192,6 +195,7 @@ export async function savePostDraft(input: SavePostDraftInput): Promise<PostItem
       contentHtml: input.contentHtml,
       authorName: input.authorName,
       publishedAt: input.publishedAt,
+      commentsEnabled: input.commentsEnabled,
       category,
       coverAsset: current.coverAsset,
       tags,
@@ -215,6 +219,7 @@ export async function savePostDraft(input: SavePostDraftInput): Promise<PostItem
     contentHtml: input.contentHtml,
     authorName: input.authorName,
     publishedAt: input.publishedAt,
+    commentsEnabled: input.commentsEnabled,
     status: input.status,
   };
   const nextTags =
@@ -453,6 +458,18 @@ export async function getPublishedPostBySlug(slug: string): Promise<PostItem | n
   return found ?? null;
 }
 
+export async function getPublicPostById(id: number): Promise<PostItem | null> {
+  const post = await prisma.post.findFirst({
+    where: {
+      id,
+      status: ContentStatus.PUBLISHED,
+    },
+    include: postInclude,
+  });
+
+  return post ? mapPublishedPostRecord(post) : null;
+}
+
 export async function getPublishedPostByCategoryAndSlug(
   categorySlug: string,
   slug: string,
@@ -662,6 +679,7 @@ export async function publishPostById(id: number): Promise<PostItem> {
         contentHtml: draftSnapshot.contentHtml,
         authorName: draftSnapshot.authorName,
         publishedAt: resolvedPublishedAt,
+        commentsEnabled: draftSnapshot.commentsEnabled,
         category: draftSnapshot.category
           ? {
               connect: { id: draftSnapshot.category.id },
@@ -697,6 +715,7 @@ export async function publishPostById(id: number): Promise<PostItem> {
         contentHtml: current.contentHtml,
         authorName: current.authorName,
         publishedAt,
+        commentsEnabled: current.commentsEnabled,
         category: current.category
           ? {
               connect: { id: current.category.id },
@@ -770,6 +789,7 @@ export async function discardPostRevisionById(id: number): Promise<PostItem> {
       contentHtml: snapshot.contentHtml,
       authorName: snapshot.authorName,
       publishedAt: snapshot.publishedAt ? new Date(snapshot.publishedAt) : null,
+      commentsEnabled: snapshot.commentsEnabled,
       status: ContentStatus.PUBLISHED,
       category: snapshot.category
         ? {
@@ -956,6 +976,7 @@ function mapPostRecord(record: PostRecord): PostItem {
     contentHtml: record.contentHtml,
     authorName: record.authorName,
     publishedAt: toIsoString(record.publishedAt),
+    commentsEnabled: record.commentsEnabled,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     viewCount: record.viewCount,
@@ -1005,6 +1026,7 @@ function mapPublishedPostRecord(record: PostRecord): PostItem {
     contentHtml: snapshot.contentHtml,
     authorName: snapshot.authorName,
     publishedAt: snapshot.publishedAt,
+    commentsEnabled: snapshot.commentsEnabled,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     viewCount: record.viewCount,
@@ -1027,6 +1049,7 @@ function buildPublishedSnapshot(record: PostRecord, publishedAt: Date): Publishe
     contentHtml: record.contentHtml,
     authorName: record.authorName,
     publishedAt: publishedAt.toISOString(),
+    commentsEnabled: record.commentsEnabled,
     category: record.category
       ? {
           id: record.category.id,
@@ -1060,6 +1083,7 @@ function buildDraftSnapshot(input: {
   contentHtml: string | null;
   authorName: string | null;
   publishedAt: Date | null;
+  commentsEnabled: boolean;
   category: { id: number; name: string; slug: string } | null;
   coverAsset: AssetSummary | null;
   tags: Array<{ id: string; name: string; slug: string }>;
@@ -1074,6 +1098,7 @@ function buildDraftSnapshot(input: {
     contentHtml: input.contentHtml,
     authorName: input.authorName,
     publishedAt: toIsoString(input.publishedAt),
+    commentsEnabled: input.commentsEnabled,
     savedAt,
     category: input.category,
     coverAsset: input.coverAsset,
@@ -1086,7 +1111,21 @@ function parsePublishedSnapshot(value: Prisma.JsonValue | null): PublishedPostSn
     return null;
   }
 
-  return value as PublishedPostSnapshot;
+  const snapshot = value as Partial<PublishedPostSnapshot>;
+
+  return {
+    title: snapshot.title ?? "",
+    slug: snapshot.slug ?? "",
+    summary: snapshot.summary ?? null,
+    content: snapshot.content ?? null,
+    contentHtml: snapshot.contentHtml ?? null,
+    authorName: snapshot.authorName ?? null,
+    publishedAt: snapshot.publishedAt ?? null,
+    commentsEnabled: snapshot.commentsEnabled ?? true,
+    category: snapshot.category ?? null,
+    coverAsset: snapshot.coverAsset ?? null,
+    tags: Array.isArray(snapshot.tags) ? snapshot.tags : [],
+  };
 }
 
 function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftPostSnapshot | null {
@@ -1121,6 +1160,7 @@ function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftPostSnapshot |
     contentHtml: snapshot.contentHtml ?? null,
     authorName: snapshot.authorName ?? null,
     publishedAt: snapshot.publishedAt ?? null,
+    commentsEnabled: snapshot.commentsEnabled ?? true,
     savedAt,
     category: snapshot.category ?? null,
     coverAsset: snapshot.coverAsset ?? null,

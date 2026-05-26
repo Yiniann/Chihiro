@@ -13,6 +13,7 @@ export type StandalonePageItem = {
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
   publishedAt: string | null;
+  commentsEnabled: boolean;
   createdAt: string;
   updatedAt: string;
   draftSnapshot: DraftStandalonePageSnapshot | null;
@@ -40,6 +41,7 @@ type PublishedStandalonePageSnapshot = {
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
   publishedAt: string | null;
+  commentsEnabled: boolean;
   showInNav: boolean;
   navLabel: string | null;
   navEyebrow: string | null;
@@ -60,6 +62,7 @@ export type SaveStandalonePageInput = {
   contentHtml: string | null;
   status: ContentStatus;
   publishedAt: Date | null;
+  commentsEnabled: boolean;
   showInNav: boolean;
   navLabel: string | null;
   navEyebrow: string | null;
@@ -108,6 +111,17 @@ export async function getPublishedStandalonePageBySlug(
   return page ? mapStandalonePageRecord(page) : null;
 }
 
+export async function getPublicStandalonePageById(id: number): Promise<StandalonePageItem | null> {
+  const page = await prisma.standalonePage.findFirst({
+    where: {
+      id,
+      status: ContentStatus.PUBLISHED,
+    },
+  });
+
+  return page ? mapStandalonePageRecord(page) : null;
+}
+
 export async function listPublishedStandalonePagesForNavigation(
   navGroup: StandalonePageNavGroup,
 ): Promise<StandalonePageNavigationItem[]> {
@@ -146,6 +160,7 @@ export async function saveStandalonePage(input: SaveStandalonePageInput): Promis
       content: input.content,
       contentHtml: input.contentHtml,
       publishedAt: input.publishedAt,
+      commentsEnabled: input.commentsEnabled,
       showInNav: input.showInNav,
       navLabel: input.navLabel,
       navEyebrow: input.navEyebrow,
@@ -171,6 +186,7 @@ export async function saveStandalonePage(input: SaveStandalonePageInput): Promis
     contentHtml: input.contentHtml,
     status: input.status,
     publishedAt: input.publishedAt,
+    commentsEnabled: input.commentsEnabled,
     showInNav: input.showInNav,
     navLabel: input.navLabel,
     navEyebrow: input.navEyebrow,
@@ -215,6 +231,7 @@ export async function publishStandalonePageById(id: number): Promise<StandaloneP
       content: (draftSnapshot?.content ?? current.content) ?? Prisma.DbNull,
       contentHtml: draftSnapshot?.contentHtml ?? current.contentHtml,
       publishedAt: resolvedPublishedAt,
+      commentsEnabled: draftSnapshot?.commentsEnabled ?? current.commentsEnabled,
       showInNav: draftSnapshot?.showInNav ?? current.showInNav,
       navLabel: draftSnapshot?.navLabel ?? current.navLabel,
       navEyebrow: draftSnapshot?.navEyebrow ?? current.navEyebrow,
@@ -323,6 +340,7 @@ export async function ensureDefaultStandalonePages() {
         content,
         contentHtml,
         publishedAt: new Date(),
+        commentsEnabled: false,
         showInNav: true,
         navLabel: item.navLabel,
         navEyebrow: item.navEyebrow,
@@ -343,6 +361,7 @@ function mapStandalonePageRecord(page: StandalonePageRecord): StandalonePageItem
     content: page.content,
     contentHtml: page.contentHtml,
     publishedAt: page.publishedAt?.toISOString() ?? null,
+    commentsEnabled: page.commentsEnabled,
     createdAt: page.createdAt.toISOString(),
     updatedAt: page.updatedAt.toISOString(),
     draftSnapshot: parseDraftSnapshot(page.draftSnapshot),
@@ -366,6 +385,7 @@ function buildDraftSnapshot(
     content: input.content,
     contentHtml: input.contentHtml,
     publishedAt: input.publishedAt?.toISOString() ?? null,
+    commentsEnabled: input.commentsEnabled,
     showInNav: input.showInNav,
     navLabel: input.navLabel,
     navEyebrow: input.navEyebrow,
@@ -397,6 +417,7 @@ function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftStandalonePage
     content: snapshot.content ?? null,
     contentHtml: typeof snapshot.contentHtml === "string" ? snapshot.contentHtml : null,
     publishedAt: typeof snapshot.publishedAt === "string" ? snapshot.publishedAt : null,
+    commentsEnabled: snapshot.commentsEnabled ?? false,
     showInNav: Boolean(snapshot.showInNav),
     navLabel: typeof snapshot.navLabel === "string" ? snapshot.navLabel : null,
     navEyebrow: typeof snapshot.navEyebrow === "string" ? snapshot.navEyebrow : null,

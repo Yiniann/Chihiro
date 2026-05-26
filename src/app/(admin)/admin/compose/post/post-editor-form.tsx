@@ -63,6 +63,7 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCodeView, setIsCodeView] = useState(false);
+  const [commentsEnabled, setCommentsEnabled] = useState(editablePost?.commentsEnabled ?? true);
   const [previewState, setPreviewState] = useState<PostPreviewState | null>(null);
   const [isEditorDirty, setIsEditorDirty] = useState(false);
   const handleCreatedCategoryRef = useRef<(category: CategoryOption) => void>(() => {});
@@ -150,12 +151,43 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
               className={`${isSettingsOpen ? "block" : "hidden"} border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5`}
             >
                 <div className="grid gap-5">
-                  <div className="grid gap-4 max-w-[14rem]">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,14rem)_auto] md:items-end md:gap-6">
                     <label className="grid min-w-0 gap-2">
                       <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
                         发布日期
                       </span>
                       <PublishedAtField defaultValue={editablePost?.publishedAt} />
+                    </label>
+                    <label className="grid min-w-0 gap-2">
+                      <input
+                        type="checkbox"
+                        name="commentsEnabled"
+                        checked={commentsEnabled}
+                        onChange={(event) => setCommentsEnabled(event.target.checked)}
+                        className="sr-only"
+                      />
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        开启评论
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={commentsEnabled}
+                        aria-label="开启评论"
+                        onClick={() => setCommentsEnabled((current) => !current)}
+                        className="relative inline-flex h-5 w-9 shrink-0 items-center"
+                      >
+                        <span
+                          className={`absolute inset-0 rounded-full transition ${
+                            commentsEnabled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+                          }`}
+                        />
+                        <span
+                          className={`relative size-4 rounded-full bg-white shadow-sm transition-transform ${
+                            commentsEnabled ? "translate-x-[1.125rem]" : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
                     </label>
                   </div>
 
@@ -361,6 +393,7 @@ function getEditablePost(post: PostItem | null) {
     contentHtml: post.draftSnapshot.contentHtml,
     authorName: post.draftSnapshot.authorName,
     publishedAt: post.draftSnapshot.publishedAt,
+    commentsEnabled: post.draftSnapshot.commentsEnabled,
     category: post.draftSnapshot.category,
     coverAsset: post.draftSnapshot.coverAsset,
     tags: post.draftSnapshot.tags,

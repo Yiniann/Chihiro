@@ -39,6 +39,7 @@ export async function savePostDraftAction(
     const categoryId = getOptionalNumber(formData, "categoryId");
     const publishedAtInput = getOptionalString(formData, "publishedAt");
     const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
+    const commentsEnabled = getBoolean(formData, "commentsEnabled");
     const tagIds = formData
       .getAll("tagIds")
       .filter((value): value is string => typeof value === "string")
@@ -58,6 +59,7 @@ export async function savePostDraftAction(
       status: currentStatus,
       categoryId,
       publishedAt,
+      commentsEnabled,
       tagIds,
       authorName,
     });
@@ -186,6 +188,11 @@ function getOptionalNumber(formData: FormData, key: string) {
   }
 
   return Number(value);
+}
+
+function getBoolean(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return value === "true" || value === "on";
 }
 
 function parseRichTextContent(formData: FormData) {

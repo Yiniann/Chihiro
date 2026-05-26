@@ -54,6 +54,7 @@ export function StandalonePageEditorForm({
   const formRef = useRef<HTMLFormElement | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isCodeView, setIsCodeView] = useState(false);
+  const [commentsEnabled, setCommentsEnabled] = useState(editablePage?.commentsEnabled ?? false);
   const [previewState, setPreviewState] = useState<StandalonePagePreviewState | null>(null);
   const [isEditorDirty, setIsEditorDirty] = useState(false);
   const wasDirtyBeforeSubmitRef = useRef(false);
@@ -91,6 +92,7 @@ export function StandalonePageEditorForm({
           <>
             <input type="hidden" name="standalonePageId" value={standalonePage?.id ?? ""} />
             <input type="hidden" name="currentStatus" value={status} />
+            <input type="hidden" name="id" value={standalonePage?.id ?? ""} />
           </>
         }
         topBar={
@@ -140,12 +142,43 @@ export function StandalonePageEditorForm({
             {isSettingsOpen ? (
               <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5">
                 <div className="grid gap-5">
-                  <div className="grid gap-4 max-w-[14rem]">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,14rem)_auto] md:items-start md:gap-6">
                     <label className="grid min-w-0 gap-2">
                       <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
                         发布日期
                       </span>
                       <PublishedAtField defaultValue={editablePage?.publishedAt} />
+                    </label>
+                    <label className="grid min-w-0 gap-2">
+                      <input
+                        type="checkbox"
+                        name="commentsEnabled"
+                        checked={commentsEnabled}
+                        onChange={(event) => setCommentsEnabled(event.target.checked)}
+                        className="sr-only"
+                      />
+                      <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                        开启评论
+                      </span>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={commentsEnabled}
+                        aria-label="开启评论"
+                        onClick={() => setCommentsEnabled((current) => !current)}
+                        className="relative inline-flex h-5 w-9 shrink-0 items-center"
+                      >
+                        <span
+                          className={`absolute inset-0 rounded-full transition ${
+                            commentsEnabled ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+                          }`}
+                        />
+                        <span
+                          className={`relative size-4 rounded-full bg-white shadow-sm transition-transform ${
+                            commentsEnabled ? "translate-x-[1.125rem]" : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
                     </label>
                   </div>
 
@@ -345,6 +378,7 @@ function getEditableStandalonePage(page: StandalonePageItem | null) {
     content: page.draftSnapshot.content,
     contentHtml: page.draftSnapshot.contentHtml,
     publishedAt: page.draftSnapshot.publishedAt,
+    commentsEnabled: page.draftSnapshot.commentsEnabled,
     showInNav: page.draftSnapshot.showInNav,
     navLabel: page.draftSnapshot.navLabel,
     navEyebrow: page.draftSnapshot.navEyebrow,
@@ -456,15 +490,13 @@ function DiscardRevisionButton({ standalonePageId }: { standalonePageId: number 
 
 function UnpublishButton({ standalonePageId }: { standalonePageId: number }) {
   return (
-    <form action={unpublishStandalonePageAction}>
-      <input type="hidden" name="id" value={standalonePageId} />
-      <button
-        type="submit"
-        className="inline-flex items-center justify-center rounded-[0.95rem] border border-zinc-200/80 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:text-white"
-      >
-        转为草稿
-      </button>
-    </form>
+    <button
+      type="submit"
+      formAction={unpublishStandalonePageAction}
+      className="inline-flex items-center justify-center rounded-[0.95rem] border border-zinc-200/80 bg-white px-3 py-2 text-xs font-medium text-zinc-700 transition hover:border-zinc-300 hover:text-zinc-950 dark:border-white/10 dark:bg-white/[0.04] dark:text-zinc-200 dark:hover:border-white/20 dark:hover:bg-white/[0.08] dark:hover:text-white"
+    >
+      转为草稿
+    </button>
   );
 }
 

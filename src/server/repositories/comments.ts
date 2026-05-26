@@ -1,6 +1,8 @@
 import { CommentStatus, ContentStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/server/db/client";
 
+export type CommentTargetType = "post" | "standalone-page";
+
 export type PublicPostComment = {
   id: string;
   parentId: string | null;
@@ -29,6 +31,13 @@ const adminCommentInclude = {
       },
     },
   },
+  standalonePage: {
+    select: {
+      id: true,
+      title: true,
+      slug: true,
+    },
+  },
   user: {
     select: {
       name: true,
@@ -50,7 +59,7 @@ const adminCommentInclude = {
       },
     },
   },
-} satisfies Prisma.PostCommentInclude;
+} as const satisfies Prisma.PostCommentInclude;
 
 type AdminCommentRecord = Prisma.PostCommentGetPayload<{
   include: typeof adminCommentInclude;
@@ -72,7 +81,8 @@ export type AdminCommentItem = {
     image: string | null;
     source: "user" | "guest";
   };
-  post: {
+  target: {
+    type: CommentTargetType;
     id: number;
     title: string;
     href: string;
@@ -137,10 +147,13 @@ export async function deleteComment(id: string) {
   });
 }
 
-export async function listApprovedCommentsForPost(postId: number): Promise<PublicPostComment[]> {
+export async function listApprovedCommentsForTarget(target: {
+  type: CommentTargetType;
+  id: number;
+}): Promise<PublicPostComment[]> {
   const comments = await prisma.postComment.findMany({
     where: {
-      postId,
+      ...(target.type === "post" ? { postId: target.id } : { standalonePageId: target.id }),
       status: CommentStatus.APPROVED,
     },
     orderBy: {
@@ -199,8 +212,13 @@ export async function listApprovedCommentsForPost(postId: number): Promise<Publi
   );
 }
 
+export async function listApprovedCommentsForPost(postId: number) {
+  return listApprovedCommentsForTarget({ type: "post", id: postId });
+}
+
 export async function createCommentForPost({
-  postId,
+  targetType,
+  targetId,
   userId,
   parentId,
   authorName,
@@ -208,7 +226,8 @@ export async function createCommentForPost({
   body,
   requiresModeration,
 }: {
-  postId: number;
+  targetType: CommentTargetType;
+  targetId: number;
   userId: string | null;
   parentId: string | null;
   authorName: string | null;
@@ -216,25 +235,38 @@ export async function createCommentForPost({
   body: string;
   requiresModeration: boolean;
 }) {
-  const post = await prisma.post.findFirst({
-    where: {
-      id: postId,
-      status: ContentStatus.PUBLISHED,
-    },
-    select: {
-      id: true,
-    },
-  });
+  const targetExists =
+    targetType === "post"
+      ? await prisma.post.findFirst({
+          where: {
+            id: targetId,
+            status: ContentStatus.PUBLISHED,
+            commentsEnabled: true,
+          },
+          select: { id: true },
+        })
+      : await prisma.standalonePage.findFirst({
+          where: {
+            id: targetId,
+            status: ContentStatus.PUBLISHED,
+            commentsEnabled: true,
+          },
+          select: { id: true },
+        });
 
-  if (!post) {
-    throw new Error("文章不存在或尚未发布。");
+  if (!targetExists) {
+    throw new Error(
+      targetType === "post"
+        ? "文章不存在、尚未发布，或暂未开放评论。"
+        : "页面不存在、尚未发布，或暂未开放评论。",
+    );
   }
 
   if (parentId) {
     const parentComment = await prisma.postComment.findFirst({
       where: {
         id: parentId,
-        postId,
+        ...(targetType === "post" ? { postId: targetId } : { standalonePageId: targetId }),
       },
       select: {
         id: true,
@@ -247,18 +279,19 @@ export async function createCommentForPost({
     }
 
     const threadRootId = parentComment.threadRootId ?? parentComment.id;
+    const data: Prisma.PostCommentUncheckedCreateInput = {
+      ...(targetType === "post" ? { postId: targetId } : { standalonePageId: targetId }),
+      parentId,
+      threadRootId,
+      userId,
+      authorName,
+      authorEmail,
+      body,
+      status: requiresModeration ? CommentStatus.PENDING : CommentStatus.APPROVED,
+    };
 
     return prisma.postComment.create({
-      data: {
-        postId,
-        parentId,
-        threadRootId,
-        userId,
-        authorName,
-        authorEmail,
-        body,
-        status: requiresModeration ? CommentStatus.PENDING : CommentStatus.APPROVED,
-      },
+      data,
       select: {
         id: true,
         status: true,
@@ -266,16 +299,18 @@ export async function createCommentForPost({
     });
   }
 
+  const data: Prisma.PostCommentUncheckedCreateInput = {
+    ...(targetType === "post" ? { postId: targetId } : { standalonePageId: targetId }),
+    parentId,
+    userId,
+    authorName,
+    authorEmail,
+    body,
+    status: requiresModeration ? CommentStatus.PENDING : CommentStatus.APPROVED,
+  };
+
   return prisma.postComment.create({
-    data: {
-      postId,
-      parentId,
-      userId,
-      authorName,
-      authorEmail,
-      body,
-      status: requiresModeration ? CommentStatus.PENDING : CommentStatus.APPROVED,
-    },
+    data,
     select: {
       id: true,
       status: true,
@@ -305,7 +340,27 @@ function mapAdminCommentRecord(comment: AdminCommentRecord): AdminCommentItem {
   const parentUserName = comment.parent?.user?.name ?? comment.parent?.user?.email ?? null;
   const parentGuestName =
     comment.parent?.authorName?.trim() || comment.parent?.authorEmail?.trim() || null;
-  const categorySlug = comment.post.category?.slug;
+  const categorySlug = comment.post?.category?.slug;
+  const target =
+    comment.post
+      ? {
+          type: "post" as const,
+          id: comment.post.id,
+          title: comment.post.title,
+          href: `/posts/${categorySlug?.trim() || "uncategorized"}/${comment.post.slug}`,
+        }
+      : comment.standalonePage
+        ? {
+            type: "standalone-page" as const,
+            id: comment.standalonePage.id,
+            title: comment.standalonePage.title,
+            href: `/${comment.standalonePage.slug}`,
+          }
+        : null;
+
+  if (!target) {
+    throw new Error(`Comment target missing: ${comment.id}`);
+  }
 
   return {
     id: comment.id,
@@ -321,11 +376,7 @@ function mapAdminCommentRecord(comment: AdminCommentRecord): AdminCommentItem {
       image: comment.user?.image ?? null,
       source: comment.userId ? "user" : "guest",
     },
-    post: {
-      id: comment.post.id,
-      title: comment.post.title,
-      href: `/posts/${categorySlug?.trim() || "uncategorized"}/${comment.post.slug}`,
-    },
+    target,
     parent: comment.parent
       ? {
           id: comment.parent.id,

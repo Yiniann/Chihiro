@@ -228,7 +228,12 @@ export default async function PostPage({ params }: PostPageProps) {
               <span>end</span>
               <span className="h-px flex-1 border-t border-dashed border-primary/45" />
             </div>
-            <PostComments postId={post.id} pathname={postPath} />
+            <PostComments
+              targetType="post"
+              targetId={post.id}
+              pathname={postPath}
+              commentsEnabled={post.commentsEnabled}
+            />
           </article>
           <PostTableOfContents items={tocItems}>
             <PostSidebarActions

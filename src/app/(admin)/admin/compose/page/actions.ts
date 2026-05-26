@@ -53,6 +53,7 @@ export async function saveStandalonePageAction(
     const standalonePageId = getOptionalStandalonePageId(formData, "standalonePageId");
     const publishedAtInput = getOptionalString(formData, "publishedAt");
     const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
+    const commentsEnabled = getBoolean(formData, "commentsEnabled");
     const navLabel = getOptionalString(formData, "navLabel");
     const navEyebrow = getOptionalString(formData, "navEyebrow");
     const navPlacement = getNavPlacement(formData, "navPlacement");
@@ -73,6 +74,7 @@ export async function saveStandalonePageAction(
       contentHtml,
       status: currentStatus,
       publishedAt,
+      commentsEnabled,
       showInNav,
       navLabel,
       navEyebrow,
@@ -173,6 +175,11 @@ function getOptionalString(formData: FormData, key: string) {
 
   const normalized = value.trim();
   return normalized ? normalized : null;
+}
+
+function getBoolean(formData: FormData, key: string) {
+  const value = formData.get(key);
+  return value === "true" || value === "on";
 }
 
 function getOptionalStandalonePageId(formData: FormData, key: string) {
