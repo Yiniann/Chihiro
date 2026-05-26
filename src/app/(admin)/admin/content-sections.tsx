@@ -499,7 +499,11 @@ function AdminPostsTable({
               <TableStatus status={item.status} />
             </div>
             <div className="justify-self-start text-sm">
-              <PostActionMenu postId={item.id} isPublished={item.status === ContentStatus.PUBLISHED} />
+              <PostActionMenu
+                postId={item.id}
+                isPublished={item.status === ContentStatus.PUBLISHED}
+                editHref={`/admin/posts/${encodeURIComponent(item.id)}`}
+              />
             </div>
           </>
         )}
@@ -594,6 +598,7 @@ function AdminUpdatesTable({
                 <UpdateActionMenu
                   isPublished={item.status === ContentStatus.PUBLISHED}
                   updateId={item.id}
+                  editHref={`/admin/updates/${encodeURIComponent(item.id)}`}
                 />
               </div>
             </>
@@ -710,6 +715,7 @@ function AdminStandalonePagesTable({
               <StandalonePageActionMenu
                 standalonePageId={item.id}
                 isPublished={item.status === ContentStatus.PUBLISHED}
+                editHref={`/admin/pages/${encodeURIComponent(item.id)}`}
               />
             </div>
           </>
@@ -978,6 +984,7 @@ function AdminStandalonePageMobileRow({
         <StandalonePageActionMenu
           standalonePageId={item.id}
           isPublished={item.status === ContentStatus.PUBLISHED}
+          editHref={`/admin/pages/${encodeURIComponent(item.id)}`}
           compact
         />
       </div>

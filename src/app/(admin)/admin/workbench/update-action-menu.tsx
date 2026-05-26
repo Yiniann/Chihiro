@@ -7,7 +7,7 @@ import {
 } from "@/app/(admin)/admin/actions";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import Link from "next/link";
-import { ChevronDown, Ellipsis, FilePenLine } from "lucide-react";
+import { ChevronDown, Ellipsis, FilePenLine, FileText, Trash2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 type UpdateActionMenuProps = {
@@ -100,9 +100,10 @@ export function UpdateActionMenu({
               <input type="hidden" name="id" value={updateId} />
               <button
                 type="submit"
-                className="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                className="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
               >
-                转回草稿
+                {compact ? null : <FileText className="h-3.5 w-3.5" />}
+                转为草稿
               </button>
             </form>
           ) : (
@@ -118,7 +119,13 @@ export function UpdateActionMenu({
           )}
           <ConfirmActionDialog
             triggerLabel="移到回收站"
-            triggerClassName="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            triggerClassName="flex w-full items-center gap-2 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+            triggerContent={
+              <>
+                {compact ? null : <Trash2 className="h-3.5 w-3.5" />}
+                移到回收站
+              </>
+            }
             title="将这条动态移到回收站？"
             description="移入回收站后不会立刻彻底删除，你可以稍后在回收站里恢复或永久移除。"
             confirmLabel="移到回收站"
