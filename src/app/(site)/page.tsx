@@ -76,6 +76,7 @@ export default async function HomePage() {
 
   return (
     <main className="relative w-full px-6 sm:px-12 lg:px-24">
+      <div className="pointer-events-none absolute left-1/2 top-3 z-20 hidden h-16 w-[min(42rem,calc(100vw-1.5rem))] -translate-x-1/2 rounded-full bg-[rgba(2,6,23,0.26)] opacity-90 blur-xl dark:block sm:top-4 sm:w-[min(44rem,calc(100vw-3rem))]" />
       <StaggerReveal delayChildren={0.05} staggerChildren={0.09}>
         <section className="relative z-10 mx-auto grid min-h-[calc(100dvh-6rem)] w-full max-w-5xl items-center gap-10 py-[clamp(1.5rem,6vh,4rem)] sm:min-h-[calc(100dvh-7rem)] lg:grid-cols-[minmax(18rem,24rem)_minmax(24rem,34rem)] lg:justify-center lg:gap-10 xl:grid-cols-[minmax(20rem,26rem)_minmax(26rem,36rem)] xl:gap-12">
           <StaggerRevealItem className="flex justify-center" offset={24}>

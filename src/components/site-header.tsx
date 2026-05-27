@@ -492,7 +492,7 @@ export function SiteHeader({
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="absolute left-1/2 top-[calc(100%+0.75rem)] z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2"
                 >
-                  <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_20px_60px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.82)] dark:shadow-[0_24px_70px_rgba(0,0,0,0.48)]">
+                  <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
                     {renderMegaNavContent(featuredItem.href, {
                       postCategories,
                       recentArchiveItems,
@@ -554,7 +554,7 @@ export function SiteHeader({
                       aria-hidden="true"
                       className="absolute right-0 top-0 h-2.5 w-64 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                     />
-                    <div className="rounded-[1.2rem] border border-zinc-200/80 bg-white/92 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.44)]">
+                    <div className="rounded-[1.2rem] border border-zinc-200/80 bg-white/92 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-white/18 dark:bg-[rgba(255,255,255,0.12)] dark:shadow-[0_20px_50px_rgba(2,6,23,0.08)]">
                       <div className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5">
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
                           <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
@@ -575,7 +575,7 @@ export function SiteHeader({
                           href="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
+                          className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
                         >
                           <LayoutDashboard className="h-4 w-4 shrink-0" />
                           <span>控制面板</span>
@@ -586,7 +586,7 @@ export function SiteHeader({
                           type="submit"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-200 dark:hover:bg-zinc-800/80 dark:hover:text-zinc-50"
+                          className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
                         >
                           <LogOut className="h-4 w-4 shrink-0" />
                           <span>退出登录</span>
@@ -634,7 +634,7 @@ export function SiteHeader({
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="pointer-events-auto mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
           >
-            <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/92 p-3 shadow-[0_18px_50px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.84)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.44)]">
+            <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
               <nav className="grid gap-2">
                 {displayNavItems.map((item) => {
                   const active = isActivePath(
@@ -650,11 +650,11 @@ export function SiteHeader({
                   return (
                     <div
                       key={item.href}
-                      className={`rounded-[1.1rem] transition ${
-                        active
-                          ? "bg-primary/8 dark:bg-primary/15"
-                          : "bg-zinc-50/80 dark:bg-zinc-900"
-                      }`}
+                        className={`rounded-[1.1rem] transition ${
+                          active
+                            ? "bg-primary/8 dark:bg-white/10"
+                            : "bg-transparent"
+                        }`}
                     >
                       <div
                         className={`flex items-center gap-2 px-2 py-2 ${
@@ -669,9 +669,9 @@ export function SiteHeader({
                             setIsMobileNavOpen(false);
                             setExpandedMobileHref(null);
                           }}
-                          className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] px-1.5 py-1 transition hover:bg-zinc-100 dark:hover:bg-zinc-800/80"
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] px-1.5 py-1 transition hover:bg-transparent dark:hover:bg-transparent"
                           >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/70 text-zinc-600 dark:bg-white/8 dark:text-zinc-200">
                             <Icon className="h-4 w-4" />
                           </div>
                           <p className="text-sm font-medium">{item.label}</p>
@@ -687,8 +687,8 @@ export function SiteHeader({
                             }
                             className={`inline-flex h-9 min-w-11 shrink-0 items-center justify-center rounded-2xl border px-2 transition ${
                               active
-                                ? "border-primary/20 bg-primary/10 text-primary"
-                                : "border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800/90 dark:text-zinc-400 dark:hover:border-zinc-600 dark:hover:text-zinc-200"
+                                ? "border-primary/20 bg-primary/10 text-primary dark:border-white/14 dark:bg-white/8 dark:text-zinc-50"
+                                : "border-zinc-200 bg-white/70 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-white/12 dark:bg-white/6 dark:text-zinc-300 dark:hover:border-white/18 dark:hover:text-zinc-50"
                             }`}
                           >
                             <span className="inline-flex">
@@ -1034,7 +1034,7 @@ function MegaNavLinkCard({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group rounded-[1rem] px-2 py-2.5 transition-colors duration-200 hover:bg-zinc-50/90 dark:hover:bg-zinc-900/70"
+      className="group rounded-[1rem] px-2 py-2.5 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
@@ -1088,8 +1088,8 @@ function PostMegaNavContent({
               onFocus={() => onHoverPostCategory(category.slug)}
               className={`flex items-center justify-between rounded-[0.8rem] px-2 py-1.5 text-left text-[0.78rem] transition-colors ${
                 active
-                  ? "bg-zinc-50 text-zinc-950 dark:bg-zinc-900/80 dark:text-zinc-100"
-                  : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-900/60 dark:hover:text-zinc-200"
+                  ? "border border-zinc-200/70 bg-white/18 text-zinc-950 shadow-[0_4px_12px_rgba(24,24,27,0.04)] dark:border-white/12 dark:bg-white/6 dark:text-zinc-50"
+                  : "border border-transparent text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-transparent dark:hover:text-zinc-50"
               }`}
             >
               <span className="font-medium">{category.label}</span>
@@ -1101,7 +1101,7 @@ function PostMegaNavContent({
         })}
       </div>
 
-      <motion.div layout className="min-w-0 self-start border-l border-zinc-200/70 pl-4 dark:border-zinc-800/80">
+      <motion.div layout className="min-w-0 self-start border-l border-zinc-200/60 pl-4 dark:border-white/10">
         <div className="mb-2 flex items-center justify-between gap-3">
           <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
             {activeCategory.label}
@@ -1202,7 +1202,7 @@ function MegaNavArticleLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 hover:text-primary dark:hover:bg-zinc-900/70"
+      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent hover:text-primary dark:hover:bg-transparent"
     >
       <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</p>
       <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500" />
@@ -1247,7 +1247,7 @@ function MegaNavRecentEntry({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-zinc-50/90 dark:hover:bg-zinc-900/70"
+      className="group rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

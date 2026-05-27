@@ -52,6 +52,12 @@ enum StandalonePageNavGroup {
   MORE
 }
 
+enum FriendLinkApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Post {
   id                Int           @id @default(autoincrement())
   title             String
@@ -244,6 +250,45 @@ model StandalonePage {
 
   @@index([status, publishedAt])
   @@index([showInNav, navGroup, status, publishedAt])
+}
+
+model FriendLink {
+  id          Int      @id @default(autoincrement())
+  name        String
+  url         String
+  description String?
+  avatarUrl   String?
+  location    String?
+  feedUrl     String?
+  email       String?
+  sortOrder   Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  applications FriendLinkApplication[]
+
+  @@index([isVisible, sortOrder, updatedAt])
+}
+
+model FriendLinkApplication {
+  id            Int                         @id @default(autoincrement())
+  nickname      String?
+  siteName      String
+  siteUrl       String
+  description   String?
+  avatarUrl     String?
+  rssUrl        String?
+  contactEmail  String
+  message       String?
+  status        FriendLinkApplicationStatus @default(PENDING)
+  reviewedAt    DateTime?
+  friendLinkId  Int?
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  friendLink    FriendLink?                 @relation(fields: [friendLinkId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+  @@index([friendLinkId])
 }
 
 model Asset {

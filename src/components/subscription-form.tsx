@@ -7,6 +7,7 @@ import { useActionState, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { subscribeAction, type SubscribeState } from "@/app/(site)/subscribe/actions";
 import { useToast } from "@/components/toast-provider";
+import { useDialogShake } from "@/components/use-dialog-shake";
 
 const initialState: SubscribeState = {
   error: null,
@@ -83,6 +84,8 @@ export function SubscriptionDialog({
   onClose: () => void;
   siteName: string;
 }) {
+  const { shakeControls, triggerShake } = useDialogShake();
+
   useEffect(() => {
     if (!isOpen) {
       return;
@@ -107,24 +110,25 @@ export function SubscriptionDialog({
 
   return createPortal(
     <motion.div
-      className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/30 backdrop-blur-[2px] dark:bg-black/50"
-      onClick={onClose}
+      className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
+      onClick={triggerShake}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
       <div className="flex min-h-full items-start justify-center px-4 py-20">
-        <motion.div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="subscription-dialog-title"
-          className="relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/94 shadow-[0_30px_120px_rgba(15,23,42,0.18)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/94 dark:shadow-[0_30px_120px_rgba(0,0,0,0.5)]"
-          onClick={(event) => event.stopPropagation()}
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.22, ease: "easeOut" }}
-        >
-          <div className="px-6 py-5">
+        <motion.div animate={shakeControls} className="flex w-full justify-center">
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="subscription-dialog-title"
+            className="relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+            onClick={(event) => event.stopPropagation()}
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+          >
+            <div className="px-6 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
@@ -153,13 +157,14 @@ export function SubscriptionDialog({
             </p>
           </div>
 
-          <div className="px-6 pb-6 pt-2">
-            <SubscriptionFormInner
-              buttonLabel="订阅"
-              onSuccess={onClose}
-              showLabel={false}
-            />
-          </div>
+            <div className="px-6 pb-6 pt-2">
+              <SubscriptionFormInner
+                buttonLabel="订阅"
+                onSuccess={onClose}
+                showLabel={false}
+              />
+            </div>
+          </motion.div>
         </motion.div>
       </div>
     </motion.div>,

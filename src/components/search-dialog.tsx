@@ -1,10 +1,12 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import { RelativeDate } from "@/components/relative-date";
+import { useDialogShake } from "@/components/use-dialog-shake";
 
 export type SearchDialogItem = {
   id: string | number;
@@ -35,6 +37,7 @@ export function SearchDialog({
   showResultTitle = true,
 }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { shakeControls, triggerShake } = useDialogShake();
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement | null>(null);
   const deferredQuery = useDeferredValue(query);
@@ -85,14 +88,15 @@ export function SearchDialog({
       {isOpen && typeof document !== "undefined"
         ? createPortal(
             <div
-              className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/30 backdrop-blur-[2px] dark:bg-black/50"
-              onClick={() => setIsOpen(false)}
+              className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
+              onClick={triggerShake}
             >
               <div className="flex min-h-full items-start justify-center px-4 py-20">
-                <div
-                  className="w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white shadow-[0_30px_120px_rgba(15,23,42,0.18)] dark:border-zinc-800 dark:bg-zinc-950 dark:shadow-[0_30px_120px_rgba(0,0,0,0.5)]"
-                  onClick={(event) => event.stopPropagation()}
-                >
+                <motion.div animate={shakeControls} className="flex w-full justify-center">
+                  <div
+                    className="w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+                    onClick={(event) => event.stopPropagation()}
+                  >
                   <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
                     <Search className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
                     <input
@@ -166,7 +170,8 @@ export function SearchDialog({
                       </div>
                     )}
                   </div>
-                </div>
+                  </div>
+                </motion.div>
               </div>
             </div>,
             document.body,

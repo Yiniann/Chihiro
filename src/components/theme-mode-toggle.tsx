@@ -175,7 +175,7 @@ export function ThemeModeToggle({
           minimal
             ? "border border-transparent bg-transparent hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white"
             : isScrolled
-            ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+            ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_16px_40px_rgba(2,6,23,0.06)]"
             : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
         }`}
       >
@@ -191,7 +191,7 @@ export function ThemeModeToggle({
             }`}
           />
           <div
-            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-[1rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_14px_40px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.88)] dark:shadow-[0_18px_50px_rgba(0,0,0,0.42)] ${
+            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-[1rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_14px_40px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-white/18 dark:bg-[rgba(255,255,255,0.14)] dark:shadow-[0_18px_50px_rgba(2,6,23,0.08)] ${
               hintPlacement === "top" ? "bottom-[calc(100%+0.7rem)]" : "top-[calc(100%+0.7rem)]"
             }`}
           >

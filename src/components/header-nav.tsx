@@ -58,7 +58,7 @@ export function HeaderNav({
       className={[
         "items-center justify-center overflow-hidden rounded-full text-sm font-medium text-zinc-600 transition-all duration-300 dark:text-zinc-300 md:flex",
         isScrolled
-          ? "bg-white/80 shadow-sm dark:border dark:border-zinc-800/70 dark:bg-zinc-950/58 dark:backdrop-blur-xl dark:shadow-[0_18px_45px_rgba(0,0,0,0.34)]"
+          ? "bg-white/80 shadow-sm dark:border dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
           : "bg-transparent",
         className ?? "",
       ]
@@ -87,7 +87,7 @@ export function HeaderNav({
             {active && deferredIsScrolled ? (
               <motion.span
                 layoutId={layoutId}
-                className="absolute inset-0 rounded-full border border-primary/25 bg-primary/10 shadow-sm dark:shadow-[0_0_0_1px_rgb(var(--primary-rgb)/0.05),0_12px_28px_rgba(2,6,23,0.42)]"
+                className="absolute inset-0 rounded-full border border-primary/25 bg-primary/10 shadow-sm dark:border-primary/30 dark:bg-[rgba(255,255,255,0.10)] dark:backdrop-brightness-110 dark:shadow-[0_0_0_1px_rgb(var(--primary-rgb)/0.05),0_10px_24px_rgba(2,6,23,0.08)]"
                 {...indicatorMotion}
               />
             ) : null}

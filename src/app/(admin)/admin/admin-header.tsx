@@ -10,6 +10,7 @@ import {
   Menu,
   MessageSquareText,
   NotebookPen,
+  Handshake,
   PanelLeftClose,
   PanelLeftOpen,
   Settings2,
@@ -51,6 +52,9 @@ const adminNavMeta: Record<
   },
   "/admin/pages": {
     icon: FileText,
+  },
+  "/admin/friends": {
+    icon: Handshake,
   },
   "/admin/categories": {
     icon: Tags,

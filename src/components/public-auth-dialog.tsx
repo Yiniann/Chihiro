@@ -1,11 +1,13 @@
 "use client";
 
+import { motion } from "framer-motion";
 import { UserRound, X } from "lucide-react";
 import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useToast } from "@/components/toast-provider";
+import { useDialogShake } from "@/components/use-dialog-shake";
 
 type PublicAuthDialogProps = {
   isOpen: boolean;
@@ -26,6 +28,7 @@ export function PublicAuthDialog({
 }: PublicAuthDialogProps) {
   const [passwordLoginOpen, setPasswordLoginOpen] = useState(false);
   const { showToast } = useToast();
+  const { shakeControls, triggerShake } = useDialogShake();
   const handleClose = useCallback(() => {
     setPasswordLoginOpen(false);
     onClose();
@@ -65,17 +68,18 @@ export function PublicAuthDialog({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/35 backdrop-blur-md dark:bg-black/60"
-      onClick={handleClose}
+      className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
+      onClick={triggerShake}
     >
       <div className="flex min-h-full items-center justify-center px-4 py-10 sm:px-6">
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="public-auth-dialog-title"
-          className="relative w-full max-w-sm overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/95 p-5 shadow-[0_24px_90px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/95 dark:shadow-[0_24px_90px_rgba(0,0,0,0.55)]"
-          onClick={(event) => event.stopPropagation()}
-        >
+        <motion.div animate={shakeControls} className="flex w-full justify-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="public-auth-dialog-title"
+            className="relative w-full max-w-sm overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+            onClick={(event) => event.stopPropagation()}
+          >
           <button
             type="button"
             aria-label="关闭"
@@ -123,7 +127,7 @@ export function PublicAuthDialog({
                 {process.env.NODE_ENV !== "production" ? (
                   <a
                     href={`/api/dev/public-login?next=${encodeURIComponent(callbackPath)}`}
-                    className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+                  className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
                   >
                     <UserRound className="size-5" aria-hidden="true" />
                     <span>开发登录</span>
@@ -140,7 +144,8 @@ export function PublicAuthDialog({
               </button>
             </>
           )}
-        </div>
+          </div>
+        </motion.div>
       </div>
     </div>,
     document.body,
@@ -199,7 +204,7 @@ function PasswordLoginForm({
           type="text"
           name="username"
           autoComplete="username"
-          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100"
+          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
         />
       </label>
       <label className="grid gap-1.5">
@@ -208,7 +213,7 @@ function PasswordLoginForm({
           type="password"
           name="password"
           autoComplete="current-password"
-          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:text-zinc-100"
+          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
         />
       </label>
       <PasswordSubmitButton pending={pending} />
@@ -253,7 +258,7 @@ function ProviderButton({
       type="button"
       disabled={!enabled}
       onClick={onClick}
-      className="flex h-12 items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-45 dark:border-zinc-800/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+      className="flex h-12 items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
     >
       <span className="flex items-center gap-3">
         {icon}

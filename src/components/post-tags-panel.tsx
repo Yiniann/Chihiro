@@ -1,9 +1,11 @@
 "use client";
 
+import { motion } from "framer-motion";
 import Link from "next/link";
 import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { useDialogShake } from "@/components/use-dialog-shake";
 
 type TagItem = {
   slug: string;
@@ -25,6 +27,7 @@ export function PostTagsPanel({
   clearHref = null,
 }: PostTagsPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { shakeControls, triggerShake } = useDialogShake();
   const visibleTags = tags.slice(0, visibleCount);
   const hasTags = tags.length > 0;
 
@@ -93,14 +96,15 @@ export function PostTagsPanel({
       {isOpen && typeof document !== "undefined"
         ? createPortal(
         <div
-          className="fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/30 backdrop-blur-[2px] dark:bg-black/50"
-          onClick={() => setIsOpen(false)}
+          className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
+          onClick={triggerShake}
         >
           <div className="flex min-h-full items-start justify-center px-4 py-20">
-            <div
-              className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,250,252,0.96))] shadow-[0_30px_120px_rgba(15,23,42,0.16)] dark:border-zinc-800/80 dark:bg-[linear-gradient(180deg,rgba(10,10,14,0.98),rgba(16,18,24,0.96))] dark:shadow-[0_30px_120px_rgba(0,0,0,0.5)]"
-              onClick={(event) => event.stopPropagation()}
-            >
+            <motion.div animate={shakeControls} className="flex w-full justify-center">
+              <div
+                className="w-full max-w-3xl overflow-hidden rounded-[2rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+                onClick={(event) => event.stopPropagation()}
+              >
               <div className="border-b border-zinc-200/80 px-6 py-5 dark:border-zinc-800/80">
                 <div className="flex items-start justify-between gap-4">
                   <div>
@@ -143,7 +147,8 @@ export function PostTagsPanel({
                   ))}
                 </div>
               </div>
-            </div>
+              </div>
+            </motion.div>
           </div>
         </div>
           ,
