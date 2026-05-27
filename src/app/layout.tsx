@@ -22,6 +22,7 @@ const codeMono = JetBrains_Mono({
 
 export async function generateMetadata(): Promise<Metadata> {
   let siteName = siteConfig.name;
+  let siteSubtitle = siteConfig.subtitle;
   let siteDescription = siteConfig.description;
   let siteSettings = null;
 
@@ -30,17 +31,20 @@ export async function generateMetadata(): Promise<Metadata> {
 
     if (siteSettings) {
       siteName = siteSettings.siteName;
+      siteSubtitle = siteSettings.siteSubtitle ?? siteConfig.subtitle;
       siteDescription = siteSettings.siteDescription;
     }
   } catch {
     // Fall back to static config when settings are unavailable.
   }
 
+  const defaultTitle = siteSubtitle ? `${siteName} - ${siteSubtitle}` : siteName;
+
   return {
     metadataBase: new URL(resolveCanonicalSiteUrl(siteSettings)),
     title: {
-      default: siteName,
-      template: `%s | ${siteName}`,
+      default: defaultTitle,
+      template: `%s - ${siteName}`,
     },
     description: siteDescription,
   };

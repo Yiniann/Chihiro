@@ -24,6 +24,7 @@ export async function saveGeneralSettingsAction(
   }
 
   const siteName = getRequiredString(formData, "siteName", "站点名");
+  const siteSubtitle = getOptionalString(formData, "siteSubtitle");
   const submittedSiteUrl = getRequiredUrl(formData, "siteUrl", "站点地址");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
@@ -39,6 +40,7 @@ export async function saveGeneralSettingsAction(
       locale: currentSettings?.locale ?? siteConfig.locale,
       authorName: currentSettings?.authorName ?? siteConfig.author,
       authorAvatarUrl: currentSettings?.authorAvatarUrl ?? null,
+      siteSubtitle,
       heroIntro,
       summary,
       motto,

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { getTimelinePath } from "@/lib/routes";
@@ -16,6 +17,10 @@ import {
   listPublicPosts,
   listPublicUpdates,
 } from "@/server/public-content";
+
+export const metadata: Metadata = {
+  title: "拾光",
+};
 
 type TimelinePageProps = {
   searchParams: Promise<{

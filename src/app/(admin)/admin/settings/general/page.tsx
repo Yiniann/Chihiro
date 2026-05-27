@@ -6,6 +6,7 @@ export default async function AdminGeneralSettingsPage() {
   const siteSettings = await getSiteSettings();
   const defaults = {
     siteName: siteSettings?.siteName ?? siteConfig.name,
+    siteSubtitle: siteSettings?.siteSubtitle ?? siteConfig.subtitle,
     siteUrl: resolveCanonicalSiteUrl(siteSettings),
     heroIntro: siteSettings?.heroIntro ?? siteConfig.heroIntro,
     summary: siteSettings?.summary ?? siteConfig.summary,

@@ -14,6 +14,7 @@ type InstallFormProps = {
     siteDescription: string;
     siteUrl: string;
     locale: string;
+    siteSubtitle: string;
     heroIntro: string;
     summary: string;
     motto: string;
@@ -150,6 +151,7 @@ export function InstallForm({ defaults, needsAdminSetup }: InstallFormProps) {
             <Field label="站点名称" {...siteFieldProps("siteName")} required />
             <Field label="站点地址" {...siteFieldProps("siteUrl")} required />
             <Field label="语言" {...siteFieldProps("locale")} />
+            <Field label="站点副标题" {...siteFieldProps("siteSubtitle")} />
             <Field label="站点简介" {...siteFieldProps("siteDescription")} required />
           </div>
 

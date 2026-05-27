@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -12,6 +13,10 @@ import { SearchDialog } from "@/components/search-dialog";
 import { UpdatesPageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
 import { isPublicSiteUnavailableError, listPublicUpdates } from "@/server/public-content";
+
+export const metadata: Metadata = {
+  title: "足迹",
+};
 
 type UpdatesPageProps = {
   searchParams: Promise<{

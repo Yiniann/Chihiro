@@ -11,6 +11,7 @@ export const fallbackSiteSettings: SiteSettingsRecord = {
   locale: siteConfig.locale,
   authorName: siteConfig.author,
   authorAvatarUrl: siteConfig.avatar,
+  siteSubtitle: siteConfig.subtitle,
   heroIntro: siteConfig.heroIntro,
   summary: siteConfig.summary,
   motto: siteConfig.motto,

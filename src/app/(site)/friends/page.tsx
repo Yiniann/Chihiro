@@ -23,6 +23,7 @@ export default async function FriendsPage() {
   ]);
   const resolvedSiteSettings = siteSettings ?? fallbackSiteSettings;
   const siteUrl = resolveCanonicalSiteUrl(resolvedSiteSettings);
+  const siteIntro = resolvedSiteSettings.siteSubtitle || resolvedSiteSettings.siteDescription;
   const siteAvatarUrl = resolvedSiteSettings.authorAvatarUrl
     ? new URL(resolvedSiteSettings.authorAvatarUrl, siteUrl).toString()
     : null;
@@ -110,7 +111,7 @@ export default async function FriendsPage() {
             </p>
             <p>
               <span className="text-zinc-400 dark:text-zinc-500">简介：</span>
-              {resolvedSiteSettings.siteDescription}
+              {siteIntro}
             </p>
             {siteAvatarUrl ? (
               <p>

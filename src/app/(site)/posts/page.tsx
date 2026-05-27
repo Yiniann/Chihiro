@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,6 +10,10 @@ import { RelativeDate } from "@/components/relative-date";
 import { PostsPageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
 import { isPublicSiteUnavailableError, listPublicPosts } from "@/server/public-content";
+
+export const metadata: Metadata = {
+  title: "篇章",
+};
 
 type PostsPageProps = {
   searchParams: Promise<{

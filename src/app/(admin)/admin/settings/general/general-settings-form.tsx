@@ -16,6 +16,7 @@ const initialState: SaveGeneralSettingsState = {
 type GeneralSettingsFormProps = {
   defaults: {
     siteName: string;
+    siteSubtitle: string;
     siteUrl: string;
     heroIntro: string;
     summary: string;
@@ -41,6 +42,19 @@ export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
             defaultValue={defaults.siteName}
             className="h-11 bg-transparent px-0 text-xl tracking-tight text-zinc-950 outline-none transition placeholder:text-zinc-300 focus:outline-none dark:text-zinc-50 dark:placeholder:text-zinc-600"
             placeholder="输入站点名称"
+          />
+        </label>
+
+        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            站点副标题
+          </span>
+          <input
+            name="siteSubtitle"
+            type="text"
+            defaultValue={defaults.siteSubtitle}
+            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+            placeholder="输入站点副标题"
           />
         </label>
 

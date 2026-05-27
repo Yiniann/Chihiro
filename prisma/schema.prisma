@@ -400,6 +400,7 @@ model SiteSettings {
   locale          String   @default("zh-CN")
   authorName      String
   authorAvatarUrl String?
+  siteSubtitle    String?
   heroIntro       String?
   summary         String?
   motto           String?

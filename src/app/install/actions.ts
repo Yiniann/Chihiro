@@ -51,6 +51,7 @@ export async function initializeSiteAction(
   const siteDescription = getRequiredString(formData, "siteDescription");
   const siteUrl = getValidatedUrl(getRequiredString(formData, "siteUrl"));
   const locale = getOptionalString(formData, "locale") || siteConfig.locale;
+  const siteSubtitle = getOptionalString(formData, "siteSubtitle");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
@@ -110,6 +111,7 @@ export async function initializeSiteAction(
       locale,
       authorName: initialAuthorName,
       authorAvatarUrl: null,
+      siteSubtitle,
       heroIntro,
       summary,
       motto,

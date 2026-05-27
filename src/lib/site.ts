@@ -9,6 +9,7 @@ export const siteConfig = {
   avatar: "/avatar.png",
   author: "Yinian",
   locale: "zh-CN",
+  subtitle: "",
   motto: "It is the time you have wasted for your rose\nmakes your rose so important.",
   heroIntro: DEFAULT_HERO_INTRO,
   summary:

@@ -7,6 +7,7 @@ export type SiteSettingsRecord = {
   locale: string;
   authorName: string;
   authorAvatarUrl: string | null;
+  siteSubtitle: string | null;
   heroIntro: string | null;
   summary: string | null;
   motto: string | null;
@@ -32,6 +33,7 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     locale: settings.locale,
     authorName: settings.authorName,
     authorAvatarUrl: settings.authorAvatarUrl,
+    siteSubtitle: settings.siteSubtitle,
     heroIntro: settings.heroIntro,
     summary: settings.summary,
     motto: settings.motto,
@@ -65,6 +67,7 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       locale: input.locale,
       authorName: input.authorName,
       authorAvatarUrl: input.authorAvatarUrl,
+      siteSubtitle: input.siteSubtitle,
       heroIntro: input.heroIntro,
       summary: input.summary,
       motto: input.motto,
@@ -79,6 +82,7 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       locale: input.locale,
       authorName: input.authorName,
       authorAvatarUrl: input.authorAvatarUrl,
+      siteSubtitle: input.siteSubtitle,
       heroIntro: input.heroIntro,
       summary: input.summary,
       motto: input.motto,
