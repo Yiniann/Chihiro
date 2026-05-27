@@ -1088,12 +1088,16 @@ function PostMegaNavContent({
               onFocus={() => onHoverPostCategory(category.slug)}
               className={`flex items-center justify-between rounded-[0.8rem] px-2 py-1.5 text-left text-[0.78rem] transition-colors ${
                 active
-                  ? "border border-zinc-200/70 bg-white/18 text-zinc-950 shadow-[0_4px_12px_rgba(24,24,27,0.04)] dark:border-white/12 dark:bg-white/6 dark:text-zinc-50"
-                  : "border border-transparent text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-transparent dark:hover:text-zinc-50"
+                  ? "text-primary"
+                  : "text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-transparent dark:hover:text-zinc-50"
               }`}
             >
               <span className="font-medium">{category.label}</span>
-              <span className="text-[0.64rem] tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+              <span
+                className={`text-[0.64rem] tracking-[0.14em] ${
+                  active ? "text-primary/70" : "text-zinc-400 dark:text-zinc-500"
+                }`}
+              >
                 {category.contentCount}
               </span>
             </Link>
@@ -1202,10 +1206,11 @@ function MegaNavArticleLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group flex items-center justify-between gap-3 rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent hover:text-primary dark:hover:bg-transparent"
+      className="group block rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
-      <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{title}</p>
-      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 transition group-hover:translate-x-0.5 group-hover:text-primary dark:text-zinc-500" />
+      <p className="text-sm font-medium text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100">
+        {title}
+      </p>
     </Link>
   );
 }
