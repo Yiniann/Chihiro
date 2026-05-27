@@ -177,6 +177,12 @@ function FriendLinkApplicationForm({ onSuccess }: { onSuccess: () => void }) {
           placeholder="https://example.com/avatar.png"
         />
         <Field
+          label="RSS 地址"
+          name="rssUrl"
+          type="url"
+          placeholder="https://example.com/feed.xml"
+        />
+        <Field
           label="联系邮箱"
           name="contactEmail"
           type="email"

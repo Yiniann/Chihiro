@@ -19,6 +19,7 @@ export async function submitFriendLinkApplicationAction(
       siteUrl: normalizeUrl(getRequiredString(formData, "siteUrl", "请填写站点地址。", 200), "站点地址"),
       description: getOptionalString(formData, "description", 240),
       avatarUrl: getOptionalUrl(formData, "avatarUrl", "头像地址"),
+      rssUrl: getOptionalUrl(formData, "rssUrl", "RSS 地址"),
       contactEmail: getRequiredEmail(formData, "contactEmail"),
       message: getOptionalString(formData, "message", 600),
     });
