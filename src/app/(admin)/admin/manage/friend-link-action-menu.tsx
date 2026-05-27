@@ -1,23 +1,38 @@
 "use client";
 
 import { FriendLinkApplicationStatus } from "@prisma/client";
-import { ChevronDown } from "lucide-react";
+import { Ban, Check, ChevronDown, RotateCcw, Trash2 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
+import { EditFriendLinkDialog } from "@/app/(admin)/admin/manage/edit-friend-link-dialog";
 import {
   approveFriendLinkApplicationAction,
   holdFriendLinkApplicationAction,
   rejectFriendLinkApplicationAction,
 } from "@/app/(admin)/admin/manage/application-actions";
-import { deleteFriendLinkAction } from "@/app/(admin)/admin/manage/actions";
+import { deleteFriendLinkAction, saveFriendLinkAction } from "@/app/(admin)/admin/manage/actions";
 
 export function FriendLinkActionMenu({
   applicationId,
   friendLinkId = null,
+  friendLinkDefaults = null,
   status,
 }: {
   applicationId: number;
   friendLinkId?: number | null;
+  friendLinkDefaults?: {
+    id: number;
+    name: string;
+    url: string;
+    description: string | null;
+    avatarUrl: string | null;
+    location: string | null;
+    feedUrl: string | null;
+    email: string | null;
+    sortOrder: number;
+    isVisible: boolean;
+  } | null;
   status: FriendLinkApplicationStatus;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -74,28 +89,49 @@ export function FriendLinkActionMenu({
 
       {isOpen ? (
         <div className="absolute right-0 z-10 mt-2 min-w-[8rem] overflow-hidden rounded-2xl border border-zinc-200/90 bg-white p-1 shadow-[0_14px_40px_rgba(15,23,42,0.08)] dark:border-zinc-800/90 dark:bg-zinc-950 dark:shadow-[0_14px_40px_rgba(0,0,0,0.35)]">
+          {friendLinkDefaults ? (
+            <EditFriendLinkDialog
+              action={saveFriendLinkAction}
+              defaults={friendLinkDefaults}
+              triggerLabel="编辑"
+              triggerClassName="flex w-full items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+            />
+          ) : null}
           {status !== FriendLinkApplicationStatus.APPROVED ? (
             <ActionForm
               action={approveFriendLinkApplicationAction}
               id={applicationId}
               label="通过"
+              icon={Check}
             />
           ) : null}
           {status !== FriendLinkApplicationStatus.PENDING ? (
-            <ActionForm action={holdFriendLinkApplicationAction} id={applicationId} label="转待审" />
+            <ActionForm
+              action={holdFriendLinkApplicationAction}
+              id={applicationId}
+              label="转待审"
+              icon={RotateCcw}
+            />
           ) : null}
           {status !== FriendLinkApplicationStatus.REJECTED ? (
             <ActionForm
               action={rejectFriendLinkApplicationAction}
               id={applicationId}
               label="拒绝"
+              icon={Ban}
               tone="danger"
             />
           ) : null}
           {friendLinkId ? (
             <ConfirmActionDialog
               triggerLabel="删除"
-              triggerClassName="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              triggerClassName="flex w-full items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
+              triggerContent={
+                <>
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>删除</span>
+                </>
+              }
               title="删除这条友链？"
               description="删除后无法撤销，这条友链会从公开展示中移除。"
               confirmLabel="删除友链"
@@ -114,11 +150,13 @@ function ActionForm({
   action,
   id,
   label,
+  icon: Icon,
   tone = "default",
 }: {
   action: (formData: FormData) => void | Promise<void>;
   id: number;
   label: string;
+  icon: LucideIcon;
   tone?: "default" | "danger";
 }) {
   return (
@@ -127,12 +165,13 @@ function ActionForm({
       <button
         type="submit"
         className={[
-          "flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium transition",
+          "flex w-full items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium transition",
           tone === "danger"
             ? "text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
             : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50",
         ].join(" ")}
       >
+        <Icon className="h-3.5 w-3.5" />
         {label}
       </button>
     </form>

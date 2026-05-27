@@ -2,6 +2,7 @@ import Link from "next/link";
 import { FriendLinkApplicationStatus } from "@prisma/client";
 import { FriendLinkActionMenu } from "@/app/(admin)/admin/manage/friend-link-action-menu";
 import { CreateFriendLinkDialog } from "@/app/(admin)/admin/manage/create-friend-link-dialog";
+import { FriendsPageToast } from "@/app/(admin)/admin/friends/page-toast";
 import {
   approveFriendLinkApplicationAction,
   rejectFriendLinkApplicationAction,
@@ -57,12 +58,10 @@ export default async function AdminFriendsPage({
         </div>
       </section>
 
-      {resolvedSearchParams?.notice ? (
-        <FlashMessage tone="success" message={resolvedSearchParams.notice} />
-      ) : null}
-      {resolvedSearchParams?.error ? (
-        <FlashMessage tone="error" message={resolvedSearchParams.error} />
-      ) : null}
+      <FriendsPageToast
+        notice={resolvedSearchParams?.notice ?? null}
+        error={resolvedSearchParams?.error ?? null}
+      />
 
       <section className="grid gap-4">
         <div className="grid gap-1">
@@ -118,11 +117,7 @@ export default async function AdminFriendsPage({
             ].map((item) => (
               <Link
                 key={item.value}
-                href={getFriendsFilterHref(
-                  item.value,
-                  resolvedSearchParams?.notice,
-                  resolvedSearchParams?.error,
-                )}
+                href={getFriendsFilterHref(item.value)}
                 className={[
                   "inline-flex h-9 items-center gap-2 rounded-2xl px-3 text-sm font-medium transition",
                   item.value === activeProcessedStatus
@@ -170,27 +165,6 @@ export default async function AdminFriendsPage({
           />
         )}
       </section>
-    </div>
-  );
-}
-
-function FlashMessage({
-  tone,
-  message,
-}: {
-  tone: "success" | "error";
-  message: string;
-}) {
-  return (
-    <div
-      className={[
-        "rounded-[1.4rem] border px-4 py-3 text-sm",
-        tone === "success"
-          ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/40 dark:text-emerald-300"
-          : "border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900/70 dark:bg-rose-950/40 dark:text-rose-300",
-      ].join(" ")}
-    >
-      {message}
     </div>
   );
 }
@@ -267,6 +241,22 @@ function ApplicationRow({
             <FriendLinkActionMenu
               applicationId={application.id}
               friendLinkId={friendLinkItem?.id ?? null}
+              friendLinkDefaults={
+                friendLinkItem
+                  ? {
+                      id: friendLinkItem.id,
+                      name: friendLinkItem.name,
+                      url: friendLinkItem.url,
+                      description: friendLinkItem.description,
+                      avatarUrl: friendLinkItem.avatarUrl,
+                      location: friendLinkItem.location,
+                      feedUrl: friendLinkItem.feedUrl,
+                      email: friendLinkItem.email,
+                      sortOrder: friendLinkItem.sortOrder,
+                      isVisible: friendLinkItem.isVisible,
+                    }
+                  : null
+              }
               status={application.status}
             />
           ) : null}
@@ -298,21 +288,9 @@ function ApplicationStatusBadge({
   return <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${className}`}>{label}</span>;
 }
 
-function getFriendsFilterHref(
-  status: "approved" | "rejected",
-  notice?: string,
-  error?: string,
-) {
+function getFriendsFilterHref(status: "approved" | "rejected") {
   const params = new URLSearchParams();
   params.set("status", status);
-
-  if (notice) {
-    params.set("notice", notice);
-  }
-
-  if (error) {
-    params.set("error", error);
-  }
 
   return `/admin/friends?${params.toString()}`;
 }
