@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { Bodies, Body, Engine, World, type Body as MatterBody, type Engine as MatterEngine } from "matter-js";
+import { Bodies, Body, Engine, World } from "matter-js";
 
 type FriendLinkPoolItem = {
   id: number;
@@ -13,7 +13,7 @@ type FriendLinkPoolItem = {
 };
 
 type SimNode = {
-  body: MatterBody;
+  body: ReturnType<typeof Bodies.rectangle>;
   element: HTMLAnchorElement;
   width: number;
   height: number;
@@ -75,7 +75,7 @@ export function FriendLinkPool({
     let frameId = 0;
     let resizeFrameId = 0;
     let resizeObserver: ResizeObserver | null = null;
-    let engine: MatterEngine | null = null;
+    let engine: ReturnType<typeof Engine.create> | null = null;
     let nodes: SimNode[] = [];
     let removeNodePointerListeners = () => {};
 
