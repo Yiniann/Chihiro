@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { Bodies, Body, Engine, World } from "matter-js";
+import { Bodies, Body, Engine, World, type Body as MatterBody, type Engine as MatterEngine } from "matter-js";
 
 type FriendLinkPoolItem = {
   id: number;
@@ -13,7 +13,7 @@ type FriendLinkPoolItem = {
 };
 
 type SimNode = {
-  body: any;
+  body: MatterBody;
   element: HTMLAnchorElement;
   width: number;
   height: number;
@@ -58,6 +58,11 @@ export function FriendLinkPool({
     vy: 0,
     active: false,
   });
+  const scrollRef = useRef<{ y: number; vy: number; lag: number }>({
+    y: 0,
+    vy: 0,
+    lag: 0,
+  });
 
   useEffect(() => {
     const container = containerRef.current;
@@ -70,7 +75,7 @@ export function FriendLinkPool({
     let frameId = 0;
     let resizeFrameId = 0;
     let resizeObserver: ResizeObserver | null = null;
-    let engine: any = null;
+    let engine: MatterEngine | null = null;
     let nodes: SimNode[] = [];
     let removeNodePointerListeners = () => {};
 
@@ -174,6 +179,17 @@ export function FriendLinkPool({
         vx: 0,
         vy: 0,
         active: false,
+      };
+    };
+
+    const handleScroll = () => {
+      const nextY = window.scrollY;
+      const previousY = scrollRef.current.y;
+
+      scrollRef.current = {
+        y: nextY,
+        vy: nextY - previousY,
+        lag: clamp(scrollRef.current.lag + (nextY - previousY) * 0.65, -64, 64),
       };
     };
 
@@ -387,6 +403,7 @@ export function FriendLinkPool({
         const elapsed = (now - startedAt) / 1000;
         const poolWidth = width;
         const poolHeight = parseFloat(container.style.height);
+        const scrollLag = scrollRef.current.lag;
 
         for (const node of nodes) {
           const { body, driftSeed, width: itemWidth, height: itemHeight } = node;
@@ -421,6 +438,9 @@ export function FriendLinkPool({
             y: orbitY + tideY + wanderY + edgeForceY + pointerPull.y,
           });
         }
+
+        scrollRef.current.vy *= 0.94;
+        scrollRef.current.lag *= 0.9;
 
         for (let index = 0; index < nodes.length; index += 1) {
           const currentNode = nodes[index];
@@ -458,8 +478,11 @@ export function FriendLinkPool({
           const y = node.body.position.y - node.height / 2;
           const bobY = Math.sin(elapsed * 1.02 + node.driftSeed * 0.9) * 4.5;
           const floatAngle = Math.sin(elapsed * 0.64 + node.driftSeed) * 2;
+          const scrollOffsetY = scrollLag * (0.22 + ((node.driftSeed % 1) + 1) * 0.04);
+          const scrollOffsetX = scrollLag * 0.04 * Math.sin(node.driftSeed * 1.7);
+          const scrollAngle = scrollLag * 0.02 * Math.cos(node.driftSeed * 1.3);
 
-          node.element.style.transform = `translate3d(${x}px, ${y + bobY}px, 0) rotate(${floatAngle}deg)`;
+          node.element.style.transform = `translate3d(${x + scrollOffsetX}px, ${y + bobY + scrollOffsetY}px, 0) rotate(${floatAngle + scrollAngle}deg)`;
           node.element.style.opacity = "1";
         }
 
@@ -484,6 +507,8 @@ export function FriendLinkPool({
     container.addEventListener("pointermove", handlePointerMove);
     container.addEventListener("pointerleave", handlePointerLeave);
     window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
 
     for (const element of setItemRef.values()) {
       resizeObserver.observe(element);
@@ -500,6 +525,7 @@ export function FriendLinkPool({
       container.removeEventListener("pointermove", handlePointerMove);
       container.removeEventListener("pointerleave", handlePointerLeave);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("scroll", handleScroll);
       cleanupWorld();
     };
   }, [links]);
