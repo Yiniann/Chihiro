@@ -38,7 +38,7 @@ export async function GET() {
     throw error;
   }
 
-  const feedUrl = canonicalUrl("/rss.xml", siteSettings);
+  const feedUrl = canonicalUrl("/feed", siteSettings);
   const siteUrl = canonicalUrl("/", siteSettings);
 
   const items = posts

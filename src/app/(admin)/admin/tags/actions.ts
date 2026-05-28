@@ -151,7 +151,7 @@ function revalidateTagSurfaces(id: string, slug: string) {
   revalidatePath("/posts");
   revalidatePath("/updates");
   revalidatePath("/timeline");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
   revalidatePath(`/posts?tag=${encodeURIComponent(slug)}`);
 }

@@ -129,12 +129,12 @@ export default async function FriendsPage() {
             <p>
               <span className="text-zinc-400 dark:text-zinc-500">RSS：</span>
               <Link
-                href={`${siteUrl}/rss.xml`}
+                href={`${siteUrl}/feed`}
                 target="_blank"
                 rel="noreferrer"
                 className="break-all text-zinc-950 underline decoration-zinc-300 underline-offset-4 dark:text-zinc-100 dark:decoration-zinc-700"
               >
-                {siteUrl}/rss.xml
+                {siteUrl}/feed
               </Link>
             </p>
           </div>

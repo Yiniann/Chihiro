@@ -132,7 +132,7 @@ function revalidateCategorySurfaces(id: number, slug: string) {
   revalidatePath("/");
   revalidatePath("/posts");
   revalidatePath("/timeline");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
   revalidatePath(`/posts?category=${encodeURIComponent(slug)}`);
 }

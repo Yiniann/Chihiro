@@ -206,6 +206,6 @@ function revalidateUpdateSurface() {
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/updates");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
 }

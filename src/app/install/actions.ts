@@ -149,7 +149,7 @@ export async function initializeSiteAction(
   revalidatePath("/posts");
   revalidatePath("/updates");
   revalidatePath("/timeline");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin");
   redirect("/admin");

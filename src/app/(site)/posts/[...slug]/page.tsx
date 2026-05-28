@@ -7,6 +7,7 @@ import { PostSidebarActions } from "@/components/post-sidebar-actions";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
+import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
 import {
   addHeadingAnchors,
   getRenderedContentHtml,
@@ -162,89 +163,115 @@ export default async function PostPage({ params }: PostPageProps) {
 
     return (
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_16rem] lg:items-start lg:justify-center">
+        <StaggerReveal
+          className="grid gap-12 lg:grid-cols-[minmax(0,48rem)_16rem] lg:items-start lg:justify-center"
+          delayChildren={0.04}
+          staggerChildren={0.08}
+        >
           <article className="min-w-0">
-            <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-              {post.title}
-            </h1>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-              <RelativeDate value={post.publishedAt} />
-              {post.updatedAt ? (
-                <span>
-                  Updated <RelativeDate value={post.updatedAt} />
-                </span>
-              ) : null}
-              <PostEngagement
-                postId={post.id}
-                initialViewCount={post.viewCount}
-                initialLikeCount={post.likeCount}
-              />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {post.category ? (
-                <Link
-                  href={`/posts?category=${encodeURIComponent(post.category.slug)}`}
-                  className="text-xs font-medium text-primary transition-colors hover:text-primary/75"
-                >
-                  /{post.category.name}
-                </Link>
-              ) : null}
-              {post.tags.map((tag) => (
-                <Link
-                  key={tag.id}
-                  href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
-                  className="text-xs font-medium text-zinc-500 transition-colors hover:text-primary dark:text-zinc-400"
-                >
-                  #{tag.name}
-                </Link>
-              ))}
-            </div>
+            <StaggerRevealItem offset={20}>
+              <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                {post.title}
+              </h1>
+            </StaggerRevealItem>
+
+            <StaggerRevealItem offset={16}>
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+                <RelativeDate value={post.publishedAt} />
+                {post.updatedAt ? (
+                  <span>
+                    Updated <RelativeDate value={post.updatedAt} />
+                  </span>
+                ) : null}
+                <PostEngagement
+                  postId={post.id}
+                  initialViewCount={post.viewCount}
+                  initialLikeCount={post.likeCount}
+                />
+              </div>
+            </StaggerRevealItem>
+
+            <StaggerRevealItem offset={16}>
+              <div className="mt-4 flex flex-wrap gap-3">
+                {post.category ? (
+                  <Link
+                    href={`/posts?category=${encodeURIComponent(post.category.slug)}`}
+                    className="text-xs font-medium text-primary transition-colors hover:text-primary/75"
+                  >
+                    /{post.category.name}
+                  </Link>
+                ) : null}
+                {post.tags.map((tag) => (
+                  <Link
+                    key={tag.id}
+                    href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
+                    className="text-xs font-medium text-zinc-500 transition-colors hover:text-primary dark:text-zinc-400"
+                  >
+                    #{tag.name}
+                  </Link>
+                ))}
+              </div>
+            </StaggerRevealItem>
+
             {post.summary ? (
-              <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-                {post.summary}
-              </p>
+              <StaggerRevealItem offset={18}>
+                <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+                  {post.summary}
+                </p>
+              </StaggerRevealItem>
             ) : null}
 
-            {renderedContentHtml ? (
+            <StaggerRevealItem offset={22}>
+              {renderedContentHtml ? (
+                <div
+                  data-reading-progress-root
+                  className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                  suppressHydrationWarning
+                  dangerouslySetInnerHTML={{ __html: postContentHtml }}
+                />
+              ) : (
+                <div
+                  data-reading-progress-root
+                  className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                >
+                  <p>暂无内容。</p>
+                </div>
+              )}
+            </StaggerRevealItem>
+
+            <StaggerRevealItem offset={18}>
               <div
-                data-reading-progress-root
-                className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
-                suppressHydrationWarning
-                dangerouslySetInnerHTML={{ __html: postContentHtml }}
-              />
-            ) : (
-              <div
-                data-reading-progress-root
-                className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                className="mt-12 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-primary/80"
+                aria-hidden="true"
               >
-                <p>暂无内容。</p>
+                <span className="h-px flex-1 border-t border-dashed border-primary/45" />
+                <span>end</span>
+                <span className="h-px flex-1 border-t border-dashed border-primary/45" />
               </div>
-            )}
-            <div
-              className="mt-12 flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.18em] text-primary/80"
-              aria-hidden="true"
-            >
-              <span className="h-px flex-1 border-t border-dashed border-primary/45" />
-              <span>end</span>
-              <span className="h-px flex-1 border-t border-dashed border-primary/45" />
-            </div>
-            <PostComments
-              targetType="post"
-              targetId={post.id}
-              pathname={postPath}
-              commentsEnabled={post.commentsEnabled}
-            />
+            </StaggerRevealItem>
+
+            <StaggerRevealItem offset={22}>
+              <PostComments
+                targetType="post"
+                targetId={post.id}
+                pathname={postPath}
+                commentsEnabled={post.commentsEnabled}
+              />
+            </StaggerRevealItem>
           </article>
+
           <PostTableOfContents items={tocItems}>
-            <PostSidebarActions
-              postId={post.id}
-              title={post.title}
-              initialLikeCount={post.likeCount}
-              siteName={siteSettings.siteName ?? siteConfig.name}
-              subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
-            />
+            <StaggerRevealItem offset={18}>
+              <PostSidebarActions
+                postId={post.id}
+                title={post.title}
+                initialLikeCount={post.likeCount}
+                siteName={siteSettings.siteName ?? siteConfig.name}
+                subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
+              />
+            </StaggerRevealItem>
           </PostTableOfContents>
-        </div>
+        </StaggerReveal>
       </main>
     );
   } catch (error) {

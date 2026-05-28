@@ -280,6 +280,6 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/posts");
   revalidatePath(getPostPath({ slug, categorySlug }));
   revalidatePath(`/posts/${slug}`);
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
 }

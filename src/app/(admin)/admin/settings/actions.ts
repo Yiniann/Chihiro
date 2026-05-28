@@ -61,7 +61,7 @@ export async function saveGeneralSettingsAction(
   revalidatePath("/timeline");
   revalidatePath("/more");
   revalidatePath("/message");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin");
   revalidatePath("/admin/settings");

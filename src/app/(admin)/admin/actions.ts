@@ -356,7 +356,7 @@ function revalidatePostSurface(slug: string, categorySlug?: string | null) {
   revalidatePath("/posts");
   revalidatePath(getPostPath({ slug, categorySlug }));
   revalidatePath(`/posts/${slug}`);
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
 }
 
@@ -367,7 +367,7 @@ function revalidateUpdateSurface() {
   revalidatePath("/");
   revalidatePath("/timeline");
   revalidatePath("/updates");
-  revalidatePath("/rss.xml");
+  revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
 }
 

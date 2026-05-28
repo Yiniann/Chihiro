@@ -8,7 +8,7 @@ const footerFeedLinks: ReadonlyArray<{
   isSubscriptionTrigger?: boolean;
 }> = [
   {
-    href: "/rss.xml",
+    href: "/feed",
     label: "RSS",
     openInNewTab: true,
   },

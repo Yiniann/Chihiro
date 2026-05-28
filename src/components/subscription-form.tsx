@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X } from "lucide-react";
+import { Check, Mail, X } from "lucide-react";
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import { useActionState, useEffect, useState } from "react";
@@ -209,15 +209,18 @@ function SubscriptionFormInner({
             Subscribe
           </span>
         ) : null}
-        <input
-          name="email"
-          type="email"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:border-zinc-800/80 dark:text-zinc-200 dark:placeholder:text-zinc-600"
-          placeholder="输入邮箱订阅更新"
-        />
+        <div className="flex h-11 items-center gap-3 border-b border-zinc-200/80 text-zinc-500 transition focus-within:text-zinc-700 dark:border-zinc-800/80 dark:text-zinc-600 dark:focus-within:text-zinc-300">
+          <Mail className="size-4 shrink-0" strokeWidth={1.9} aria-hidden="true" />
+          <input
+            name="email"
+            type="email"
+            required
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            className="h-full w-full bg-transparent px-0 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+            placeholder="输入邮箱订阅更新"
+          />
+        </div>
       </label>
 
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
