@@ -6,8 +6,8 @@ import {
   THEME_MODE_EVENT,
   readStoredThemeModePreference,
   readStoredThemeMode,
-  setThemeModePreference,
-  toggleThemeMode,
+  setThemeModePreferenceWithTransition,
+  toggleThemeModeWithTransition,
   type ThemeMode,
   type ThemeModePreference,
 } from "@/lib/theme-mode";
@@ -88,13 +88,19 @@ export function ThemeModeToggle({
   }, [inline]);
 
   const handleToggle = () => {
-    const nextState = toggleThemeMode(mode);
+    const button = containerRef.current?.querySelector("button");
+    const nextState = toggleThemeModeWithTransition(mode, {
+      origin: getRectCenter(button),
+    });
+
     setPreference(nextState.preference);
     setMode(nextState.mode);
   };
 
-  const handleFollowSystem = () => {
-    const nextState = setThemeModePreference("system");
+  const handleFollowSystem = (target?: Element | null) => {
+    const nextState = setThemeModePreferenceWithTransition("system", {
+      origin: getRectCenter(target),
+    });
     setPreference(nextState.preference);
     setMode(nextState.mode);
     setIsHintOpen(false);
@@ -105,8 +111,10 @@ export function ThemeModeToggle({
       <div className="grid grid-cols-3 gap-2">
         <button
           type="button"
-          onClick={() => {
-            const nextState = setThemeModePreference("light");
+          onClick={(event) => {
+            const nextState = setThemeModePreferenceWithTransition("light", {
+              origin: getRectCenter(event.currentTarget),
+            });
             setPreference(nextState.preference);
             setMode(nextState.mode);
           }}
@@ -121,8 +129,10 @@ export function ThemeModeToggle({
         </button>
         <button
           type="button"
-          onClick={() => {
-            const nextState = setThemeModePreference("dark");
+          onClick={(event) => {
+            const nextState = setThemeModePreferenceWithTransition("dark", {
+              origin: getRectCenter(event.currentTarget),
+            });
             setPreference(nextState.preference);
             setMode(nextState.mode);
           }}
@@ -137,7 +147,7 @@ export function ThemeModeToggle({
         </button>
         <button
           type="button"
-          onClick={handleFollowSystem}
+          onClick={(event) => handleFollowSystem(event.currentTarget)}
           className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
             preference === "system"
               ? "border-primary/20 bg-primary/10 text-primary"
@@ -171,15 +181,19 @@ export function ThemeModeToggle({
         aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
         onClick={handleToggle}
         tabIndex={disableTabFocus ? -1 : undefined}
-        className={`inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
+        className={`group inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
           minimal
             ? "border border-transparent bg-transparent hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white"
             : isScrolled
-            ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_16px_40px_rgba(2,6,23,0.06)]"
+            ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_16px_40px_rgba(2,6,23,0.06)] dark:hover:shadow-[0_18px_36px_rgba(2,6,23,0.18)]"
             : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
         }`}
       >
-        {mode === "dark" ? <Moon className="h-4.5 w-4.5" /> : <Sun className="h-4.5 w-4.5" />}
+        <span
+          className="inline-flex items-center justify-center transition duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-12"
+        >
+          {mode === "dark" ? <Moon className="h-4.5 w-4.5" /> : <Sun className="h-4.5 w-4.5" />}
+        </span>
       </button>
 
       {isHintOpen ? (
@@ -200,7 +214,7 @@ export function ThemeModeToggle({
               <button
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
-                onClick={handleFollowSystem}
+                onClick={(event) => handleFollowSystem(event.currentTarget)}
                 tabIndex={disableTabFocus ? -1 : undefined}
                 className={`cursor-pointer text-xs font-medium transition ${
                   preference === "system"
@@ -217,4 +231,17 @@ export function ThemeModeToggle({
       ) : null}
     </div>
   );
+}
+
+function getRectCenter(element: Element | null | undefined) {
+  const rect = element?.getBoundingClientRect();
+
+  if (!rect) {
+    return undefined;
+  }
+
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2,
+  };
 }

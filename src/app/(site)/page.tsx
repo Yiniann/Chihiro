@@ -2,6 +2,7 @@ import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailabl
 import { HomeTimelineRail } from "@/components/home-timeline-rail";
 import { ProfileAvatar } from "@/components/profile-avatar";
 import { HeroIntro } from "@/components/hero-intro";
+import { HomeSiteActions } from "@/components/home-site-actions";
 import { RelativeDate } from "@/components/relative-date";
 import { ScrollToSectionLink } from "@/components/scroll-to-section-link";
 import { SocialIconLinks } from "@/components/social-icon-links";
@@ -18,11 +19,13 @@ import { siteConfig } from "@/lib/site";
 import type { SocialLink } from "@/lib/social-links";
 import { getTimelineItems } from "@/lib/timeline-items";
 import {
+  getPublicInteractionSettingsForSite,
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
   listPublicPosts,
   listPublicUpdates,
 } from "@/server/public-content";
+import { getSiteLikeCount } from "@/server/repositories/site-likes";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 import Link from "next/link";
 
@@ -31,13 +34,17 @@ export default async function HomePage() {
   let posts;
   let updates;
   let ownerProfile;
+  let interactionSettings;
+  let siteLikeCount;
 
   try {
-    [siteSettings, posts, updates, ownerProfile] = await Promise.all([
+    [siteSettings, posts, updates, ownerProfile, interactionSettings, siteLikeCount] = await Promise.all([
       getPublicSiteSettings(),
       listPublicPosts(),
       listPublicUpdates(),
       getOwnerDisplayProfile(),
+      getPublicInteractionSettingsForSite(),
+      getSiteLikeCount(),
     ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
@@ -206,6 +213,16 @@ export default async function HomePage() {
             />
           </StaggerRevealItem>
         ) : null}
+
+        <StaggerRevealItem offset={16}>
+          <section className="mx-auto flex w-full max-w-5xl justify-center pb-10 pt-2">
+            <HomeSiteActions
+              initialLikeCount={siteLikeCount}
+              siteName={siteSettings.siteName ?? siteConfig.name}
+              subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
+            />
+          </section>
+        </StaggerRevealItem>
       </StaggerReveal>
     </main>
   );

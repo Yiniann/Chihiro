@@ -83,6 +83,62 @@ body {
   font-family: var(--font-sans);
 }
 
+html[data-theme-transition-ready="true"] body,
+html[data-theme-transition-ready="true"] body::before,
+html[data-theme-transition-ready="true"] body::after,
+html[data-theme-transition-ready="true"] body * {
+  transition-property: background-color, color, border-color, fill, stroke, box-shadow;
+  transition-duration: 420ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.theme-switch-aura {
+  position: fixed;
+  left: var(--theme-switch-origin-x);
+  top: var(--theme-switch-origin-y);
+  z-index: 80;
+  height: 16rem;
+  width: 16rem;
+  translate: -50% -50%;
+  border-radius: 9999px;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.18);
+  filter: blur(8px);
+  background:
+    radial-gradient(circle, rgb(var(--primary-rgb) / 0.28) 0%, rgb(var(--primary-rgb) / 0.18) 22%, transparent 68%),
+    radial-gradient(circle, rgb(255 255 255 / 0.18) 0%, transparent 62%);
+  transition:
+    transform 620ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  mix-blend-mode: screen;
+}
+
+.theme-switch-aura[data-next-mode="dark"] {
+  background:
+    radial-gradient(circle, rgb(var(--primary-rgb) / 0.2) 0%, rgb(8 47 73 / 0.12) 28%, transparent 72%),
+    radial-gradient(circle, rgb(15 23 42 / 0.12) 0%, transparent 58%);
+}
+
+.theme-switch-aura[data-next-mode="light"] {
+  background:
+    radial-gradient(circle, rgb(var(--primary-rgb) / 0.24) 0%, rgb(255 255 255 / 0.2) 28%, transparent 72%),
+    radial-gradient(circle, rgb(255 255 255 / 0.18) 0%, transparent 58%);
+}
+
+.theme-switch-aura[data-state="visible"] {
+  opacity: 0.95;
+  transform: scale(8.5);
+  filter: blur(18px);
+}
+
+.theme-switch-aura[data-state="fade"] {
+  opacity: 0;
+  transform: scale(10.5);
+  filter: blur(24px);
+}
+
 @media (hover: none) and (pointer: coarse) {
   input,
   textarea,
@@ -129,6 +185,17 @@ body {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  html[data-theme-transition-ready="true"] body,
+  html[data-theme-transition-ready="true"] body::before,
+  html[data-theme-transition-ready="true"] body::after,
+  html[data-theme-transition-ready="true"] body * {
+    transition: none !important;
+  }
+
+  .theme-switch-aura {
+    display: none;
   }
 
   .toc-item-enter {

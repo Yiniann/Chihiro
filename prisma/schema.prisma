@@ -112,6 +112,14 @@ model PostLike {
   @@index([visitorId])
 }
 
+model SiteLike {
+  id        String   @id @default(cuid())
+  visitorId String   @unique
+  createdAt DateTime @default(now())
+
+  @@index([visitorId])
+}
+
 model User {
   id            String        @id @default(cuid())
   username      String?       @unique

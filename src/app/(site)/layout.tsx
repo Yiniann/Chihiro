@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { StandalonePageNavGroup } from "@prisma/client";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
+import { DevBreakpointIndicator } from "@/components/dev-breakpoint-indicator";
 import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -104,6 +105,7 @@ export default async function SiteLayout({
   return (
     <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
       <SiteCanvasBackground />
+      <DevBreakpointIndicator />
       <SiteHeader
         siteName={siteName}
         isAdminLoggedIn={adminState.isAdminLoggedIn}
