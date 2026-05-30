@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SiteLiveVisitors } from "@/components/site-live-visitors";
 import { FooterSubscribeLink } from "@/components/subscription-form";
 
 const footerFeedLinks: ReadonlyArray<{
@@ -32,6 +33,7 @@ export function SiteFooter({
   email,
   githubUrl,
   subscriptionsEnabled,
+  siteLiveVisitorsEnabled,
 }: {
   siteName: string;
   authorName: string;
@@ -39,6 +41,7 @@ export function SiteFooter({
   email: string | null;
   githubUrl: string | null;
   subscriptionsEnabled: boolean;
+  siteLiveVisitorsEnabled: boolean;
 }) {
   const currentYear = new Date().getFullYear();
   const mottoLines = getFooterMottoLines(motto);
@@ -91,6 +94,8 @@ export function SiteFooter({
                 </span>
               ))}
             </p>
+
+            {siteLiveVisitorsEnabled ? <SiteLiveVisitors /> : null}
           </div>
 
           <div className="col-span-2 grid grid-cols-2 gap-8 lg:col-span-1 lg:justify-self-end lg:gap-16">

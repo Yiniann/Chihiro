@@ -9,11 +9,16 @@ services:
       NODE_ENV: production
       PORT: ${PORT:-3000}
       DATABASE_URL: ${DOCKER_DATABASE_URL:-postgresql://chihiro:chihiro@postgres:5432/chihiro?schema=public}
+      REDIS_URL: ${DOCKER_REDIS_URL:-redis://redis:6379}
+      REALTIME_PORT: ${REALTIME_PORT:-3001}
       RUN_MIGRATIONS: ${RUN_MIGRATIONS:-true}
     ports:
       - "${APP_PORT:-3000}:3000"
+      - "${REALTIME_PUBLIC_PORT:-3001}:3001"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null 2>&1 || exit 1"]
@@ -38,6 +43,18 @@ services:
       - chihiro-postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-chihiro} -d $${POSTGRES_DB:-chihiro}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: chihiro-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

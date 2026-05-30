@@ -17,6 +17,8 @@ export const fallbackSiteSettings: SiteSettingsRecord = {
   motto: siteConfig.motto,
   email: siteConfig.email,
   githubUrl: siteConfig.github,
+  siteLiveVisitorsEnabled: true,
+  postReadingPresenceEnabled: true,
 };
 
 export const fallbackPosts: PostItem[] = [];

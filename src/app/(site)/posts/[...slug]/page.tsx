@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { PostComments } from "@/components/post-comments";
 import { PostEngagement } from "@/components/post-engagement";
+import { PostReadingPresenceRail } from "@/components/post-reading-presence-rail";
 import { PostSidebarActions } from "@/components/post-sidebar-actions";
 import { PostTableOfContents } from "@/components/post-table-of-contents";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
@@ -16,6 +17,7 @@ import {
 import { getPostPath } from "@/lib/routes";
 import { siteConfig } from "@/lib/site";
 import { RelativeDate } from "@/components/relative-date";
+import { auth } from "@/server/public-auth";
 import {
   getPublicInteractionSettingsForSite,
   getPublicPostByCategoryAndSlug,
@@ -26,6 +28,7 @@ import {
   isPublicSiteUnavailableError,
   isUninstalledSiteError,
 } from "@/server/public-content";
+import { getOwnerDisplayProfile } from "@/server/repositories/users";
 
 type PostPageProps = {
   params: Promise<{
@@ -156,10 +159,17 @@ export default async function PostPage({ params }: PostPageProps) {
     const postContentHtml = normalizeHtmlForHydration(contentWithToc?.html ?? highlightedContentHtml ?? "");
     const tocItems = contentWithToc?.items ?? [];
     const postPath = getPostPath({ slug: post.slug, categorySlug: post.category?.slug });
-    const [interactionSettings, siteSettings] = await Promise.all([
+    const [interactionSettings, siteSettings, publicSession, ownerProfile] = await Promise.all([
       getPublicInteractionSettingsForSite(),
       getPublicSiteSettings(),
+      auth(),
+      getOwnerDisplayProfile(),
     ]);
+    const realtimePort = Number(process.env.REALTIME_PORT ?? 3001);
+    const selfAvatarUrl =
+      publicSession?.user?.role === "OWNER"
+        ? ownerProfile?.image ?? publicSession.user.image ?? null
+        : publicSession?.user?.image ?? null;
 
     return (
       <main className="mx-auto min-h-screen w-full max-w-7xl px-6 py-16 sm:px-10">
@@ -169,6 +179,17 @@ export default async function PostPage({ params }: PostPageProps) {
           staggerChildren={0.08}
         >
           <article className="min-w-0">
+            {siteSettings.postReadingPresenceEnabled ? (
+              <PostReadingPresenceRail
+                postId={post.id}
+                postSlug={post.slug}
+                pathname={postPath}
+                realtimePort={realtimePort}
+                selfAvatarUrl={selfAvatarUrl}
+                selfDisplayName={publicSession?.user?.name ?? null}
+              />
+            ) : null}
+
             <StaggerRevealItem offset={20}>
               <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
                 {post.title}

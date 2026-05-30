@@ -6,6 +6,8 @@ BUILD_DIR="$ROOT_DIR/.next/standalone"
 STATIC_DIR="$ROOT_DIR/.next/static"
 PUBLIC_DIR="$ROOT_DIR/public"
 PRISMA_DIR="$ROOT_DIR/prisma"
+REALTIME_DIR="$ROOT_DIR/realtime"
+RUN_SERVICES_SCRIPT="$ROOT_DIR/scripts/run-services.mjs"
 DIST_ROOT="$ROOT_DIR/.dist"
 PACKAGE_DIR="$DIST_ROOT/chihiro-standalone"
 ARCHIVE_PATH="$DIST_ROOT/chihiro-standalone.tar.gz"
@@ -30,6 +32,16 @@ fi
 
 if [ -d "$PRISMA_DIR" ]; then
   cp -R "$PRISMA_DIR" "$PACKAGE_DIR/prisma"
+fi
+
+if [ -d "$REALTIME_DIR" ]; then
+  cp -R "$REALTIME_DIR" "$PACKAGE_DIR/realtime"
+fi
+
+mkdir -p "$PACKAGE_DIR/scripts"
+
+if [ -f "$RUN_SERVICES_SCRIPT" ]; then
+  cp "$RUN_SERVICES_SCRIPT" "$PACKAGE_DIR/scripts/run-services.mjs"
 fi
 
 mkdir -p "$DIST_ROOT"

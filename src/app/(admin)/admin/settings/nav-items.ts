@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, Image, LogIn, Mail, MessageSquareText, Settings2, ShieldUser } from "lucide-react";
+import { Bell, Image, LogIn, Mail, MessageSquareText, Radio, Settings2, ShieldUser } from "lucide-react";
 
 export type SettingsNavItem = {
   href: string;
@@ -50,5 +50,11 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     label: "评论设置",
     description: "评论入口与审核策略",
     icon: MessageSquareText,
+  },
+  {
+    href: "/admin/settings/websocket",
+    label: "WebSocket 设置",
+    description: "实时在线访客与阅读状态",
+    icon: Radio,
   },
 ];

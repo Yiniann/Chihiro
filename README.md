@@ -35,18 +35,39 @@ pnpm dev
 http://localhost:3000
 ```
 
+实时阅读 presence 服务默认监听：
+
+```text
+ws://localhost:3001
+```
+
 ## 本地数据库
 
 项目已经接入 `Prisma`，本地开发可以先只借用 `docker compose` 里的 Postgres：
 
 ```bash
 cp .env.example .env
-docker compose up -d postgres
+docker compose up -d postgres redis
 pnpm db:push
 pnpm db:generate
 ```
 
 默认本地连接串已经写在 `.env.example` 里，对应 `docker-compose.yml` 里的数据库配置。
+Redis 本地连接串也已经预置为 `redis://127.0.0.1:6379`。
+
+## 实时阅读展示
+
+文章详情页现在会通过 `WebSocket + Redis` 公开展示：
+
+- 当前全站在线访客数
+- 当前文章在线访客数与阅读会话数
+- 匿名读者阅读进度卡片
+- 阅读进度分布
+
+本地开发时，`pnpm dev` 会同时启动：
+
+- Next.js 站点：`http://localhost:3000`
+- realtime 服务：`ws://localhost:3001`
 
 本地开发当前统一使用：
 

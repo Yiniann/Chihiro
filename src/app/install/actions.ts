@@ -117,6 +117,8 @@ export async function initializeSiteAction(
       motto,
       email: null,
       githubUrl: null,
+      siteLiveVisitorsEnabled: true,
+      postReadingPresenceEnabled: true,
     });
 
     await ensureDefaultStandalonePages();

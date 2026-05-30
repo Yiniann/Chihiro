@@ -13,6 +13,8 @@ export type SiteSettingsRecord = {
   motto: string | null;
   email: string | null;
   githubUrl: string | null;
+  siteLiveVisitorsEnabled: boolean;
+  postReadingPresenceEnabled: boolean;
 };
 
 export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
@@ -39,6 +41,8 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     motto: settings.motto,
     email: settings.email,
     githubUrl: settings.githubUrl,
+    siteLiveVisitorsEnabled: settings.siteLiveVisitorsEnabled,
+    postReadingPresenceEnabled: settings.postReadingPresenceEnabled,
   };
 }
 
@@ -73,6 +77,8 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
+      postReadingPresenceEnabled: input.postReadingPresenceEnabled,
     },
     create: {
       id: "default",
@@ -88,6 +94,8 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
+      postReadingPresenceEnabled: input.postReadingPresenceEnabled,
     },
   });
 }

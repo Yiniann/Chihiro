@@ -5,6 +5,7 @@ import { DevBreakpointIndicator } from "@/components/dev-breakpoint-indicator";
 import { SiteCanvasBackground } from "@/components/site-canvas-background";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { SitePresenceTracker } from "@/components/site-presence-tracker";
 import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { getInstallationState, isInstallationComplete } from "@/server/installation";
 import { auth } from "@/server/public-auth";
@@ -93,6 +94,7 @@ export default async function SiteLayout({
   const siteEmail = ownerProfile?.email ?? null;
   const siteGithubUrl = ownerProfile?.githubUrl ?? null;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+  const siteLiveVisitorsEnabled = siteSettings.siteLiveVisitorsEnabled;
   const githubAuthAvailable =
     interactionSettings.githubLoginEnabled &&
     (Boolean(interactionSettings.githubClientId) || Boolean(process.env.AUTH_GITHUB_ID?.trim())) &&
@@ -104,6 +106,7 @@ export default async function SiteLayout({
 
   return (
     <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+      {siteLiveVisitorsEnabled ? <SitePresenceTracker /> : null}
       <SiteCanvasBackground />
       <DevBreakpointIndicator />
       <SiteHeader
@@ -131,6 +134,7 @@ export default async function SiteLayout({
         email={siteEmail}
         githubUrl={siteGithubUrl}
         subscriptionsEnabled={interactionSettings.subscriptionsEnabled}
+        siteLiveVisitorsEnabled={siteLiveVisitorsEnabled}
       />
     </div>
   );

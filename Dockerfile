@@ -37,6 +37,8 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/standalone/.
 COPY --from=builder --chown=nextjs:nodejs /app/public ./.next/standalone/public
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=nextjs:nodejs /app/realtime ./realtime
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/run-services.mjs ./scripts/run-services.mjs
 COPY --chown=nextjs:nodejs docker/entrypoint.sh /usr/local/bin/chihiro-entrypoint
 
 RUN chmod +x /usr/local/bin/chihiro-entrypoint
@@ -44,6 +46,7 @@ RUN chmod +x /usr/local/bin/chihiro-entrypoint
 USER nextjs
 
 EXPOSE 3000
+EXPOSE 3001
 
 ENTRYPOINT ["chihiro-entrypoint"]
-CMD ["node", ".next/standalone/server.js"]
+CMD ["node", "scripts/run-services.mjs"]

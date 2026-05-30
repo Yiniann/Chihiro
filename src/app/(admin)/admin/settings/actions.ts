@@ -46,6 +46,8 @@ export async function saveGeneralSettingsAction(
       motto,
       email: currentSettings?.email ?? null,
       githubUrl: currentSettings?.githubUrl ?? null,
+      siteLiveVisitorsEnabled: currentSettings?.siteLiveVisitorsEnabled ?? true,
+      postReadingPresenceEnabled: currentSettings?.postReadingPresenceEnabled ?? true,
     });
   } catch (error) {
     return {

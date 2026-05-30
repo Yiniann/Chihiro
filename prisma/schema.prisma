@@ -414,6 +414,8 @@ model SiteSettings {
   motto           String?
   email           String?
   githubUrl       String?
+  siteLiveVisitorsEnabled   Boolean @default(true)
+  postReadingPresenceEnabled Boolean @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

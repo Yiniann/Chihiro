@@ -5,13 +5,13 @@ import type { MouseEvent } from "react";
 import type { ReactNode } from "react";
 import { ArrowUpIcon, CheckIcon } from "lucide-react";
 import type { TableOfContentsItem } from "@/lib/content";
+import { getReadingProgressValue, READING_PROGRESS_ROOT_SELECTOR } from "@/lib/reading-progress";
 
 type TableOfContentsSection = {
   heading: TableOfContentsItem;
   children: TableOfContentsItem[];
 };
 
-const READING_PROGRESS_ROOT_SELECTOR = "[data-reading-progress-root]";
 const BACK_TO_TOP_SCROLL_THRESHOLD = 420;
 
 export function PostTableOfContents({
@@ -186,29 +186,7 @@ export function PostTableOfContents({
     let animationFrame = 0;
 
     const updateReadingProgress = () => {
-      const progressRoot = document.querySelector<HTMLElement>(
-        READING_PROGRESS_ROOT_SELECTOR,
-      );
-
-      if (!progressRoot) {
-        setReadingProgress(0);
-        return;
-      }
-
-      const scrollY = window.scrollY;
-      const rootRect = progressRoot.getBoundingClientRect();
-      const rootTop = rootRect.top + scrollY;
-      const rootHeight = Math.max(progressRoot.scrollHeight, rootRect.height);
-      const rootBottom = rootTop + rootHeight;
-      const readableDistance = rootHeight - window.innerHeight;
-      const progress =
-        readableDistance <= 0
-          ? scrollY >= rootTop
-            ? 100
-            : 0
-          : ((scrollY - rootTop) / (rootBottom - window.innerHeight - rootTop)) * 100;
-
-      const nextProgress = Math.min(100, Math.max(0, progress));
+      const nextProgress = getReadingProgressValue();
 
       if (nextProgress >= 100) {
         setReadingProgress(100);

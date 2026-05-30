@@ -764,6 +764,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
         <img
           src={src}
           alt={`${author} avatar`}
+          data-current-user-avatar="true"
           className="h-full w-full object-cover"
           draggable={false}
           onError={() => setShowFallback(true)}
@@ -778,6 +779,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
       <Image
         src={src}
         alt={`${author} avatar`}
+        data-current-user-avatar="true"
         width={40}
         height={40}
         className="h-full w-full object-cover"
