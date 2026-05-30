@@ -348,13 +348,22 @@ export function PostReadingPresenceRail({
                 </div>
 
                 <div
-                  className={
-                    isRailHovered
-                      ? "pointer-events-none absolute left-5 w-56 -translate-y-1/2 opacity-100 transition-[top,opacity] duration-200 ease-out"
-                      : "pointer-events-none absolute left-5 w-56 -translate-y-1/2 opacity-0 transition-[top,opacity] duration-200 ease-out"
-                  }
+                  className="pointer-events-none absolute left-5 w-56"
                   style={{ top: `${clampPercent(group.progressPercent)}%` }}
                 >
+                  <div
+                    className="motion-reduce:transition-none"
+                    style={{
+                      opacity: isRailHovered ? 1 : 0,
+                      filter: isRailHovered ? "blur(0px)" : "blur(6px)",
+                      transform: isRailHovered
+                        ? "translateY(-50%) translateX(0px) scale(1)"
+                        : "translateY(-50%) translateX(8px) scale(0.96)",
+                      transformOrigin: "left center",
+                      transition:
+                        "opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), transform 500ms cubic-bezier(0.22, 1, 0.36, 1), filter 500ms cubic-bezier(0.22, 1, 0.36, 1)",
+                    }}
+                  >
                 <div className="flex items-center gap-3">
                   <div className="flex items-center">
                       {orderedReaders.slice(0, 3).map((reader, avatarIndex) => {
@@ -400,6 +409,7 @@ export function PostReadingPresenceRail({
                     </div>
                   </div>
                 </div>
+                  </div>
               </div>
             );
           })}
