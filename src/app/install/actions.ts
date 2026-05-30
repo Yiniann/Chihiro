@@ -119,6 +119,7 @@ export async function initializeSiteAction(
       githubUrl: null,
       siteLiveVisitorsEnabled: true,
       postReadingPresenceEnabled: true,
+      standalonePageReadingPresenceEnabled: true,
     });
 
     await ensureDefaultStandalonePages();

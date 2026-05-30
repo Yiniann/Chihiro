@@ -17,9 +17,11 @@ const initialState: SaveWebsocketSettingsState = {
 export function WebsocketSettingsForm({
   defaultSiteLiveVisitorsEnabled,
   defaultPostReadingPresenceEnabled,
+  defaultStandalonePageReadingPresenceEnabled,
 }: {
   defaultSiteLiveVisitorsEnabled: boolean;
   defaultPostReadingPresenceEnabled: boolean;
+  defaultStandalonePageReadingPresenceEnabled: boolean;
 }) {
   const [siteLiveVisitorsEnabled, setSiteLiveVisitorsEnabled] = useState(
     defaultSiteLiveVisitorsEnabled,
@@ -27,12 +29,16 @@ export function WebsocketSettingsForm({
   const [postReadingPresenceEnabled, setPostReadingPresenceEnabled] = useState(
     defaultPostReadingPresenceEnabled,
   );
+  const [standalonePageReadingPresenceEnabled, setStandalonePageReadingPresenceEnabled] = useState(
+    defaultStandalonePageReadingPresenceEnabled,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { showToast } = useToast();
 
   async function submitToggleUpdate(nextState: {
     siteLiveVisitorsEnabled: boolean;
     postReadingPresenceEnabled: boolean;
+    standalonePageReadingPresenceEnabled: boolean;
   }) {
     if (isSubmitting) {
       return;
@@ -41,11 +47,13 @@ export function WebsocketSettingsForm({
     const previousState = {
       siteLiveVisitorsEnabled,
       postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled,
     };
 
     setIsSubmitting(true);
     setSiteLiveVisitorsEnabled(nextState.siteLiveVisitorsEnabled);
     setPostReadingPresenceEnabled(nextState.postReadingPresenceEnabled);
+    setStandalonePageReadingPresenceEnabled(nextState.standalonePageReadingPresenceEnabled);
 
     const formData = new FormData();
     formData.set(
@@ -56,6 +64,10 @@ export function WebsocketSettingsForm({
       "postReadingPresenceEnabled",
       nextState.postReadingPresenceEnabled ? "true" : "false",
     );
+    formData.set(
+      "standalonePageReadingPresenceEnabled",
+      nextState.standalonePageReadingPresenceEnabled ? "true" : "false",
+    );
 
     const result: SaveWebsocketSettingsState = await saveWebsocketSettingsAction(
       initialState,
@@ -65,6 +77,7 @@ export function WebsocketSettingsForm({
     if (result.error) {
       setSiteLiveVisitorsEnabled(previousState.siteLiveVisitorsEnabled);
       setPostReadingPresenceEnabled(previousState.postReadingPresenceEnabled);
+      setStandalonePageReadingPresenceEnabled(previousState.standalonePageReadingPresenceEnabled);
       showToast(result.error, "error");
     } else if (result.success) {
       showToast(result.success);
@@ -77,6 +90,7 @@ export function WebsocketSettingsForm({
     void submitToggleUpdate({
       siteLiveVisitorsEnabled: nextChecked,
       postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled,
     });
   }
 
@@ -84,6 +98,15 @@ export function WebsocketSettingsForm({
     void submitToggleUpdate({
       siteLiveVisitorsEnabled,
       postReadingPresenceEnabled: nextChecked,
+      standalonePageReadingPresenceEnabled,
+    });
+  }
+
+  function handleStandalonePageReadingPresenceEnabledChange(nextChecked: boolean) {
+    void submitToggleUpdate({
+      siteLiveVisitorsEnabled,
+      postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled: nextChecked,
     });
   }
 
@@ -102,6 +125,13 @@ export function WebsocketSettingsForm({
           description="控制文章详情页的实时阅读进度、在线读者会话和阅读分布展示。关闭后，文章页不建立 websocket 连接。"
           checked={postReadingPresenceEnabled}
           onCheckedChange={handlePostReadingPresenceEnabledChange}
+          disabled={isSubmitting}
+        />
+        <SwitchField
+          title="启用独立页面实时阅读进度"
+          description="控制独立页面的实时阅读进度、在线读者会话和阅读分布展示。关闭后，独立页面不建立 websocket 连接。"
+          checked={standalonePageReadingPresenceEnabled}
+          onCheckedChange={handleStandalonePageReadingPresenceEnabledChange}
           disabled={isSubmitting}
         />
       </div>

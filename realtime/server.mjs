@@ -9,7 +9,7 @@ const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
 const PRESENCE_KEYS = {
   siteTabs: "presence:site:tabs",
   siteVisitors: "presence:site:visitors",
-  postTabs: (postId) => `presence:post:${postId}:tabs`,
+  contentTabs: (contentType, contentId) => `presence:${contentType}:${contentId}:tabs`,
   session: (tabId) => `presence:session:${tabId}`,
   visitorTabs: (visitorId) => `presence:visitor:${visitorId}:tabs`,
 };
@@ -24,7 +24,7 @@ redis.on("error", (error) => {
 
 await redis.connect();
 
-const subscriptionsByPost = new Map();
+const subscriptionsByContent = new Map();
 const sessionBySocket = new WeakMap();
 
 const server = createServer((request, response) => {
@@ -61,9 +61,9 @@ wss.on("connection", (socket, request) => {
         }
 
         sessionBySocket.set(socket, session);
-        registerSocketForPost(socket, session.postId);
+        registerSocketForContent(socket, session.contentType, session.contentId);
         await upsertSession(session);
-        await broadcastSnapshot(session.postId);
+        await broadcastSnapshot(session.contentType, session.contentId);
         return;
       }
 
@@ -78,7 +78,7 @@ wss.on("connection", (socket, request) => {
         const nextSession = applyPresenceUpdate(existingSession, message.payload);
         sessionBySocket.set(socket, nextSession);
         await upsertSession(nextSession);
-        await broadcastSnapshot(nextSession.postId);
+        await broadcastSnapshot(nextSession.contentType, nextSession.contentId);
       }
     } catch (error) {
       console.error("[presence] failed to handle socket message", error);
@@ -93,10 +93,10 @@ wss.on("connection", (socket, request) => {
       return;
     }
 
-    unregisterSocketForPost(socket, session.postId);
+    unregisterSocketForContent(socket, session.contentType, session.contentId);
     sessionBySocket.delete(socket);
     await removeSession(session);
-    await broadcastSnapshot(session.postId);
+    await broadcastSnapshot(session.contentType, session.contentId);
   });
 });
 
@@ -109,22 +109,24 @@ function normalizeJoinMessage(payload, cookieHeader) {
     return null;
   }
 
-  const postId = Number(payload.postId);
-  const postSlug = normalizeString(payload.postSlug, 1, 200);
+  const contentType = normalizeContentType(payload.contentType);
+  const contentId = Number(payload.contentId);
+  const contentSlug = normalizeString(payload.contentSlug, 1, 200);
   const pathname = normalizeString(payload.pathname, 1, 500);
   const tabId = normalizeString(payload.tabId, 6, 128);
   const visitorId =
     normalizeString(payload.visitorId, 6, 128) ?? readCookie(cookieHeader, "chihiro_visitor_id");
 
-  if (!Number.isInteger(postId) || postId <= 0 || !postSlug || !pathname || !tabId || !visitorId) {
+  if (!contentType || !Number.isInteger(contentId) || contentId <= 0 || !contentSlug || !pathname || !tabId || !visitorId) {
     return null;
   }
 
   const now = Date.now();
 
   return {
-    postId,
-    postSlug,
+    contentType,
+    contentId,
+    contentSlug,
     pathname,
     tabId,
     visitorId,
@@ -156,7 +158,7 @@ async function upsertSession(session) {
     })
     .zAdd(PRESENCE_KEYS.siteTabs, [{ score: now, value: session.tabId }])
     .zAdd(PRESENCE_KEYS.siteVisitors, [{ score: now, value: session.visitorId }])
-    .zAdd(PRESENCE_KEYS.postTabs(session.postId), [{ score: now, value: session.tabId }])
+    .zAdd(PRESENCE_KEYS.contentTabs(session.contentType, session.contentId), [{ score: now, value: session.tabId }])
     .zAdd(PRESENCE_KEYS.visitorTabs(session.visitorId), [{ score: now, value: session.tabId }])
     .expire(PRESENCE_KEYS.visitorTabs(session.visitorId), SESSION_TTL_SECONDS)
     .exec();
@@ -168,7 +170,7 @@ async function removeSession(session) {
     .multi()
     .del(PRESENCE_KEYS.session(session.tabId))
     .zRem(PRESENCE_KEYS.siteTabs, session.tabId)
-    .zRem(PRESENCE_KEYS.postTabs(session.postId), session.tabId)
+    .zRem(PRESENCE_KEYS.contentTabs(session.contentType, session.contentId), session.tabId)
     .zRem(visitorTabsKey, session.tabId)
     .exec();
 
@@ -179,14 +181,15 @@ async function removeSession(session) {
   }
 }
 
-async function broadcastSnapshot(postId) {
-  const sockets = subscriptionsByPost.get(postId);
+async function broadcastSnapshot(contentType, contentId) {
+  const contentKey = getContentKey(contentType, contentId);
+  const sockets = subscriptionsByContent.get(contentKey);
 
   if (!sockets || sockets.size === 0) {
     return;
   }
 
-  const snapshot = await buildSnapshot(postId);
+  const snapshot = await buildSnapshot(contentType, contentId);
   const payload = JSON.stringify(snapshot);
 
   for (const socket of sockets) {
@@ -196,27 +199,27 @@ async function broadcastSnapshot(postId) {
   }
 }
 
-async function buildSnapshot(postId) {
+async function buildSnapshot(contentType, contentId) {
   const now = Date.now();
   const staleBefore = now - SESSION_TTL_MS;
   const siteTabsKey = PRESENCE_KEYS.siteTabs;
   const siteVisitorsKey = PRESENCE_KEYS.siteVisitors;
-  const postTabsKey = PRESENCE_KEYS.postTabs(postId);
+  const contentTabsKey = PRESENCE_KEYS.contentTabs(contentType, contentId);
 
   await redis
     .multi()
     .zRemRangeByScore(siteTabsKey, 0, staleBefore)
     .zRemRangeByScore(siteVisitorsKey, 0, staleBefore)
-    .zRemRangeByScore(postTabsKey, 0, staleBefore)
+    .zRemRangeByScore(contentTabsKey, 0, staleBefore)
     .exec();
 
-  const [siteActiveSessions, siteOnlineVisitors, postTabIds] = await Promise.all([
+  const [siteActiveSessions, siteOnlineVisitors, contentTabIds] = await Promise.all([
     redis.zCard(siteTabsKey),
     redis.zCard(siteVisitorsKey),
-    redis.zRange(postTabsKey, 0, -1),
+    redis.zRange(contentTabsKey, 0, -1),
   ]);
 
-  const sessions = await hydrateSessions(postId, postTabIds, staleBefore);
+  const sessions = await hydrateSessions(contentType, contentId, contentTabIds, staleBefore);
   const uniqueVisitors = new Set(sessions.map((session) => session.visitorId));
   const readers = sessions
     .sort((left, right) => left.connectedAt - right.connectedAt)
@@ -231,20 +234,21 @@ async function buildSnapshot(postId) {
 
   return {
     type: "presence:snapshot",
-    postId,
-    postSlug: sessions[0]?.postSlug ?? "",
+    contentType,
+    contentId,
+    contentSlug: sessions[0]?.contentSlug ?? "",
     pathname: sessions[0]?.pathname ?? "",
     siteOnlineVisitors,
     siteActiveSessions,
-    postOnlineVisitors: uniqueVisitors.size,
-    postActiveSessions: sessions.length,
+    contentOnlineVisitors: uniqueVisitors.size,
+    contentActiveSessions: sessions.length,
     readers,
     distribution: buildDistribution(readers),
     generatedAt: now,
   };
 }
 
-async function hydrateSessions(postId, tabIds, staleBefore) {
+async function hydrateSessions(contentType, contentId, tabIds, staleBefore) {
   if (tabIds.length === 0) {
     return [];
   }
@@ -263,7 +267,12 @@ async function hydrateSessions(postId, tabIds, staleBefore) {
     try {
       const session = JSON.parse(row);
 
-      if (!session || session.postId !== postId || session.lastSeenAt < staleBefore) {
+      if (
+        !session ||
+        session.contentType !== contentType ||
+        session.contentId !== contentId ||
+        session.lastSeenAt < staleBefore
+      ) {
         staleTabIds.push(tabIds[index]);
         return;
       }
@@ -275,7 +284,7 @@ async function hydrateSessions(postId, tabIds, staleBefore) {
   });
 
   if (staleTabIds.length > 0) {
-    await redis.zRem(PRESENCE_KEYS.postTabs(postId), staleTabIds);
+    await redis.zRem(PRESENCE_KEYS.contentTabs(contentType, contentId), staleTabIds);
   }
 
   return sessions;
@@ -299,20 +308,24 @@ function buildDistribution(readers) {
   return buckets;
 }
 
-function registerSocketForPost(socket, postId) {
-  unregisterSocketForPost(socket, sessionBySocket.get(socket)?.postId);
+function registerSocketForContent(socket, contentType, contentId) {
+  const previousSession = sessionBySocket.get(socket);
 
-  const sockets = subscriptionsByPost.get(postId) ?? new Set();
+  unregisterSocketForContent(socket, previousSession?.contentType, previousSession?.contentId);
+
+  const contentKey = getContentKey(contentType, contentId);
+  const sockets = subscriptionsByContent.get(contentKey) ?? new Set();
   sockets.add(socket);
-  subscriptionsByPost.set(postId, sockets);
+  subscriptionsByContent.set(contentKey, sockets);
 }
 
-function unregisterSocketForPost(socket, postId) {
-  if (!postId) {
+function unregisterSocketForContent(socket, contentType, contentId) {
+  if (!contentType || !contentId) {
     return;
   }
 
-  const sockets = subscriptionsByPost.get(postId);
+  const contentKey = getContentKey(contentType, contentId);
+  const sockets = subscriptionsByContent.get(contentKey);
 
   if (!sockets) {
     return;
@@ -321,8 +334,20 @@ function unregisterSocketForPost(socket, postId) {
   sockets.delete(socket);
 
   if (sockets.size === 0) {
-    subscriptionsByPost.delete(postId);
+    subscriptionsByContent.delete(contentKey);
   }
+}
+
+function getContentKey(contentType, contentId) {
+  return `${contentType}:${contentId}`;
+}
+
+function normalizeContentType(value) {
+  if (value === "post" || value === "standalone-page") {
+    return value;
+  }
+
+  return null;
 }
 
 function normalizeString(value, minLength, maxLength) {

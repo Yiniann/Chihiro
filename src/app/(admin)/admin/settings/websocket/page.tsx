@@ -20,6 +20,9 @@ export default async function AdminWebsocketSettingsPage() {
         <WebsocketSettingsForm
           defaultSiteLiveVisitorsEnabled={settings?.siteLiveVisitorsEnabled ?? true}
           defaultPostReadingPresenceEnabled={settings?.postReadingPresenceEnabled ?? true}
+          defaultStandalonePageReadingPresenceEnabled={
+            settings?.standalonePageReadingPresenceEnabled ?? true
+          }
         />
       </div>
     </div>

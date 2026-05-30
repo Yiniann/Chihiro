@@ -1,14 +1,18 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { auth } from "@/server/public-auth";
+import { PostReadingPresenceRail } from "@/components/post-reading-presence-rail";
 import { PostComments } from "@/components/post-comments";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
 import { getRenderedContentHtml, normalizeHtmlForHydration } from "@/lib/content";
 import {
+  getPublicSiteSettings,
   getPublicStandalonePageBySlug,
   isPublicSiteUnavailableError,
   isUninstalledSiteError,
 } from "@/server/public-content";
+import { getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export async function generateStandalonePageMetadata(slug: string): Promise<Metadata> {
   let page;
@@ -46,9 +50,17 @@ export async function generateStandalonePageMetadata(slug: string): Promise<Meta
 
 export async function StandalonePageRenderer({ slug }: { slug: string }) {
   let page;
+  let siteSettings;
+  let publicSession;
+  let ownerProfile;
 
   try {
-    page = await getPublicStandalonePageBySlug(slug);
+    [page, siteSettings, publicSession, ownerProfile] = await Promise.all([
+      getPublicStandalonePageBySlug(slug),
+      getPublicSiteSettings(),
+      auth(),
+      getOwnerDisplayProfile(),
+    ]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
       return <PublicSiteUnavailableScreen />;
@@ -66,9 +78,25 @@ export async function StandalonePageRenderer({ slug }: { slug: string }) {
     ? highlightCodeBlocksInHtml(renderedContentHtml)
     : null;
   const pageContentHtml = normalizeHtmlForHydration(highlightedContentHtml ?? "");
+  const realtimePort = Number(process.env.REALTIME_PORT ?? 3001);
+  const selfAvatarUrl =
+    publicSession?.user?.role === "OWNER"
+      ? ownerProfile?.image ?? publicSession.user.image ?? null
+      : publicSession?.user?.image ?? null;
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
+      {siteSettings.standalonePageReadingPresenceEnabled ? (
+        <PostReadingPresenceRail
+          contentType="standalone-page"
+          contentId={page.id}
+          contentSlug={page.slug}
+          pathname={`/${page.slug}`}
+          realtimePort={realtimePort}
+          selfAvatarUrl={selfAvatarUrl}
+          selfDisplayName={publicSession?.user?.name ?? null}
+        />
+      ) : null}
       {highlightedContentHtml ? (
         <div
           data-reading-progress-root

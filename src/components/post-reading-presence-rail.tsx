@@ -6,14 +6,16 @@ import {
   PRESENCE_HEARTBEAT_INTERVAL_MS,
   PRESENCE_PROGRESS_DELTA_PERCENT,
   PRESENCE_PROGRESS_THROTTLE_MS,
+  type PresenceContentType,
   type PresenceSnapshot,
 } from "@/lib/live-presence";
 import { getOrCreatePresenceTabId } from "@/lib/presence-tab-id";
 import { getReadingProgressValue, READING_PROGRESS_ROOT_SELECTOR } from "@/lib/reading-progress";
 
 type PostReadingPresenceRailProps = {
-  postId: number;
-  postSlug: string;
+  contentType: PresenceContentType;
+  contentId: number;
+  contentSlug: string;
   pathname: string;
   realtimePort: number;
   selfAvatarUrl: string | null;
@@ -44,8 +46,9 @@ const RAIL_BOTTOM_OFFSET_PX = 56;
 const GROUP_TOOLTIP_HEIGHT_PX = 22;
 
 export function PostReadingPresenceRail({
-  postId,
-  postSlug,
+  contentType,
+  contentId,
+  contentSlug,
   pathname,
   realtimePort,
   selfAvatarUrl,
@@ -180,8 +183,9 @@ export function PostReadingPresenceRail({
             JSON.stringify({
               type: "presence:join",
               payload: {
-                postId,
-                postSlug,
+                contentType,
+                contentId,
+                contentSlug,
                 pathname,
                 visitorId: session.visitorId,
                 tabId,
@@ -295,7 +299,7 @@ export function PostReadingPresenceRail({
       socketRef.current?.close();
       socketRef.current = null;
     };
-  }, [pathname, postId, postSlug, realtimePort]);
+  }, [contentId, contentSlug, contentType, pathname, realtimePort]);
 
   const otherReaders = snapshot?.readers.filter((reader) => reader.sessionKey !== selfSessionKey) ?? [];
   const selfReader = selfSessionKey

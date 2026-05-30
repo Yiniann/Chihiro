@@ -35,6 +35,11 @@ export async function saveWebsocketSettingsAction(
       "postReadingPresenceEnabled",
       currentSettings?.postReadingPresenceEnabled ?? true,
     );
+    const standalonePageReadingPresenceEnabled = getBooleanField(
+      formData,
+      "standalonePageReadingPresenceEnabled",
+      currentSettings?.standalonePageReadingPresenceEnabled ?? true,
+    );
 
     await upsertSiteSettings({
       siteName: currentSettings?.siteName ?? siteConfig.name,
@@ -51,6 +56,7 @@ export async function saveWebsocketSettingsAction(
       githubUrl: currentSettings?.githubUrl ?? null,
       siteLiveVisitorsEnabled,
       postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled,
     });
   } catch (error) {
     return {

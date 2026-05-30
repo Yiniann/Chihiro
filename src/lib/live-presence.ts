@@ -3,6 +3,8 @@ export const PRESENCE_SESSION_TTL_SECONDS = 300;
 export const PRESENCE_PROGRESS_THROTTLE_MS = 3_000;
 export const PRESENCE_PROGRESS_DELTA_PERCENT = 4;
 
+export type PresenceContentType = "post" | "standalone-page";
+
 export type PresenceReader = {
   sessionKey: string;
   label: string;
@@ -22,13 +24,14 @@ export type PresenceDistributionBucket = {
 
 export type PresenceSnapshot = {
   type: "presence:snapshot";
-  postId: number;
-  postSlug: string;
+  contentType: PresenceContentType;
+  contentId: number;
+  contentSlug: string;
   pathname: string;
   siteOnlineVisitors: number;
   siteActiveSessions: number;
-  postOnlineVisitors: number;
-  postActiveSessions: number;
+  contentOnlineVisitors: number;
+  contentActiveSessions: number;
   readers: PresenceReader[];
   distribution: PresenceDistributionBucket[];
   generatedAt: number;

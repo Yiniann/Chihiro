@@ -181,8 +181,9 @@ export default async function PostPage({ params }: PostPageProps) {
           <article className="min-w-0">
             {siteSettings.postReadingPresenceEnabled ? (
               <PostReadingPresenceRail
-                postId={post.id}
-                postSlug={post.slug}
+                contentType="post"
+                contentId={post.id}
+                contentSlug={post.slug}
                 pathname={postPath}
                 realtimePort={realtimePort}
                 selfAvatarUrl={selfAvatarUrl}

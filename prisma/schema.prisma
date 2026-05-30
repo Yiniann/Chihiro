@@ -416,6 +416,7 @@ model SiteSettings {
   githubUrl       String?
   siteLiveVisitorsEnabled   Boolean @default(true)
   postReadingPresenceEnabled Boolean @default(true)
+  standalonePageReadingPresenceEnabled Boolean @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

@@ -48,6 +48,8 @@ export async function saveGeneralSettingsAction(
       githubUrl: currentSettings?.githubUrl ?? null,
       siteLiveVisitorsEnabled: currentSettings?.siteLiveVisitorsEnabled ?? true,
       postReadingPresenceEnabled: currentSettings?.postReadingPresenceEnabled ?? true,
+      standalonePageReadingPresenceEnabled:
+        currentSettings?.standalonePageReadingPresenceEnabled ?? true,
     });
   } catch (error) {
     return {

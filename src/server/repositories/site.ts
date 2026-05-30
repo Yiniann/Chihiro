@@ -15,6 +15,7 @@ export type SiteSettingsRecord = {
   githubUrl: string | null;
   siteLiveVisitorsEnabled: boolean;
   postReadingPresenceEnabled: boolean;
+  standalonePageReadingPresenceEnabled: boolean;
 };
 
 export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
@@ -43,6 +44,7 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     githubUrl: settings.githubUrl,
     siteLiveVisitorsEnabled: settings.siteLiveVisitorsEnabled,
     postReadingPresenceEnabled: settings.postReadingPresenceEnabled,
+    standalonePageReadingPresenceEnabled: settings.standalonePageReadingPresenceEnabled,
   };
 }
 
@@ -79,6 +81,7 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       githubUrl: input.githubUrl,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
       postReadingPresenceEnabled: input.postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled: input.standalonePageReadingPresenceEnabled,
     },
     create: {
       id: "default",
@@ -96,6 +99,7 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       githubUrl: input.githubUrl,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
       postReadingPresenceEnabled: input.postReadingPresenceEnabled,
+      standalonePageReadingPresenceEnabled: input.standalonePageReadingPresenceEnabled,
     },
   });
 }
