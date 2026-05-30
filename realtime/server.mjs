@@ -5,6 +5,8 @@ import { WebSocket, WebSocketServer } from "ws";
 const REALTIME_PORT = Number(process.env.REALTIME_PORT ?? 3001);
 const SESSION_TTL_SECONDS = 300;
 const SESSION_TTL_MS = SESSION_TTL_SECONDS * 1000;
+const PRESENCE_ANALYTICS_TTL_SECONDS = 60 * 60 * 24 * 3;
+const PRESENCE_ANALYTICS_TIME_ZONE = "Asia/Shanghai";
 
 const PRESENCE_KEYS = {
   siteTabs: "presence:site:tabs",
@@ -12,6 +14,8 @@ const PRESENCE_KEYS = {
   contentTabs: (contentType, contentId) => `presence:${contentType}:${contentId}:tabs`,
   session: (tabId) => `presence:session:${tabId}`,
   visitorTabs: (visitorId) => `presence:visitor:${visitorId}:tabs`,
+  dayVisitors: (dayKey) => `presence:stats:${dayKey}:visitors`,
+  dayPeakOnlineVisitors: (dayKey) => `presence:stats:${dayKey}:peak-online-visitors`,
 };
 
 const redis = createClient({
@@ -63,6 +67,8 @@ wss.on("connection", (socket, request) => {
         sessionBySocket.set(socket, session);
         registerSocketForContent(socket, session.contentType, session.contentId);
         await upsertSession(session);
+        await trackPresenceVisit(session.visitorId, session.lastSeenAt);
+        await updatePresencePeak(session.lastSeenAt);
         await broadcastSnapshot(session.contentType, session.contentId);
         return;
       }
@@ -78,6 +84,8 @@ wss.on("connection", (socket, request) => {
         const nextSession = applyPresenceUpdate(existingSession, message.payload);
         sessionBySocket.set(socket, nextSession);
         await upsertSession(nextSession);
+        await trackPresenceVisit(nextSession.visitorId, nextSession.lastSeenAt);
+        await updatePresencePeak(nextSession.lastSeenAt);
         await broadcastSnapshot(nextSession.contentType, nextSession.contentId);
       }
     } catch (error) {
@@ -348,6 +356,42 @@ function normalizeContentType(value) {
   }
 
   return null;
+}
+
+async function trackPresenceVisit(visitorId, now = Date.now()) {
+  const dayKey = getPresenceDayKey(now);
+
+  await redis
+    .multi()
+    .sAdd(PRESENCE_KEYS.dayVisitors(dayKey), visitorId)
+    .expire(PRESENCE_KEYS.dayVisitors(dayKey), PRESENCE_ANALYTICS_TTL_SECONDS)
+    .exec();
+}
+
+async function updatePresencePeak(now = Date.now()) {
+  const dayKey = getPresenceDayKey(now);
+  const onlineVisitors = await redis.zCard(PRESENCE_KEYS.siteVisitors);
+  const peakKey = PRESENCE_KEYS.dayPeakOnlineVisitors(dayKey);
+  const currentPeak = Number((await redis.get(peakKey)) ?? 0);
+
+  if (onlineVisitors <= currentPeak) {
+    return;
+  }
+
+  await redis
+    .multi()
+    .set(peakKey, String(onlineVisitors))
+    .expire(peakKey, PRESENCE_ANALYTICS_TTL_SECONDS)
+    .exec();
+}
+
+function getPresenceDayKey(now = Date.now()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: PRESENCE_ANALYTICS_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date(now));
 }
 
 function normalizeString(value, minLength, maxLength) {

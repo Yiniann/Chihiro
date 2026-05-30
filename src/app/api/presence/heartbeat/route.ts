@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { connectRedisClient } from "@/server/redis";
+import { trackPresenceVisit, updatePresencePeakFromRedis } from "@/server/presence";
 import { getOrCreateVisitorId } from "@/server/visitor";
 
 const SESSION_TTL_SECONDS = 300;
@@ -37,6 +38,9 @@ export async function POST(request: Request) {
     .expire(PRESENCE_KEYS.siteTabs, SESSION_TTL_SECONDS)
     .expire(PRESENCE_KEYS.siteVisitors, SESSION_TTL_SECONDS)
     .exec();
+
+  await trackPresenceVisit(visitorId, now);
+  await updatePresencePeakFromRedis(now);
 
   return NextResponse.json(
     {

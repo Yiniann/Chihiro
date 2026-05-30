@@ -1,431 +1,797 @@
 import Link from "next/link";
-import { ContentStatus } from "@prisma/client";
+import type { LucideIcon } from "lucide-react";
 import {
-  formatAdminDateTime,
-  formatAdminNumber,
-  getContentWordCount,
-  getRecentItems,
-  getSiteRuntimeDays,
-} from "@/app/(admin)/admin/utils";
+  BookHeart,
+  BookOpenText,
+  FileText,
+  FolderTree,
+  Heart,
+  Link2,
+  MessageCircleMore,
+  MessageCircleQuestion,
+  NotebookPen,
+  PenSquare,
+  Send,
+  Text,
+} from "lucide-react";
+import { getContentText } from "@/lib/content";
+import { auth } from "@/server/public-auth";
+import { getSitePresenceSummary } from "@/server/presence";
 import { listPostCategories } from "@/server/repositories/categories";
 import { getCommentStatsForAdmin } from "@/server/repositories/comments";
+import { getFriendLinkApplicationStats } from "@/server/repositories/friend-link-applications";
+import { listFriendLinksForAdmin } from "@/server/repositories/friend-links";
+import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
 import { listPostsForAdmin } from "@/server/repositories/posts";
-import { auth } from "@/server/public-auth";
-import { getSiteCreatedAt, getSiteSettings } from "@/server/repositories/site";
+import { getSiteLikeCount } from "@/server/repositories/site-likes";
+import { getSiteSettings } from "@/server/repositories/site";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
+import { RealtimeOverviewPanel } from "@/app/(admin)/admin/realtime-overview-panel";
+import { formatAdminNumber } from "@/app/(admin)/admin/utils";
 
-export default async function AdminOverviewPage() {
-  const [session, posts, updates, siteCreatedAt, siteSettings, commentStats, postCategories, ownerProfile] =
-    await Promise.all([
-      auth(),
-      listPostsForAdmin(),
-      listUpdatesForAdmin(),
-      getSiteCreatedAt(),
-      getSiteSettings(),
-      getCommentStatsForAdmin(),
-      listPostCategories(),
-      getOwnerDisplayProfile(),
-    ]);
+type AdminOverviewPageProps = {
+  searchParams?: Promise<{
+    year?: string;
+  }>;
+};
+
+export default async function AdminOverviewPage({
+  searchParams,
+}: AdminOverviewPageProps) {
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const [
+    session,
+    siteSettings,
+    ownerProfile,
+    presenceSummary,
+    posts,
+    updates,
+    standalonePages,
+    postCategories,
+    commentStats,
+    friendLinks,
+    friendLinkApplicationStats,
+    siteLikeCount,
+  ] = await Promise.all([
+    auth(),
+    getSiteSettings(),
+    getOwnerDisplayProfile(),
+    getSitePresenceSummary().catch(() => null),
+    listPostsForAdmin(),
+    listUpdatesForAdmin(),
+    listStandalonePagesForAdmin(),
+    listPostCategories(),
+    getCommentStatsForAdmin(),
+    listFriendLinksForAdmin(),
+    getFriendLinkApplicationStats(),
+    getSiteLikeCount(),
+  ]);
 
   const displayName =
     session?.user?.name?.trim() ||
     session?.user?.email?.trim() ||
     getOwnerDisplayName(ownerProfile, "管理员");
   const siteName = siteSettings?.siteName?.trim() || "博客";
-  const visiblePosts = posts.filter((item) => item.status !== ContentStatus.ARCHIVED);
-  const visibleUpdates = updates.filter((item) => item.status !== ContentStatus.ARCHIVED);
-  const publishedPosts = visiblePosts.filter((item) => item.status === ContentStatus.PUBLISHED);
-  const publishedUpdates = visibleUpdates.filter((item) => item.status === ContentStatus.PUBLISHED);
-  const draftPosts = visiblePosts.length - publishedPosts.length;
-  const draftUpdates = visibleUpdates.length - publishedUpdates.length;
-  const revisedPublishedPosts = visiblePosts.filter(
-    (item) => item.status === ContentStatus.PUBLISHED && item.draftSnapshot,
-  ).length;
-  const revisedPublishedUpdates = visibleUpdates.filter(
-    (item) => item.status === ContentStatus.PUBLISHED && item.draftSnapshot,
-  ).length;
-  const recentItems = getRecentItems(visiblePosts, visibleUpdates).slice(0, 5);
-  const topPosts = [...publishedPosts]
-    .sort((left, right) => {
-      if (right.viewCount !== left.viewCount) {
-        return right.viewCount - left.viewCount;
-      }
-
-      if (right.likeCount !== left.likeCount) {
-        return right.likeCount - left.likeCount;
-      }
-
-      return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
-    })
-    .slice(0, 3);
-  const topCategories = [...postCategories]
-    .sort((left, right) => right.contentCount - left.contentCount)
-    .slice(0, 4);
-  const topTags = Object.entries(
-    visiblePosts.reduce<Record<string, { name: string; count: number }>>((accumulator, post) => {
-      for (const tag of post.tags) {
-        const current = accumulator[tag.id] ?? { name: tag.name, count: 0 };
-        accumulator[tag.id] = {
-          name: current.name,
-          count: current.count + 1,
-        };
-      }
-
-      return accumulator;
-    }, {}),
-  )
-    .map(([id, value]) => ({ id, ...value }))
-    .sort(
-      (left, right) =>
-        right.count - left.count || left.name.localeCompare(right.name, "zh-Hans-CN"),
-    )
-    .slice(0, 6);
-  const recent30Days = getRecent30DaySummary(visiblePosts, visibleUpdates);
-  const latestPublishedAt = getLatestPublishedAt(visiblePosts, visibleUpdates);
-  const siteRuntimeDays = getSiteRuntimeDays(siteCreatedAt);
-  const totalWordCount = getContentWordCount(visiblePosts, visibleUpdates);
-  const postWordCount = getContentWordCount(visiblePosts, []);
-  const updateWordCount = getContentWordCount([], visibleUpdates);
+  const totalWordCount = getTotalWordCount(posts, updates, standalonePages);
+  const totalReadCount = posts.reduce((sum, post) => sum + post.viewCount, 0);
+  const totalContentLikeCount = posts.reduce((sum, post) => sum + post.likeCount, 0);
+  const availableTrendYears = getPublishingTrendYears(posts, updates, standalonePages);
+  const parsedYear = Number.parseInt(resolvedSearchParams?.year ?? "", 10);
+  const selectedTrendYear = availableTrendYears.includes(parsedYear)
+    ? parsedYear
+    : availableTrendYears[0];
+  const publishingTrend = buildPublishingTrend(
+    posts,
+    updates,
+    standalonePages,
+    selectedTrendYear,
+  );
+  const publishingDistributionItems = [
+    {
+      label: "文章",
+      value: countPublishedInYear(posts, selectedTrendYear),
+      direction: "top" as const,
+      unit: "篇",
+    },
+    {
+      label: "动态",
+      value: countPublishedInYear(updates, selectedTrendYear),
+      direction: "left" as const,
+      unit: "条",
+    },
+    {
+      label: "独立页面",
+      value: countPublishedInYear(standalonePages, selectedTrendYear),
+      direction: "bottom" as const,
+      unit: "页",
+    },
+    {
+      label: "鉴赏",
+      value: 0,
+      direction: "right" as const,
+      unit: "项",
+      empty: true,
+    },
+  ];
 
   return (
     <div className="grid gap-8">
-      <section className="grid gap-4 border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80 lg:grid-cols-[minmax(0,1.6fr)_16rem]">
+      <section className="grid gap-4 pb-2">
         <div className="min-w-0">
           <p className="text-lg font-medium tracking-tight text-zinc-950 dark:text-zinc-50">
             {getGreeting()}，{displayName}
           </p>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-            这里是 {siteName} 的后台。先看现在已经有多少内容，再看状态、表现和最近节奏。
-          </p>
-          <div className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-sm text-zinc-600 dark:text-zinc-300">
-            <QuickTextLink href="/admin/posts/new" label="发布新文章" />
-            <QuickTextLink href="/admin/updates/new" label="发布新动态" />
-          </div>
-        </div>
-
-        <div className="grid gap-2 border-l border-zinc-200/80 pl-0 dark:border-zinc-800/80 lg:pl-5">
-          <AsideMetric
-            label="站点运行"
-            value={siteRuntimeDays ? `${formatAdminNumber(siteRuntimeDays)} 天` : "—"}
-            meta={siteCreatedAt ? `初始化于 ${formatAdminDateTime(siteCreatedAt)}` : "还没有初始化时间记录"}
-          />
-          <AsideMetric
-            label="最近发布"
-            value={latestPublishedAt ? formatAdminDateTime(latestPublishedAt) : "还没有发布记录"}
-            meta="最近一次公开发布时间"
-          />
         </div>
       </section>
 
-      <section className="grid gap-x-8 gap-y-5 border-b border-zinc-200/80 pb-6 dark:border-zinc-800/80 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiItem label="文章总数" value={`${formatAdminNumber(visiblePosts.length)} 篇`} />
-        <KpiItem label="动态总数" value={`${formatAdminNumber(visibleUpdates.length)} 条`} />
-        <KpiItem
-          label="已发布内容"
-          value={`${formatAdminNumber(publishedPosts.length + publishedUpdates.length)} 条`}
-        />
-        <KpiItem label="待审核评论" value={`${formatAdminNumber(commentStats.pending)} 条`} />
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
-        <section>
-          <SectionHeading eyebrow="Board" title="内容状态" />
-          <div className="mt-3 grid gap-4 md:grid-cols-2">
-            <StatusPanel
-              title="文章"
-              published={`${formatAdminNumber(publishedPosts.length)} 已发布`}
-              draft={`${formatAdminNumber(draftPosts)} 未发布`}
-              revised={`${formatAdminNumber(revisedPublishedPosts)} 篇有修订`}
-            />
-            <StatusPanel
-              title="动态"
-              published={`${formatAdminNumber(publishedUpdates.length)} 已发布`}
-              draft={`${formatAdminNumber(draftUpdates)} 未发布`}
-              revised={`${formatAdminNumber(revisedPublishedUpdates)} 条有修订`}
-            />
-          </div>
-        </section>
-
-        <aside>
-          <SectionHeading eyebrow="Queue" title="待处理" />
-          <div className="mt-3 grid gap-0">
-            <QueueRowCompact href="/admin/posts" title="未发布文章" value={`${formatAdminNumber(draftPosts)} 篇`} />
-            <QueueRowCompact href="/admin/updates" title="未发布动态" value={`${formatAdminNumber(draftUpdates)} 条`} />
-            <QueueRowCompact
-              href="/admin/comments?status=pending"
-              title="待审核评论"
-              value={`${formatAdminNumber(commentStats.pending)} 条`}
-            />
-            <QueueRowCompact
-              href="/admin/posts"
-              title="有未发布修订"
-              value={`${formatAdminNumber(revisedPublishedPosts + revisedPublishedUpdates)} 条`}
-            />
-          </div>
-        </aside>
-      </section>
-
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
-        <section>
-          <SectionHeading eyebrow="Board" title="表现与结构" />
-          <div className="mt-3 grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
-            <div>
-              <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">最受欢迎文章</p>
-              <div className="mt-2.5 grid gap-0">
-                {topPosts.length > 0 ? (
-                  topPosts.map((post) => (
-                    <Link
-                      key={post.id}
-                      href={`/admin/posts/${encodeURIComponent(post.id)}`}
-                      className="grid gap-1.5 border-b border-zinc-200/80 py-3 first:pt-0 last:border-b-0 last:pb-0 dark:border-zinc-800/80"
-                    >
-                      <p className="text-sm font-medium text-zinc-950 transition hover:text-primary dark:text-zinc-50 dark:hover:text-primary">
-                        {post.title}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
-                        <span>{formatAdminNumber(post.viewCount)} 浏览</span>
-                        <span>{formatAdminNumber(post.likeCount)} 点赞</span>
-                        <span>{post.category?.name ?? "未分类"}</span>
-                      </div>
-                    </Link>
-                  ))
-                ) : (
-                  <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-                    还没有文章数据。
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="border-t border-zinc-200/80 pt-4 dark:border-zinc-800/80 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-              <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">分类与标签</p>
-              <div className="mt-2.5 grid gap-4">
-                <div className="grid gap-2.5">
-                  {topCategories.length > 0 ? (
-                    topCategories.map((category) => (
-                      <BarRow
-                        key={category.id}
-                        label={category.name}
-                        value={`${formatAdminNumber(category.contentCount)} 篇`}
-                        ratio={category.contentCount / Math.max(topCategories[0]?.contentCount ?? 1, 1)}
-                      />
-                    ))
-                  ) : (
-                    <p className="text-sm text-zinc-500 dark:text-zinc-400">还没有分类数据。</p>
-                  )}
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {topTags.length > 0 ? (
-                    topTags.map((tag) => (
-                      <span
-                        key={tag.id}
-                        className="inline-flex items-center gap-1.5 border border-zinc-200/80 px-2.5 py-1 text-xs text-zinc-600 dark:border-zinc-800/80 dark:text-zinc-300"
-                      >
-                        <span>#{tag.name}</span>
-                        <span className="text-zinc-400 dark:text-zinc-500">{formatAdminNumber(tag.count)}</span>
-                      </span>
-                    ))
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <SectionHeading eyebrow="Trend" title="趋势与节奏" />
-          <dl className="mt-3 grid gap-3 text-sm">
-            <SummaryRow label="最近 30 天发布" value={`${formatAdminNumber(recent30Days.totalCount)} 条`} />
-            <SummaryRow label="最近 30 天文章" value={`${formatAdminNumber(recent30Days.postCount)} 篇`} />
-            <SummaryRow label="最近 30 天动态" value={`${formatAdminNumber(recent30Days.updateCount)} 条`} />
-            <SummaryRow label="内容总字数" value={`${formatAdminNumber(totalWordCount)} 字`} />
-            <SummaryRow label="文章字数" value={`${formatAdminNumber(postWordCount)} 字`} />
-            <SummaryRow label="动态字数" value={`${formatAdminNumber(updateWordCount)} 字`} />
-            <SummaryRow
-              label="最近一次发布"
-              value={latestPublishedAt ? formatAdminDateTime(latestPublishedAt) : "—"}
-            />
-          </dl>
-        </section>
-      </section>
-
-      <section>
-        <SectionHeading eyebrow="Flow" title="最近活动" />
-        <div className="mt-3 grid gap-0">
-          {recentItems.length > 0 ? (
-            recentItems.map((item) => (
-              <Link
-                key={`${item.kind}-${item.id}`}
-                href={getAdminEditHref(item.kind, item.id)}
-                className="grid gap-1.5 border-b border-zinc-200/80 py-3 first:pt-0 last:border-b-0 last:pb-0 dark:border-zinc-800/80"
-              >
-                <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
-                  <span>{item.kind === "Post" ? "文章" : "动态"}</span>
-                  <span>·</span>
-                  <StatusLabel status={item.status} />
-                </div>
-                <p className="text-sm font-medium text-zinc-950 transition hover:text-primary dark:text-zinc-50 dark:hover:text-primary">
-                  {item.title}
-                </p>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {formatAdminDateTime(item.updatedAt)}
-                </p>
-              </Link>
-            ))
-          ) : (
-            <p className="text-sm leading-6 text-zinc-500 dark:text-zinc-400">
-              还没有内容记录。先开始写第一篇文章吧。
-            </p>
-          )}
-        </div>
-      </section>
+      <RealtimeOverviewPanel initialSummary={presenceSummary} />
+      <ContentOperationsPanel
+        items={[
+          {
+            label: "文章",
+            count: posts.length,
+            unit: "篇",
+            icon: PenSquare,
+            writeHref: "/admin/posts/new",
+            manageHref: "/admin/posts",
+            writeLabel: "撰写",
+            manageLabel: "管理",
+          },
+          {
+            label: "动态",
+            count: updates.length,
+            unit: "条",
+            icon: NotebookPen,
+            writeHref: "/admin/updates/new",
+            manageHref: "/admin/updates",
+            writeLabel: "撰写",
+            manageLabel: "管理",
+          },
+          {
+            label: "独立页面",
+            count: standalonePages.length,
+            unit: "页",
+            icon: FileText,
+            writeHref: "/admin/pages/new",
+            manageHref: "/admin/pages",
+            writeLabel: "撰写",
+            manageLabel: "管理",
+          },
+        ]}
+      />
+      <DenseStatsPanel
+        items={[
+          {
+            label: "页面",
+            value: formatAdminNumber(standalonePages.length),
+            icon: FileText,
+          },
+          {
+            label: "全部评论",
+            value: formatAdminNumber(commentStats.total),
+            icon: MessageCircleMore,
+          },
+          {
+            label: "未读评论",
+            value: formatAdminNumber(commentStats.pending),
+            icon: MessageCircleQuestion,
+          },
+          {
+            label: "友链",
+            value: formatAdminNumber(friendLinks.length),
+            icon: Link2,
+          },
+          {
+            label: "友链申请",
+            value: formatAdminNumber(friendLinkApplicationStats.pending),
+            icon: Send,
+          },
+          {
+            label: "分类",
+            value: formatAdminNumber(postCategories.length),
+            icon: FolderTree,
+          },
+          {
+            label: "全站字数",
+            value: formatAdminNumber(totalWordCount),
+            icon: Text,
+          },
+          {
+            label: "全站总阅读量",
+            value: formatAdminNumber(totalReadCount),
+            icon: BookOpenText,
+          },
+          {
+            label: "全站内容点赞数",
+            value: formatAdminNumber(totalContentLikeCount),
+            icon: BookHeart,
+          },
+          {
+            label: "站点点赞数",
+            value: formatAdminNumber(siteLikeCount),
+            icon: Heart,
+          },
+        ]}
+      />
+      <PublishingTrendPanel
+        weeks={publishingTrend.weeks}
+        monthLabels={publishingTrend.monthLabels}
+        totalDays={publishingTrend.totalDays}
+        selectedYear={selectedTrendYear}
+        availableYears={availableTrendYears}
+        distributionItems={publishingDistributionItems}
+      />
     </div>
   );
 }
 
-function AsideMetric({
-  label,
-  value,
-  meta,
+function getTotalWordCount(
+  posts: Awaited<ReturnType<typeof listPostsForAdmin>>,
+  updates: Awaited<ReturnType<typeof listUpdatesForAdmin>>,
+  standalonePages: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+) {
+  return [...posts, ...updates, ...standalonePages].reduce((total, item) => {
+    const text = getContentText(item.contentHtml, item.content);
+    return total + countTextUnits(text);
+  }, 0);
+}
+
+function countTextUnits(value: string) {
+  const hanCharacters = value.match(/[\u3400-\u9fff\uf900-\ufaff]/g)?.length ?? 0;
+  const nonHanText = value.replace(/[\u3400-\u9fff\uf900-\ufaff]/g, " ");
+  const latinWords = nonHanText.match(/[A-Za-z0-9]+(?:['-][A-Za-z0-9]+)*/g)?.length ?? 0;
+
+  return hanCharacters + latinWords;
+}
+
+function countPublishedInYear<
+  T extends {
+    publishedAt: string | Date | null;
+  },
+>(items: T[], year: number) {
+  return items.filter((item) => {
+    if (!item.publishedAt) {
+      return false;
+    }
+
+    const date = new Date(item.publishedAt);
+    return !Number.isNaN(date.getTime()) && date.getFullYear() === year;
+  }).length;
+}
+
+function ContentOperationsPanel({
+  items,
 }: {
-  label: string;
-  value: string;
-  meta: string;
+  items: Array<{
+    label: string;
+    count: number;
+    unit: string;
+    icon: LucideIcon;
+    writeHref: string;
+    manageHref: string;
+    writeLabel: string;
+    manageLabel: string;
+  }>;
 }) {
   return (
-    <div className="grid gap-1">
-      <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-        {label}
-      </p>
-      <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{value}</p>
-      <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">{meta}</p>
-    </div>
+    <section className="grid gap-4">
+      <div className="border-b border-zinc-200/80 pb-3 dark:border-zinc-800/80">
+        <h2 className="text-base font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          内容操作
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {items.map((item) => (
+          <article
+            key={item.label}
+            className="border-r border-zinc-200/80 pr-3 last:border-r-0 last:pr-0 dark:border-zinc-800/80"
+          >
+            <div className="flex items-start gap-3">
+              <span className="inline-flex size-6 shrink-0 items-center justify-center text-zinc-400 dark:text-zinc-500 sm:size-8">
+                <item.icon className="size-4 sm:size-5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-zinc-400 dark:text-zinc-500">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-2xl">
+                  {formatAdminNumber(item.count)}
+                  <span className="ml-1 text-xs font-medium text-zinc-500 dark:text-zinc-400 sm:text-sm">{item.unit}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-2 flex items-center gap-2 pl-9 sm:pl-11">
+              <ActionLink href={item.writeHref} label={item.writeLabel} />
+              <ActionLink href={item.manageHref} label={item.manageLabel} />
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function QuickTextLink({ href, label }: { href: string; label: string }) {
+function ActionLink({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="inline-flex items-center gap-1 border-b border-zinc-300/80 pb-0.5 text-sm text-zinc-600 transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-100 dark:hover:text-zinc-50"
+      className="inline-flex items-center border-b border-zinc-300/80 pb-0.5 text-[11px] text-zinc-600 transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-100 dark:hover:text-zinc-50 sm:text-sm"
     >
       {label}
     </Link>
   );
 }
 
-function SectionHeading({ eyebrow, title }: { eyebrow: string; title: string }) {
-  return (
-    <div className="border-b border-zinc-200/80 pb-3 dark:border-zinc-800/80">
-      <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-        {eyebrow}
-      </p>
-      <h2 className="mt-2 text-[1.35rem] font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-        {title}
-      </h2>
-    </div>
-  );
-}
-
-function KpiItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{value}</p>
-      <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{label}</p>
-    </div>
-  );
-}
-
-function StatusPanel({
-  title,
-  published,
-  draft,
-  revised,
+function DenseStatsPanel({
+  items,
 }: {
-  title: string;
-  published: string;
-  draft: string;
-  revised: string;
+  items: Array<{
+    label: string;
+    value: string;
+    icon: LucideIcon;
+  }>;
 }) {
   return (
-    <div className="grid gap-2 border-b border-zinc-200/80 pb-4 last:border-b-0 last:pb-0 dark:border-zinc-800/80 md:border-b-0 md:pb-0">
-      <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{title}</p>
-      <p className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">{published}</p>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-sm text-zinc-500 dark:text-zinc-400">
-        <span>{draft}</span>
-        <span>{revised}</span>
+    <section className="grid gap-4">
+      <div className="pb-1">
+        <h2 className="text-base font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          数据统计
+        </h2>
+      </div>
+
+      <div className="grid grid-cols-2 gap-x-6 gap-y-5 border-t border-zinc-200/80 pt-4 dark:border-zinc-800/80 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+        {items.map((item) => (
+          <article key={item.label} className="flex items-start gap-3">
+            <span className="inline-flex size-7 shrink-0 items-center justify-center text-zinc-400 dark:text-zinc-500">
+              <item.icon className="size-4.5" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400">
+                {item.label}
+              </p>
+              <p className="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                {item.value}
+              </p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PublishingTrendPanel({
+  weeks,
+  monthLabels,
+  totalDays,
+  selectedYear,
+  availableYears,
+  distributionItems,
+}: {
+  weeks: PublishingTrendWeek[];
+  monthLabels: PublishingTrendMonthLabel[];
+  totalDays: number;
+  selectedYear: number;
+  availableYears: number[];
+  distributionItems: Array<{
+    label: string;
+    value: number;
+    direction: "top" | "right" | "bottom" | "left";
+    unit: string;
+    empty?: boolean;
+  }>;
+}) {
+  const totalPublished = weeks.reduce(
+    (sum, week) =>
+      sum +
+      week.days.reduce(
+        (daySum, day) => daySum + (day.isInRange ? day.count : 0),
+        0,
+      ),
+    0,
+  );
+
+  return (
+    <section className="grid gap-3">
+      <div className="border-b border-zinc-200/80 pb-2 dark:border-zinc-800/80">
+        <h2 className="text-base font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          发布概览
+        </h2>
+      </div>
+
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row md:items-start md:gap-6">
+        <nav
+          aria-label="发布年份"
+          className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80 md:grid md:shrink-0 md:gap-2 md:border-b-0 md:border-r md:pb-0 md:pr-6"
+        >
+          {availableYears.map((year) => {
+            const isActive = year === selectedYear;
+
+            return (
+              <Link
+                key={year}
+                href={buildOverviewYearHref(year)}
+                scroll={false}
+                className={`inline-flex h-7 items-center text-sm font-semibold tracking-tight transition sm:h-8 sm:text-base ${
+                  isActive
+                    ? "text-primary"
+                    : "text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+                }`}
+              >
+                {year}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="grid min-w-0 flex-1 gap-5">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            {selectedYear} 年 {totalDays} 天内共发布 {formatAdminNumber(totalPublished)} 条
+          </p>
+
+          <div className="grid gap-3">
+            <div className="max-w-full overflow-x-auto md:overflow-x-visible">
+              <div className="inline-block min-w-max">
+                <div
+                  className="grid gap-x-1 gap-y-1"
+                  style={{ gridTemplateColumns: `1.25rem repeat(${weeks.length}, 10px)` }}
+                >
+                  <div />
+                  {weeks.map((week, index) => {
+                    const monthLabel = monthLabels.find((label) => label.column === index);
+
+                    return (
+                      <div
+                        key={`${week.key}-month`}
+                        className="relative h-3"
+                      >
+                        {monthLabel ? (
+                          <span className="absolute left-0 top-0 whitespace-nowrap text-[10px] leading-3 text-zinc-500 dark:text-zinc-400">
+                            {monthLabel.label}
+                          </span>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+
+                  <div className="grid grid-rows-7 gap-0.5 pt-px text-[10px] text-zinc-500 dark:text-zinc-400">
+                    <span />
+                    <span className="leading-3">一</span>
+                    <span />
+                    <span className="leading-3">三</span>
+                    <span />
+                    <span className="leading-3">五</span>
+                    <span />
+                  </div>
+
+                  {weeks.map((week) => (
+                    <div key={week.key} className="grid grid-rows-7 gap-0.5">
+                      {week.days.map((day) => (
+                        <div key={day.key} className="group relative">
+                          <div
+                            aria-label={day.label}
+                            className={getTrendCellClassName(day.level, day.isInRange)}
+                          />
+                          {day.isInRange ? (
+                            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max -translate-x-1/2 opacity-0 transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                              <div className="rounded-md bg-zinc-950 px-2.5 py-1.5 text-[11px] text-white shadow-lg shadow-zinc-950/15 dark:bg-zinc-100 dark:text-zinc-950 dark:shadow-black/20">
+                                {day.label}
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-1.5 pr-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+              <span>Less</span>
+              <div className="flex items-center gap-0.5">
+                {[0, 1, 2, 3, 4].map((level) => (
+                  <span
+                    key={level}
+                    className={getTrendCellClassName(level as 0 | 1 | 2 | 3 | 4, true)}
+                  />
+                ))}
+              </div>
+              <span>More</span>
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <ContentCrossOverviewPanel
+              items={distributionItems}
+              selectedYear={selectedYear}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ContentCrossOverviewPanel({
+  items,
+  selectedYear,
+}: {
+  items: Array<{
+    label: string;
+    value: number;
+    direction: "top" | "right" | "bottom" | "left";
+    unit: string;
+    empty?: boolean;
+  }>;
+  selectedYear: number;
+}) {
+  const totalValue = items.reduce(
+    (sum, item) => sum + (item.empty ? 0 : item.value),
+    0,
+  );
+  const topItem = items.find((item) => item.direction === "top");
+  const rightItem = items.find((item) => item.direction === "right");
+  const bottomItem = items.find((item) => item.direction === "bottom");
+  const leftItem = items.find((item) => item.direction === "left");
+  const maxValue = Math.max(
+    ...items.map((item) => (item.empty ? 0 : item.value)),
+    0,
+  );
+  const topArm = getCrossArmLength(topItem, maxValue);
+  const rightArm = getCrossArmLength(rightItem, maxValue);
+  const bottomArm = getCrossArmLength(bottomItem, maxValue);
+  const leftArm = getCrossArmLength(leftItem, maxValue);
+  const nodeDiameterX = (0.625 / 14) * 100;
+  const nodeDiameterY = (0.625 / 12) * 100;
+  const polygonPoints = [
+    `50 ${50 - (topArm > 0 ? topArm + nodeDiameterY : 0)}`,
+    `${50 + (rightArm > 0 ? rightArm + nodeDiameterX : 0)} 50`,
+    `50 ${50 + (bottomArm > 0 ? bottomArm + nodeDiameterY : 0)}`,
+    `${50 - (leftArm > 0 ? leftArm + nodeDiameterX : 0)} 50`,
+  ].join(" ");
+
+  return (
+    <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+      <div className="grid gap-3 md:min-w-[15rem]">
+        <div className="grid gap-1">
+          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+            内容分布
+          </p>
+          <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            {selectedYear} 年发布概况
+          </p>
+        </div>
+
+        <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+          {items.map((item) => (
+            <p key={item.label}>
+              {selectedYear} 年发布了 {formatAdminNumber(item.value)} {item.unit}
+              {item.label}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <div className="flex justify-center py-2 md:flex-1 md:justify-start">
+        <div className="relative h-[20rem] w-full max-w-[24rem]">
+          <div className="absolute inset-x-0 top-0 flex justify-center text-center">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                {topItem?.label}
+              </p>
+              {shouldShowCrossValue(topItem, totalValue) ? (
+                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                  {renderCrossValue(topItem, totalValue)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="absolute inset-y-0 left-0 flex items-center text-right">
+            <div className="flex flex-col items-end gap-1">
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                {leftItem?.label}
+              </p>
+              {shouldShowCrossValue(leftItem, totalValue) ? (
+                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                  {renderCrossValue(leftItem, totalValue)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="absolute inset-y-0 right-0 flex items-center text-left">
+            <div className="flex flex-col items-start gap-1">
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                {rightItem?.label}
+              </p>
+              {shouldShowCrossValue(rightItem, totalValue) ? (
+                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                  {renderCrossValue(rightItem, totalValue)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="absolute inset-x-0 bottom-0 flex justify-center text-center">
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+                {bottomItem?.label}
+              </p>
+              {shouldShowCrossValue(bottomItem, totalValue) ? (
+                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                  {renderCrossValue(bottomItem, totalValue)}
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="absolute inset-x-20 inset-y-16">
+            <div className="relative h-full w-full">
+              <svg
+                viewBox="0 0 100 100"
+                aria-hidden="true"
+                className="absolute inset-0 h-full w-full overflow-visible"
+              >
+                <polygon
+                  points={polygonPoints}
+                  className="fill-primary/20 dark:fill-primary/25"
+                />
+              </svg>
+              <div className="absolute left-1/2 top-1/2 h-full w-px -translate-x-1/2 -translate-y-1/2 bg-primary/35 dark:bg-primary/45" />
+              <div className="absolute left-1/2 top-1/2 h-px w-full -translate-x-1/2 -translate-y-1/2 bg-primary/35 dark:bg-primary/45" />
+
+              <div className="absolute left-1/2 top-1/2 z-10 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-white dark:bg-zinc-950" />
+
+              {items.map((item) => {
+                const percent = getCrossPercent(item, maxValue);
+                const armLength = (percent / 100) * 6.5;
+                const coloredArmLength = armLength;
+                const armClassName = item.empty
+                  ? "bg-zinc-300/80 dark:bg-zinc-700/80"
+                  : "bg-primary";
+                const nodeClassName = item.empty
+                  ? "border-zinc-300 dark:border-zinc-700"
+                  : "border-primary";
+
+                if (item.direction === "top") {
+                  return (
+                    <div key={item.label}>
+                    <div
+                      className={`absolute left-1/2 top-1/2 z-[1] w-px -translate-x-1/2 rounded-full ${armClassName}`}
+                      style={{ height: `${coloredArmLength}rem`, marginTop: `-${coloredArmLength}rem` }}
+                    />
+                      <div
+                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        style={{ top: `calc(50% - ${armLength}rem)` }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (item.direction === "right") {
+                  return (
+                    <div key={item.label}>
+                    <div
+                      className={`absolute left-1/2 top-1/2 z-[1] h-px -translate-y-1/2 rounded-full ${armClassName}`}
+                      style={{ width: `${coloredArmLength}rem` }}
+                    />
+                      <div
+                        className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        style={{ left: `calc(50% + ${armLength}rem)` }}
+                      />
+                    </div>
+                  );
+                }
+
+                if (item.direction === "bottom") {
+                  return (
+                    <div key={item.label}>
+                    <div
+                      className={`absolute left-1/2 top-1/2 z-[1] w-px -translate-x-1/2 rounded-full ${armClassName}`}
+                      style={{ height: `${coloredArmLength}rem` }}
+                    />
+                      <div
+                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        style={{ top: `calc(50% + ${armLength}rem)` }}
+                      />
+                    </div>
+                  );
+                }
+
+                return (
+                  <div key={item.label}>
+                    <div
+                      className={`absolute right-1/2 top-1/2 z-[1] h-px -translate-y-1/2 rounded-full ${armClassName}`}
+                      style={{ width: `${coloredArmLength}rem` }}
+                    />
+                    <div
+                      className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                      style={{ left: `calc(50% - ${armLength}rem)` }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function QueueRowCompact({
-  href,
-  title,
-  value,
-}: {
-  href: string;
-  title: string;
-  value: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center justify-between gap-3 border-b border-zinc-200/80 py-2.5 first:pt-0 last:border-b-0 last:pb-0 dark:border-zinc-800/80"
-    >
-      <span className="text-sm text-zinc-600 dark:text-zinc-300">{title}</span>
-      <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{value}</span>
-    </Link>
-  );
-}
-
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 pb-3 last:border-b-0 last:pb-0 dark:border-zinc-800/80">
-      <dt className="text-zinc-500 dark:text-zinc-400">{label}</dt>
-      <dd className="text-right font-medium text-zinc-950 dark:text-zinc-50">{value}</dd>
-    </div>
-  );
-}
-
-function BarRow({
-  label,
-  value,
-  ratio,
-}: {
-  label: string;
-  value: string;
-  ratio: number;
-}) {
-  return (
-    <div className="grid gap-1.5">
-      <div className="flex items-center justify-between gap-4 text-sm">
-        <span className="text-zinc-700 dark:text-zinc-200">{label}</span>
-        <span className="text-zinc-500 dark:text-zinc-400">{value}</span>
-      </div>
-      <div className="h-1.5 bg-zinc-100 dark:bg-zinc-900">
-        <div
-          className="h-full bg-zinc-700 dark:bg-zinc-200"
-          style={{ width: `${Math.max(10, Math.round(ratio * 100))}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function StatusLabel({ status }: { status: ContentStatus }) {
-  return (
-    <span
-      className={
-        status === ContentStatus.PUBLISHED
-          ? "text-emerald-700 dark:text-emerald-300"
-          : "text-amber-700 dark:text-amber-300"
+function renderCrossValue(
+  item:
+    | {
+        label: string;
+        value: number;
+        direction: "top" | "right" | "bottom" | "left";
+        empty?: boolean;
       }
-    >
-      {status === ContentStatus.PUBLISHED ? "已发布" : "草稿"}
-    </span>
-  );
+    | undefined,
+  maxValue: number,
+) {
+  if (!item || item.empty || maxValue <= 0) {
+    return "";
+  }
+
+  return `${getCrossPercent(item, maxValue)}%`;
+}
+
+function shouldShowCrossValue(
+  item:
+    | {
+        label: string;
+        value: number;
+        direction: "top" | "right" | "bottom" | "left";
+        empty?: boolean;
+      }
+    | undefined,
+  maxValue: number,
+) {
+  return Boolean(item && !item.empty && maxValue > 0);
+}
+
+function getCrossArmLength(
+  item:
+    | {
+        label: string;
+        value: number;
+        direction: "top" | "right" | "bottom" | "left";
+        empty?: boolean;
+      }
+    | undefined,
+  maxValue: number,
+) {
+  const percent = getCrossPercent(item, maxValue);
+
+  if (percent <= 0) {
+    return 0;
+  }
+
+  return (percent / 100) * 50;
+}
+
+function getCrossPercent(
+  item:
+    | {
+        label: string;
+        value: number;
+        direction: "top" | "right" | "bottom" | "left";
+        empty?: boolean;
+      }
+    | undefined,
+  maxValue: number,
+) {
+  if (!item || item.empty || maxValue <= 0) {
+    return 0;
+  }
+
+  return Math.round((item.value / maxValue) * 100);
 }
 
 function getGreeting() {
@@ -446,52 +812,234 @@ function getGreeting() {
   return "晚上好";
 }
 
-function getAdminEditHref(kind: "Post" | "Update", id: number) {
-  return kind === "Post"
-    ? `/admin/posts/${encodeURIComponent(id)}`
-    : `/admin/updates/${encodeURIComponent(id)}`;
-}
+type PublishingTrendDay = {
+  key: string;
+  count: number;
+  label: string;
+  level: 0 | 1 | 2 | 3 | 4;
+  isInRange: boolean;
+  date: Date;
+};
 
-function getLatestPublishedAt(
+type PublishingTrendWeek = {
+  key: string;
+  days: PublishingTrendDay[];
+};
+
+type PublishingTrendMonthLabel = {
+  key: string;
+  label: string;
+  column: number;
+};
+
+function buildPublishingTrend(
   posts: Awaited<ReturnType<typeof listPostsForAdmin>>,
   updates: Awaited<ReturnType<typeof listUpdatesForAdmin>>,
+  standalonePages: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
+  selectedYear: number,
 ) {
-  const timestamps = [...posts, ...updates]
-    .map((item) => item.publishedAt)
-    .filter((value): value is string => Boolean(value))
-    .map((value) => new Date(value).getTime())
-    .filter((value) => !Number.isNaN(value));
+  const rangeStart = startOfDay(new Date(selectedYear, 0, 1));
+  const rangeEnd = startOfDay(new Date(selectedYear, 11, 31));
+  const totalDays = getInclusiveDayCount(rangeStart, rangeEnd);
+  const gridStart = startOfWeek(rangeStart);
+  const gridEnd = endOfWeek(rangeEnd);
 
-  if (timestamps.length === 0) {
-    return null;
+  const countsByDay = new Map<string, number>();
+  const publishedDates = [
+    ...posts.map((item) => item.publishedAt),
+    ...updates.map((item) => item.publishedAt),
+    ...standalonePages.map((item) => item.publishedAt),
+  ];
+
+  for (const value of publishedDates) {
+    if (!value) {
+      continue;
+    }
+
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime()) || date < rangeStart || date > rangeEnd) {
+      continue;
+    }
+
+    const dayKey = formatDayKey(date);
+    countsByDay.set(dayKey, (countsByDay.get(dayKey) ?? 0) + 1);
   }
 
-  return new Date(Math.max(...timestamps)).toISOString();
+  const weeks: PublishingTrendWeek[] = [];
+  const monthLabels: PublishingTrendMonthLabel[] = [];
+  const cursor = new Date(gridStart);
+  let weekIndex = 0;
+  let previousMonth = "";
+
+  while (cursor <= gridEnd) {
+    const days: PublishingTrendDay[] = [];
+
+    for (let dayIndex = 0; dayIndex < 7; dayIndex += 1) {
+      const date = new Date(cursor);
+      date.setDate(cursor.getDate() + dayIndex);
+
+      const key = formatDayKey(date);
+      const count = countsByDay.get(key) ?? 0;
+      const isInRange = date >= rangeStart && date <= rangeEnd;
+
+      days.push({
+        key,
+        count,
+        label: `${formatPreciseTrendDate(date)} 发布 ${formatAdminNumber(count)} 条`,
+        level: isInRange ? getTrendLevel(count) : 0,
+        isInRange,
+        date,
+      });
+    }
+
+    const monthSource = days.find((day) => day.isInRange);
+    if (monthSource) {
+      const monthKey = `${monthSource.date.getFullYear()}-${monthSource.date.getMonth() + 1}`;
+
+      if (monthKey !== previousMonth) {
+        monthLabels.push({
+          key: monthKey,
+          label: formatTrendMonth(monthSource.date),
+          column: weekIndex,
+        });
+        previousMonth = monthKey;
+      }
+    }
+
+    weeks.push({
+      key: days[0]?.key ?? `week-${weekIndex}`,
+      days,
+    });
+
+    cursor.setDate(cursor.getDate() + 7);
+    weekIndex += 1;
+  }
+
+  return { weeks, monthLabels, totalDays };
 }
 
-function getRecent30DaySummary(
+function getPublishingTrendYears(
   posts: Awaited<ReturnType<typeof listPostsForAdmin>>,
   updates: Awaited<ReturnType<typeof listUpdatesForAdmin>>,
+  standalonePages: Awaited<ReturnType<typeof listStandalonePagesForAdmin>>,
 ) {
-  const cutoff = Date.now() - 30 * 86_400_000;
-  const postCount = posts.filter((item) => {
-    if (!item.publishedAt) {
-      return false;
+  const years = new Set<number>([new Date().getFullYear()]);
+
+  for (const value of [
+    ...posts.map((item) => item.publishedAt),
+    ...updates.map((item) => item.publishedAt),
+    ...standalonePages.map((item) => item.publishedAt),
+  ]) {
+    if (!value) {
+      continue;
     }
 
-    return new Date(item.publishedAt).getTime() >= cutoff;
-  }).length;
-  const updateCount = updates.filter((item) => {
-    if (!item.publishedAt) {
-      return false;
+    const date = new Date(value);
+    if (!Number.isNaN(date.getTime())) {
+      years.add(date.getFullYear());
     }
+  }
 
-    return new Date(item.publishedAt).getTime() >= cutoff;
-  }).length;
+  return Array.from(years).sort((a, b) => b - a);
+}
 
-  return {
-    postCount,
-    updateCount,
-    totalCount: postCount + updateCount,
-  };
+function buildOverviewYearHref(year: number) {
+  const searchParams = new URLSearchParams();
+  searchParams.set("year", String(year));
+  return `/admin?${searchParams.toString()}`;
+}
+
+function getTrendLevel(count: number): 0 | 1 | 2 | 3 | 4 {
+  if (count <= 0) {
+    return 0;
+  }
+
+  if (count === 1) {
+    return 1;
+  }
+
+  if (count <= 3) {
+    return 2;
+  }
+
+  if (count <= 5) {
+    return 3;
+  }
+
+  return 4;
+}
+
+function getTrendCellClassName(
+  level: 0 | 1 | 2 | 3 | 4,
+  isInRange: boolean,
+) {
+  const baseClassName = "block size-[10px] rounded-[2px]";
+
+  if (!isInRange) {
+    return `${baseClassName} bg-transparent`;
+  }
+
+  switch (level) {
+    case 0:
+      return `${baseClassName} bg-zinc-200/80 dark:bg-zinc-800/80`;
+    case 1:
+      return `${baseClassName} bg-primary/42 dark:bg-primary/45`;
+    case 2:
+      return `${baseClassName} bg-primary/62 dark:bg-primary/64`;
+    case 3:
+      return `${baseClassName} bg-primary/82 dark:bg-primary/84`;
+    case 4:
+      return `${baseClassName} bg-primary dark:bg-primary`;
+  }
+}
+
+function startOfDay(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+
+function startOfWeek(date: Date) {
+  const nextDate = startOfDay(date);
+  nextDate.setDate(nextDate.getDate() - nextDate.getDay());
+  return nextDate;
+}
+
+function endOfWeek(date: Date) {
+  const nextDate = startOfWeek(date);
+  nextDate.setDate(nextDate.getDate() + 6);
+  return nextDate;
+}
+
+function getInclusiveDayCount(startDate: Date, endDate: Date) {
+  const startTime = startOfDay(startDate).getTime();
+  const endTime = startOfDay(endDate).getTime();
+  return Math.floor((endTime - startTime) / 86_400_000) + 1;
+}
+
+function formatDayKey(date: Date) {
+  return [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+function formatTrendDate(date: Date) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    month: "short",
+    timeZone: "Asia/Shanghai",
+  }).format(date);
+}
+
+function formatPreciseTrendDate(date: Date) {
+  return new Intl.DateTimeFormat("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone: "Asia/Shanghai",
+  }).format(date);
+}
+
+function formatTrendMonth(date: Date) {
+  return formatTrendDate(date).replace("月", "月");
 }
