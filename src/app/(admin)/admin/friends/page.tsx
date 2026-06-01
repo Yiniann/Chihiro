@@ -240,7 +240,6 @@ function ApplicationRow({
           {application.status !== FriendLinkApplicationStatus.PENDING ? (
             <FriendLinkActionMenu
               applicationId={application.id}
-              friendLinkId={friendLinkItem?.id ?? null}
               friendLinkDefaults={
                 friendLinkItem
                   ? {
