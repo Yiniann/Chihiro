@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/server/auth";
 import {
   approveFriendLinkApplication,
+  deleteFriendLinkApplication,
   holdFriendLinkApplication,
   rejectFriendLinkApplication,
 } from "@/server/repositories/friend-link-applications";
@@ -23,6 +24,12 @@ export async function rejectFriendLinkApplicationAction(formData: FormData) {
 export async function holdFriendLinkApplicationAction(formData: FormData) {
   await requireAdminSession();
   await holdFriendLinkApplication(getApplicationId(formData));
+  revalidateManageSurfaces();
+}
+
+export async function deleteFriendLinkApplicationAction(formData: FormData) {
+  await requireAdminSession();
+  await deleteFriendLinkApplication(getApplicationId(formData));
   revalidateManageSurfaces();
 }
 

@@ -8,19 +8,18 @@ import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { EditFriendLinkDialog } from "@/app/(admin)/admin/manage/edit-friend-link-dialog";
 import {
   approveFriendLinkApplicationAction,
+  deleteFriendLinkApplicationAction,
   holdFriendLinkApplicationAction,
   rejectFriendLinkApplicationAction,
 } from "@/app/(admin)/admin/manage/application-actions";
-import { deleteFriendLinkAction, saveFriendLinkAction } from "@/app/(admin)/admin/manage/actions";
+import { saveFriendLinkAction } from "@/app/(admin)/admin/manage/actions";
 
 export function FriendLinkActionMenu({
   applicationId,
-  friendLinkId = null,
   friendLinkDefaults = null,
   status,
 }: {
   applicationId: number;
-  friendLinkId?: number | null;
   friendLinkDefaults?: {
     id: number;
     name: string;
@@ -122,7 +121,7 @@ export function FriendLinkActionMenu({
               tone="danger"
             />
           ) : null}
-          {friendLinkId ? (
+          {status === FriendLinkApplicationStatus.REJECTED ? (
             <ConfirmActionDialog
               triggerLabel="删除"
               triggerClassName="flex w-full items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40"
@@ -132,11 +131,11 @@ export function FriendLinkActionMenu({
                   <span>删除</span>
                 </>
               }
-              title="删除这条友链？"
-              description="删除后无法撤销，这条友链会从公开展示中移除。"
-              confirmLabel="删除友链"
-              action={deleteFriendLinkAction}
-              fields={[{ name: "id", value: friendLinkId }]}
+              title="删除这条申请？"
+              description="删除后无法撤销，这条已拒绝的友链申请会被永久移除。"
+              confirmLabel="删除申请"
+              action={deleteFriendLinkApplicationAction}
+              fields={[{ name: "id", value: applicationId }]}
               confirmTone="danger"
             />
           ) : null}

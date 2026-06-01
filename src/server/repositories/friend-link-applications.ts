@@ -242,6 +242,12 @@ export async function holdFriendLinkApplication(id: number): Promise<FriendLinkA
   return mapFriendLinkApplicationRecord(item);
 }
 
+export async function deleteFriendLinkApplication(id: number): Promise<void> {
+  await prisma.friendLinkApplication.delete({
+    where: { id },
+  });
+}
+
 function buildFriendLinkDataFromApplication(application: {
   siteName: string;
   siteUrl: string;
