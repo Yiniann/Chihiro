@@ -35,6 +35,11 @@ export function HomeTimelineRail({
   const [hasMounted, setHasMounted] = useState(false);
   const pointRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const yearMarkers = useMemo(
+    () => getTimelineYearMarkers(rangeStart, rangeEnd),
+    [rangeEnd, rangeStart],
+  );
+  const currentYearMarker = yearMarkers.find((marker) => marker.current);
   const clusters = useMemo(() => {
     const positions = getTimelinePointPositions(items, rangeStart, rangeEnd);
     return getTimelineClusters(items, positions);
@@ -127,7 +132,7 @@ export function HomeTimelineRail({
       </motion.div>
 
       <motion.div
-        className="relative overflow-visible pb-2"
+        className="relative overflow-visible pb-3"
         initial={prefersReducedMotion ? false : { opacity: 0 }}
         whileInView={prefersReducedMotion ? undefined : { opacity: 1 }}
         viewport={{ once: true, amount: 0.35 }}
@@ -138,13 +143,27 @@ export function HomeTimelineRail({
           onMouseLeave={scheduleClose}
         >
           <motion.div
-            className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-gradient-to-r from-zinc-200 via-primary/45 to-zinc-200 dark:from-zinc-800 dark:via-primary/50 dark:to-zinc-800"
+            className="absolute left-0 right-0 top-1/2 h-px -translate-y-1/2 bg-zinc-300/90 dark:bg-zinc-700/90"
             initial={prefersReducedMotion ? false : { scaleX: 0, opacity: 0.45 }}
             whileInView={prefersReducedMotion ? undefined : { scaleX: 1, opacity: 1 }}
             viewport={{ once: true, amount: 0.35 }}
             transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
             style={{ transformOrigin: "left center" }}
           />
+          {currentYearMarker ? (
+            <motion.div
+              className="absolute top-1/2 h-px -translate-y-1/2 bg-primary/55 dark:bg-primary/60"
+              initial={prefersReducedMotion ? false : { scaleX: 0, opacity: 0.55 }}
+              whileInView={prefersReducedMotion ? undefined : { scaleX: 1, opacity: 1 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 1.15, ease: [0.22, 1, 0.36, 1], delay: 0.18 }}
+              style={{
+                left: `${currentYearMarker.position}%`,
+                right: 0,
+                transformOrigin: "left center",
+              }}
+            />
+          ) : null}
           <div className="relative h-4">
             {clusters.map((cluster, index) => {
               const isActive = index === activeIndex;
@@ -192,6 +211,29 @@ export function HomeTimelineRail({
               );
             })}
           </div>
+
+          {yearMarkers.length > 0 ? (
+            <div className="pointer-events-none absolute inset-x-2 top-1/2 translate-y-[6px]">
+              {yearMarkers.map((marker) => (
+                <div
+                  key={marker.year}
+                  className="absolute -translate-x-1/2 text-center"
+                  style={{ left: `${marker.position}%` }}
+                >
+                  <span className={`mx-auto block h-1.5 w-px ${marker.current ? "bg-primary" : "bg-zinc-300 dark:bg-zinc-700"}`} />
+                  <span
+                    className={`mt-0.5 block text-[10px] tracking-[0.16em] ${
+                      marker.current
+                        ? "text-primary"
+                        : "text-zinc-400 dark:text-zinc-500"
+                    }`}
+                  >
+                    {marker.year}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : null}
         </div>
       </motion.div>
 
@@ -257,11 +299,10 @@ function formatRailMarkerDate(value: string | null) {
 }
 
 function getTimelinePointPositions(items: TimelineItem[], rangeStart: string, rangeEnd: string) {
-  const rangeStartTime = new Date(rangeStart).getTime();
-  const rangeEndTime = new Date(rangeEnd).getTime();
-  const resolvedRangeStart = Number.isNaN(rangeStartTime) ? 0 : rangeStartTime;
-  const resolvedRangeEnd = Number.isNaN(rangeEndTime) ? Date.now() : rangeEndTime;
-  const rangeDuration = Math.max(resolvedRangeEnd - resolvedRangeStart, 1);
+  const { resolvedRangeStart, resolvedRangeEnd, rangeDuration } = resolveTimelineRange(
+    rangeStart,
+    rangeEnd,
+  );
 
   return items.map((item, index) => {
     if (!item.publishedAt) {
@@ -281,6 +322,47 @@ function getTimelinePointPositions(items: TimelineItem[], rangeStart: string, ra
     const progress = (clampedTime - resolvedRangeStart) / rangeDuration;
     return Math.min(Math.max(progress * 100, 0), 100);
   });
+}
+
+function getTimelineYearMarkers(rangeStart: string, rangeEnd: string) {
+  const { resolvedRangeStart, resolvedRangeEnd, rangeDuration } = resolveTimelineRange(
+    rangeStart,
+    rangeEnd,
+  );
+  const currentYear = new Date().getFullYear();
+  const years = [currentYear - 1, currentYear];
+
+  return years.flatMap((year) => {
+    const markerDate = new Date(year, 0, 1).getTime();
+
+    if (markerDate < resolvedRangeStart || markerDate > resolvedRangeEnd) {
+      return [];
+    }
+
+    const progress = (markerDate - resolvedRangeStart) / rangeDuration;
+
+    return [
+      {
+        year: String(year),
+        current: year === currentYear,
+        position: Math.min(Math.max(progress * 100, 0), 100),
+      },
+    ];
+  });
+}
+
+function resolveTimelineRange(rangeStart: string, rangeEnd: string) {
+  const rangeStartTime = new Date(rangeStart).getTime();
+  const rangeEndTime = new Date(rangeEnd).getTime();
+  const resolvedRangeStart = Number.isNaN(rangeStartTime) ? 0 : rangeStartTime;
+  const resolvedRangeEnd = Number.isNaN(rangeEndTime) ? Date.now() : rangeEndTime;
+  const rangeDuration = Math.max(resolvedRangeEnd - resolvedRangeStart, 1);
+
+  return {
+    resolvedRangeStart,
+    resolvedRangeEnd,
+    rangeDuration,
+  };
 }
 
 function getTimelineClusters(items: TimelineItem[], positions: number[]) {

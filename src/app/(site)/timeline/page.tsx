@@ -10,11 +10,13 @@ import { ScrollToTopLink } from "@/components/scroll-to-top-link";
 import { SiteLogoMark } from "@/components/site-logo-mark";
 import { TimelinePageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerRevealItem } from "@/components/stagger-reveal";
+import { TimelinePublishingOverview } from "@/components/timeline-publishing-overview";
 import { siteConfig } from "@/lib/site";
 import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
   listPublicPosts,
+  listPublicStandalonePages,
   listPublicUpdates,
 } from "@/server/public-content";
 
@@ -64,12 +66,14 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
 async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }) {
   let posts;
   let updates;
+  let standalonePages;
   let siteSettings;
 
   try {
-    [posts, updates, siteSettings] = await Promise.all([
+    [posts, updates, standalonePages, siteSettings] = await Promise.all([
       listPublicPosts(),
       listPublicUpdates(),
+      listPublicStandalonePages(),
       getPublicSiteSettings(),
     ]);
   } catch (error) {
@@ -94,6 +98,13 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
           <span className="pb-2 text-2xl font-medium tracking-tight sm:text-3xl">
             pieces, and the journey goes on
           </span>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <TimelinePublishingOverview
+            posts={posts.map((item) => item.publishedAt)}
+            updates={updates.map((item) => item.publishedAt)}
+            standalonePages={standalonePages.map((item) => item.publishedAt)}
+          />
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-2">
