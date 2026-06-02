@@ -7,6 +7,7 @@ import type { JSONContent } from "@tiptap/react"
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react"
 import type { Editor } from "@tiptap/react"
 import { keymap } from "@tiptap/pm/keymap"
+import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 
 // --- Tiptap Core Extensions ---
@@ -467,6 +468,72 @@ const InlineCodeSelectAll = Extension.create({
   name: "inlineCodeSelectAll",
 
   addProseMirrorPlugins() {
+    const isInlineCodeText = (index: number, parent: ProseMirrorNode) => {
+      if (index < 0 || index >= parent.childCount) {
+        return false
+      }
+
+      const child = parent.child(index)
+      return child.isText && child.marks.some((mark) => mark.type.name === "code")
+    }
+
+    const moveCursorAcrossInlineCodeBoundary = (direction: "left" | "right") => {
+      const { state, view } = this.editor
+      const { selection } = state
+      const { $from } = selection
+
+      if (!selection.empty || !$from.parent.isTextblock) {
+        return false
+      }
+
+      const parent = $from.parent
+      const offset = $from.parentOffset
+      let currentOffset = 0
+
+      for (let index = 0; index < parent.childCount; index += 1) {
+        const child = parent.child(index)
+        const childStart = currentOffset
+        const childEnd = currentOffset + child.nodeSize
+        const isBoundaryMatch =
+          direction === "right" ? offset === childEnd : offset === childStart
+
+        if (!isBoundaryMatch) {
+          currentOffset = childEnd
+          continue
+        }
+
+        const codeIndex = direction === "right" ? index : index - 1
+        const plainIndex = direction === "right" ? index + 1 : index
+
+        if (!isInlineCodeText(codeIndex, parent) || isInlineCodeText(plainIndex, parent)) {
+          return false
+        }
+
+        const nextPos = direction === "right" ? selection.from + 1 : selection.from - 1
+
+        if (nextPos < 0 || nextPos > state.doc.content.size) {
+          return false
+        }
+
+        const activeMarks = state.storedMarks ?? $from.marks()
+        const hasActiveCodeMark = activeMarks.some((mark) => mark.type.name === "code")
+        const transaction = state.tr.setSelection(
+          TextSelection.create(state.doc, nextPos)
+        )
+
+        if (hasActiveCodeMark) {
+          transaction.setStoredMarks(
+            activeMarks.filter((mark) => mark.type.name !== "code")
+          )
+        }
+
+        view.dispatch(transaction)
+        return true
+      }
+
+      return false
+    }
+
     const selectCurrentInlineCode = () => {
       const { state, view } = this.editor
       const { selection } = state
@@ -546,6 +613,8 @@ const InlineCodeSelectAll = Extension.create({
     return [
       keymap({
         "Mod-a": () => selectCurrentInlineCode(),
+        ArrowLeft: () => moveCursorAcrossInlineCodeBoundary("left"),
+        ArrowRight: () => moveCursorAcrossInlineCodeBoundary("right"),
       }),
     ]
   },
