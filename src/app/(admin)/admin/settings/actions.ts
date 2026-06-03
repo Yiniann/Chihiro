@@ -46,6 +46,8 @@ export async function saveGeneralSettingsAction(
       motto,
       email: currentSettings?.email ?? null,
       githubUrl: currentSettings?.githubUrl ?? null,
+      projectsGitHubUsername: currentSettings?.projectsGitHubUsername ?? null,
+      hiddenProjectSlugs: currentSettings?.hiddenProjectSlugs ?? [],
       siteLiveVisitorsEnabled: currentSettings?.siteLiveVisitorsEnabled ?? true,
       postReadingPresenceEnabled: currentSettings?.postReadingPresenceEnabled ?? true,
       standalonePageReadingPresenceEnabled:

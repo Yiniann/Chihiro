@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FileText,
+  FolderKanban,
   House,
   Images,
   LayoutDashboard,
@@ -52,6 +53,9 @@ const adminNavMeta: Record<
   },
   "/admin/pages": {
     icon: FileText,
+  },
+  "/admin/projects": {
+    icon: FolderKanban,
   },
   "/admin/friends": {
     icon: Handshake,

@@ -54,6 +54,8 @@ export async function saveWebsocketSettingsAction(
       motto: currentSettings?.motto ?? siteConfig.motto,
       email: currentSettings?.email ?? null,
       githubUrl: currentSettings?.githubUrl ?? null,
+      projectsGitHubUsername: currentSettings?.projectsGitHubUsername ?? null,
+      hiddenProjectSlugs: currentSettings?.hiddenProjectSlugs ?? [],
       siteLiveVisitorsEnabled,
       postReadingPresenceEnabled,
       standalonePageReadingPresenceEnabled,

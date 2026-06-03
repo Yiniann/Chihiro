@@ -12,8 +12,7 @@ export const siteConfig = {
   subtitle: "",
   motto: "It is the time you have wasted for your rose\nmakes your rose so important.",
   heroIntro: DEFAULT_HERO_INTRO,
-  summary:
-    "This is where I share projects, experiments, and reflections on building, learning, and the things that keep me curious.",
+  summary: "",
   email:"i@xiamii.com",
   github: "https://github.com/Yiniann",
 };

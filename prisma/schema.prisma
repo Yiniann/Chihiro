@@ -139,25 +139,25 @@ model User {
 }
 
 model PostComment {
-  id            String        @id @default(cuid())
-  postId        Int?
+  id               String          @id @default(cuid())
+  postId           Int?
   standalonePageId Int?
-  parentId      String?
-  threadRootId  String?
-  userId        String?
-  authorName    String?
-  authorEmail   String?
-  body          String        @db.Text
-  status        CommentStatus @default(PENDING)
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  post          Post?         @relation(fields: [postId], references: [id], onDelete: Cascade)
-  standalonePage StandalonePage? @relation(fields: [standalonePageId], references: [id], onDelete: Cascade)
-  parent        PostComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
-  replies       PostComment[] @relation("CommentReplies")
-  threadRoot    PostComment?  @relation("CommentThread", fields: [threadRootId], references: [id], onDelete: Cascade)
-  threadReplies PostComment[] @relation("CommentThread")
-  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  parentId         String?
+  threadRootId     String?
+  userId           String?
+  authorName       String?
+  authorEmail      String?
+  body             String          @db.Text
+  status           CommentStatus   @default(PENDING)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  post             Post?           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  standalonePage   StandalonePage? @relation(fields: [standalonePageId], references: [id], onDelete: Cascade)
+  parent           PostComment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies          PostComment[]   @relation("CommentReplies")
+  threadRoot       PostComment?    @relation("CommentThread", fields: [threadRootId], references: [id], onDelete: Cascade)
+  threadReplies    PostComment[]   @relation("CommentThread")
+  user             User?           @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([postId, status, createdAt])
   @@index([standalonePageId, status, createdAt])
@@ -237,63 +237,63 @@ model Update {
 }
 
 model StandalonePage {
-  id             Int                    @id @default(autoincrement())
-  title          String
-  slug           String                 @unique
-  status         ContentStatus          @default(DRAFT)
-  content        Json?
-  contentHtml    String?
-  publishedAt    DateTime?
-  commentsEnabled Boolean               @default(false)
-  draftSnapshot  Json?
-  showInNav      Boolean                @default(false)
-  navLabel       String?
-  navEyebrow     String?
-  navGroup       StandalonePageNavGroup @default(HOME)
-  seoTitle       String?
-  seoDescription String?
-  createdAt      DateTime               @default(now())
-  updatedAt      DateTime               @updatedAt
-  comments       PostComment[]
+  id              Int                    @id @default(autoincrement())
+  title           String
+  slug            String                 @unique
+  status          ContentStatus          @default(DRAFT)
+  content         Json?
+  contentHtml     String?
+  publishedAt     DateTime?
+  commentsEnabled Boolean                @default(false)
+  draftSnapshot   Json?
+  showInNav       Boolean                @default(false)
+  navLabel        String?
+  navEyebrow      String?
+  navGroup        StandalonePageNavGroup @default(HOME)
+  seoTitle        String?
+  seoDescription  String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  comments        PostComment[]
 
   @@index([status, publishedAt])
   @@index([showInNav, navGroup, status, publishedAt])
 }
 
 model FriendLink {
-  id          Int      @id @default(autoincrement())
-  name        String
-  url         String
-  description String?
-  avatarUrl   String?
-  location    String?
-  feedUrl     String?
-  email       String?
-  sortOrder   Int      @default(0)
-  isVisible   Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int                     @id @default(autoincrement())
+  name         String
+  url          String
+  description  String?
+  avatarUrl    String?
+  location     String?
+  feedUrl      String?
+  email        String?
+  sortOrder    Int                     @default(0)
+  isVisible    Boolean                 @default(true)
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
   applications FriendLinkApplication[]
 
   @@index([isVisible, sortOrder, updatedAt])
 }
 
 model FriendLinkApplication {
-  id            Int                         @id @default(autoincrement())
-  nickname      String?
-  siteName      String
-  siteUrl       String
-  description   String?
-  avatarUrl     String?
-  rssUrl        String?
-  contactEmail  String
-  message       String?
-  status        FriendLinkApplicationStatus @default(PENDING)
-  reviewedAt    DateTime?
-  friendLinkId  Int?
-  createdAt     DateTime                    @default(now())
-  updatedAt     DateTime                    @updatedAt
-  friendLink    FriendLink?                 @relation(fields: [friendLinkId], references: [id], onDelete: SetNull)
+  id           Int                         @id @default(autoincrement())
+  nickname     String?
+  siteName     String
+  siteUrl      String
+  description  String?
+  avatarUrl    String?
+  rssUrl       String?
+  contactEmail String
+  message      String?
+  status       FriendLinkApplicationStatus @default(PENDING)
+  reviewedAt   DateTime?
+  friendLinkId Int?
+  createdAt    DateTime                    @default(now())
+  updatedAt    DateTime                    @updatedAt
+  friendLink   FriendLink?                 @relation(fields: [friendLinkId], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
   @@index([friendLinkId])
@@ -335,33 +335,33 @@ model ObjectStorageSettings {
 }
 
 model EmailSettings {
-  id                   String   @id @default("default")
-  smtpHost             String
-  smtpPort             Int
-  smtpSecure           Boolean  @default(false)
-  smtpUser             String
-  smtpPass             String
-  smtpFromEmail        String
-  smtpFromName         String?
-  subscriptionReplyTo  String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  id                  String   @id @default("default")
+  smtpHost            String
+  smtpPort            Int
+  smtpSecure          Boolean  @default(false)
+  smtpUser            String
+  smtpPass            String
+  smtpFromEmail       String
+  smtpFromName        String?
+  subscriptionReplyTo String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model Subscriber {
-  id                String           @id @default(cuid())
-  email             String           @unique
-  status            SubscriberStatus @default(PENDING)
-  confirmToken      String           @unique
-  unsubscribeToken  String           @unique
-  subscribedToPosts Boolean          @default(true)
-  subscribedToUpdates Boolean        @default(true)
-  confirmedAt       DateTime?
-  unsubscribedAt    DateTime?
-  lastEmailSentAt   DateTime?
-  source            String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id                  String           @id @default(cuid())
+  email               String           @unique
+  status              SubscriberStatus @default(PENDING)
+  confirmToken        String           @unique
+  unsubscribeToken    String           @unique
+  subscribedToPosts   Boolean          @default(true)
+  subscribedToUpdates Boolean          @default(true)
+  confirmedAt         DateTime?
+  unsubscribedAt      DateTime?
+  lastEmailSentAt     DateTime?
+  source              String?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 
   @@index([status, createdAt])
 }
@@ -401,24 +401,26 @@ model PostTag {
 }
 
 model SiteSettings {
-  id              String   @id @default("default")
-  siteName        String
-  siteDescription String
-  siteUrl         String
-  locale          String   @default("zh-CN")
-  authorName      String
-  authorAvatarUrl String?
-  siteSubtitle    String?
-  heroIntro       String?
-  summary         String?
-  motto           String?
-  email           String?
-  githubUrl       String?
-  siteLiveVisitorsEnabled   Boolean @default(true)
-  postReadingPresenceEnabled Boolean @default(true)
-  standalonePageReadingPresenceEnabled Boolean @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                                   String   @id @default("default")
+  siteName                             String
+  siteDescription                      String
+  siteUrl                              String
+  locale                               String   @default("zh-CN")
+  authorName                           String
+  authorAvatarUrl                      String?
+  siteSubtitle                         String?
+  heroIntro                            String?
+  summary                              String?
+  motto                                String?
+  email                                String?
+  githubUrl                            String?
+  projectsGitHubUsername               String?
+  hiddenProjectSlugs                   String[] @default([])
+  siteLiveVisitorsEnabled              Boolean  @default(true)
+  postReadingPresenceEnabled           Boolean  @default(true)
+  standalonePageReadingPresenceEnabled Boolean  @default(true)
+  createdAt                            DateTime @default(now())
+  updatedAt                            DateTime @updatedAt
 }
 
 model AdminUser {

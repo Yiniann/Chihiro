@@ -117,6 +117,8 @@ export async function initializeSiteAction(
       motto,
       email: null,
       githubUrl: null,
+      projectsGitHubUsername: null,
+      hiddenProjectSlugs: [],
       siteLiveVisitorsEnabled: true,
       postReadingPresenceEnabled: true,
       standalonePageReadingPresenceEnabled: true,

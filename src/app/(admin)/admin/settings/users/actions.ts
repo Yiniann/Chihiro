@@ -317,7 +317,9 @@ export async function saveOwnerSettingsAction(
   revalidatePath("/updates");
   revalidatePath("/timeline");
   revalidatePath("/more");
+  revalidatePath("/projects");
   revalidatePath("/admin");
+  revalidatePath("/admin/projects");
   revalidatePath("/admin/settings/users");
 
   return {

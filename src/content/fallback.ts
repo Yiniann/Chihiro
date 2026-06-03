@@ -17,6 +17,8 @@ export const fallbackSiteSettings: SiteSettingsRecord = {
   motto: siteConfig.motto,
   email: siteConfig.email,
   githubUrl: siteConfig.github,
+  projectsGitHubUsername: null,
+  hiddenProjectSlugs: [],
   siteLiveVisitorsEnabled: true,
   postReadingPresenceEnabled: true,
   standalonePageReadingPresenceEnabled: true,

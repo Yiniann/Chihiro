@@ -13,6 +13,8 @@ export type SiteSettingsRecord = {
   motto: string | null;
   email: string | null;
   githubUrl: string | null;
+  projectsGitHubUsername: string | null;
+  hiddenProjectSlugs: string[];
   siteLiveVisitorsEnabled: boolean;
   postReadingPresenceEnabled: boolean;
   standalonePageReadingPresenceEnabled: boolean;
@@ -42,6 +44,8 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     motto: settings.motto,
     email: settings.email,
     githubUrl: settings.githubUrl,
+    projectsGitHubUsername: settings.projectsGitHubUsername,
+    hiddenProjectSlugs: settings.hiddenProjectSlugs,
     siteLiveVisitorsEnabled: settings.siteLiveVisitorsEnabled,
     postReadingPresenceEnabled: settings.postReadingPresenceEnabled,
     standalonePageReadingPresenceEnabled: settings.standalonePageReadingPresenceEnabled,
@@ -79,6 +83,8 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      projectsGitHubUsername: input.projectsGitHubUsername,
+      hiddenProjectSlugs: input.hiddenProjectSlugs,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
       postReadingPresenceEnabled: input.postReadingPresenceEnabled,
       standalonePageReadingPresenceEnabled: input.standalonePageReadingPresenceEnabled,
@@ -97,6 +103,8 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      projectsGitHubUsername: input.projectsGitHubUsername,
+      hiddenProjectSlugs: input.hiddenProjectSlugs,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
       postReadingPresenceEnabled: input.postReadingPresenceEnabled,
       standalonePageReadingPresenceEnabled: input.standalonePageReadingPresenceEnabled,
