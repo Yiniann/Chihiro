@@ -1,0 +1,5 @@
+ALTER TABLE "SiteSettings"
+ADD COLUMN IF NOT EXISTS "projectsGitHubUsername" TEXT;
+
+ALTER TABLE "SiteSettings"
+ADD COLUMN IF NOT EXISTS "hiddenProjectSlugs" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[];
