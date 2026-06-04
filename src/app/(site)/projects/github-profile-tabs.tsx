@@ -41,7 +41,7 @@ export function GitHubProfileTabs({
 
       <div className="pt-6">
         {activeTab === "overview" ? (
-          <section className="rounded-md border border-zinc-200/90 bg-white p-5 dark:border-zinc-800/80 dark:bg-zinc-950 sm:p-6">
+          <section className="rounded-md border border-zinc-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] sm:p-6">
             <div className="flex items-center justify-between gap-4">
               <h1 className="truncate font-mono text-base font-semibold text-zinc-950 dark:text-zinc-50 sm:text-lg">
                 {readmeTitle}

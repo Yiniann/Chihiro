@@ -58,6 +58,13 @@ enum FriendLinkApplicationStatus {
   REJECTED
 }
 
+enum BookmarkKind {
+  DOCS
+  ARTICLE
+  TOOL
+  COLLECTION
+}
+
 model Post {
   id                Int           @id @default(autoincrement())
   title             String
@@ -297,6 +304,41 @@ model FriendLinkApplication {
 
   @@index([status, createdAt])
   @@index([friendLinkId])
+}
+
+model Bookmark {
+  id         Int              @id @default(autoincrement())
+  title      String
+  url        String
+  summary    String
+  note       String?
+  categoryId Int
+  kind       BookmarkKind
+  tags       String[]         @default([])
+  sortOrder  Int              @default(0)
+  isVisible  Boolean          @default(true)
+  isFeatured Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  category   BookmarkCategoryItem @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([isVisible, categoryId, sortOrder, updatedAt])
+  @@index([isFeatured, isVisible, updatedAt])
+  @@index([categoryId])
+}
+
+model BookmarkCategoryItem {
+  id          Int        @id @default(autoincrement())
+  name        String
+  slug        String     @unique
+  eyebrow     String?
+  description String?
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  bookmarks   Bookmark[]
+
+  @@index([sortOrder, name])
 }
 
 model Asset {

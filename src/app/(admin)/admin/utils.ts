@@ -10,6 +10,7 @@ export const ADMIN_NAV_ITEMS = [
   { href: "/admin/updates", label: "动态" },
   { href: "/admin/pages", label: "独立页面" },
   { href: "/admin/projects", label: "项目" },
+  { href: "/admin/bookmarks", label: "书签" },
   { href: "/admin/friends", label: "友链" },
   { href: "/admin/categories", label: "分类标签" },
   { href: "/admin/readers", label: "读者" },

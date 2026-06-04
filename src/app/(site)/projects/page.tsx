@@ -57,8 +57,8 @@ function UnboundProjectsPage() {
     <main className="mx-auto flex min-h-screen w-full max-w-5xl items-center px-6 py-12 sm:px-10">
       <section className="relative mx-auto grid w-full max-w-2xl justify-items-center gap-6 py-16 text-center">
         <div className="absolute inset-x-0 top-1/2 -z-10 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent dark:via-zinc-800" />
-        <div className="grid h-24 w-24 place-items-center rounded-full border border-dashed border-zinc-300 bg-zinc-50 text-4xl dark:border-zinc-700 dark:bg-zinc-900/40">
-          <span aria-hidden="true">⌘</span>
+        <div className="grid h-24 w-24 place-items-center">
+          <GitHubMark className="h-10 w-10 text-zinc-700 dark:text-zinc-200" />
         </div>
 
         <div className="grid gap-3">
@@ -68,12 +68,22 @@ function UnboundProjectsPage() {
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-4xl">
             项目页还没有绑定
           </h1>
-          <p className="mx-auto max-w-xl text-sm leading-7 text-zinc-500 dark:text-zinc-400 sm:text-base">
-            绑定 GitHub 用户名后，这里会自动展示 Profile README 和公开仓库列表。
-          </p>
         </div>
       </section>
     </main>
+  );
+}
+
+function GitHubMark({ className }: { className?: string }) {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+    >
+      <path d="M12 .5C5.65.5.5 5.66.5 12.02c0 5.09 3.3 9.4 7.88 10.92.58.1.8-.25.8-.57 0-.28-.02-1.22-.02-2.22-2.89.53-3.64-.71-3.88-1.37-.14-.34-.74-1.37-1.26-1.65-.42-.22-1.02-.77-.02-.79.95-.02 1.63.87 1.85 1.23 1.08 1.81 2.81 1.31 3.5 1 .1-.79.42-1.31.76-1.61-2.57-.28-5.25-1.29-5.25-5.72 0-1.27.46-2.32 1.21-3.14-.12-.28-.52-1.45.12-3.02 0 0 .99-.32 3.25 1.21a11.2 11.2 0 0 1 5.92 0c2.26-1.55 3.25-1.21 3.25-1.21.64 1.57.24 2.74.12 3.02.76.82 1.21 1.87 1.21 3.14 0 4.45-2.7 5.44-5.27 5.72.42.36.78 1.05.78 2.14 0 1.55-.02 2.79-.02 3.18 0 .32.22.69.8.57A11.53 11.53 0 0 0 23.5 12.02C23.5 5.66 18.35.5 12 .5Z" />
+    </svg>
   );
 }
 

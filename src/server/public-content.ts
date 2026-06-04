@@ -5,6 +5,10 @@ import {
   isDatabaseSchemaMissingError,
   isDatabaseUnavailableError,
 } from "@/server/database-errors";
+import {
+  listPublicBookmarkCategories as listRepositoryPublicBookmarkCategories,
+  type BookmarkCategoryItem as PublicBookmarkCategoryItem,
+} from "@/server/repositories/bookmark-categories";
 import { getInstallationState } from "@/server/installation";
 import { listPostCategories, type CategoryOption } from "@/server/repositories/categories";
 import {
@@ -33,6 +37,7 @@ import {
   type PublicInteractionSettingsRecord,
 } from "@/server/repositories/public-interactions";
 import { StandalonePageNavGroup } from "@prisma/client";
+import { listPublicBookmarks as listRepositoryPublicBookmarks, type BookmarkItem } from "@/server/repositories/bookmarks";
 
 export class PublicSiteUnavailableError extends Error {
   constructor() {
@@ -79,6 +84,8 @@ export type PublicRecentArchiveItem = {
 };
 
 export type PublicStandalonePageNavigationItem = StandalonePageNavigationItem;
+export type PublicBookmarkItem = BookmarkItem;
+export type PublicBookmarkCategory = PublicBookmarkCategoryItem;
 
 export async function getPublicSiteSettings(): Promise<SiteSettingsRecord> {
   await assertInstalledPublicSite();
@@ -258,6 +265,42 @@ export async function getPublicStandalonePageBySlug(slug: string): Promise<Stand
 
   try {
     return await getPublishedStandalonePageBySlug(slug);
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicBookmarks(): Promise<BookmarkItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await listRepositoryPublicBookmarks();
+  } catch (error) {
+    if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
+      throw new PublicSiteUnavailableError();
+    }
+
+    throw error;
+  }
+}
+
+export async function listPublicBookmarkCategories(): Promise<PublicBookmarkCategoryItem[]> {
+  await assertInstalledPublicSite();
+
+  if (!hasDatabaseUrl()) {
+    throw new PublicSiteUnavailableError();
+  }
+
+  try {
+    return await listRepositoryPublicBookmarkCategories();
   } catch (error) {
     if (isDatabaseUnavailableError(error) || isDatabaseSchemaMissingError(error)) {
       throw new PublicSiteUnavailableError();

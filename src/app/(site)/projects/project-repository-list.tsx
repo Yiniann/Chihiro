@@ -47,7 +47,7 @@ export function ProjectRepositoryList({
           onChange={(event) => setQuery(event.target.value)}
           type="search"
           placeholder="Find a repository..."
-          className="h-14 w-full rounded-2xl border border-zinc-300/90 bg-white px-12 text-base text-zinc-800 outline-none transition placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-zinc-700/80 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+          className="h-14 w-full rounded-2xl border border-zinc-200/80 bg-white/80 px-12 text-base text-zinc-800 shadow-sm outline-none backdrop-blur-sm transition placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
         />
       </div>
 
@@ -68,7 +68,7 @@ export function ProjectRepositoryList({
 
 function RepositoryCard({ project }: { project: GitHubProject }) {
   return (
-    <article className="group relative rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-sm transition hover:border-zinc-300 hover:shadow-md dark:border-zinc-800/80 dark:bg-zinc-950 dark:hover:border-zinc-700">
+    <article className="group relative rounded-2xl border border-zinc-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition hover:border-zinc-300 hover:shadow-md dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] dark:hover:border-white/20">
       <Link
         href={project.href}
         target={project.href.startsWith("/") ? undefined : "_blank"}

@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Bookmark,
   FileText,
   FolderKanban,
   House,
@@ -56,6 +57,9 @@ const adminNavMeta: Record<
   },
   "/admin/projects": {
     icon: FolderKanban,
+  },
+  "/admin/bookmarks": {
+    icon: Bookmark,
   },
   "/admin/friends": {
     icon: Handshake,
@@ -223,7 +227,7 @@ function SidebarContent({
             <p className="mt-0.5 text-xs font-semibold text-primary/70 dark:text-primary/70">Admin</p>
           </div>
         ) : null}
-        {!isMobile ? (
+        {!isMobile && !isCollapsed ? (
           <button
             type="button"
             onClick={onToggleCollapse}
@@ -296,6 +300,17 @@ function SidebarContent({
               </button>
             </form>
           </div>
+        </div>
+      ) : !isMobile ? (
+        <div className="mt-auto flex justify-center pt-3">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            aria-label="Expand sidebar"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-xl text-zinc-400 transition hover:bg-primary/8 hover:text-primary dark:text-zinc-500 dark:hover:bg-primary/10 dark:hover:text-primary"
+          >
+            <PanelLeftOpen className="h-4 w-4" />
+          </button>
         </div>
       ) : null}
     </div>
