@@ -73,7 +73,7 @@ export function buildSubscriptionConfirmationTemplate(
 
               <h1 style="margin: 0 0 10px; font-size: 24px; line-height: 1.25; font-weight: 600; letter-spacing: -0.03em; color: #111827;">
                 ${escapeHtml(headline)}
-              </div>
+              </h1>
 
               ${bodyParagraphs
                 .map(
