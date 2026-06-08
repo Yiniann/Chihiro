@@ -50,3 +50,20 @@ export function canonicalUrl(
 export function absoluteUrl(path = "/") {
   return new URL(path, siteConfig.url).toString();
 }
+
+export function resolveAbsoluteAssetUrl(
+  assetUrl: string | null | undefined,
+  siteSettings?: { siteUrl?: string | null } | null,
+): string | null {
+  const normalized = assetUrl?.trim();
+
+  if (!normalized) {
+    return null;
+  }
+
+  try {
+    return new URL(normalized, resolveCanonicalSiteUrl(siteSettings)).toString();
+  } catch {
+    return null;
+  }
+}

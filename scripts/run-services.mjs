@@ -9,6 +9,10 @@ const childProcesses = [
     stdio: "inherit",
     env: process.env,
   }),
+  spawn("node", ["scripts/mail-worker.mjs"], {
+    stdio: "inherit",
+    env: process.env,
+  }),
 ];
 
 let shuttingDown = false;

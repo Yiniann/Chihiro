@@ -1,13 +1,16 @@
+import { MailJobContentType, MailJobKind } from "@prisma/client";
 import { getUpdateAnchorPath } from "@/lib/routes";
-import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
+import { resolveAbsoluteAssetUrl, resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { getParagraphsFromContent } from "@/lib/content";
-import { sendMail } from "@/server/mail/send-mail";
 import { buildPublishedUpdateNotificationTemplate } from "@/server/mail/templates/published-update-notification";
 import {
-  markSubscribersLastEmailSent,
   listActiveSubscriberEmails,
   type ActiveSubscriberEmail,
 } from "@/server/repositories/subscribers";
+import {
+  enqueueMailJobs,
+  type EnqueueMailJobInput,
+} from "@/server/repositories/mail-jobs";
 import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getSiteSettings } from "@/server/repositories/site";
 import {
@@ -26,6 +29,7 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
   ]);
   const siteName = siteSettings?.siteName ?? siteConfig.name;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+  const avatarUrl = resolveAbsoluteAssetUrl(siteSettings?.authorAvatarUrl, siteSettings);
   const updateUrl = new URL(
     getUpdateAnchorPath({
       updateId: update.id,
@@ -35,10 +39,16 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
   const updateSummary = summarizeUpdate(update);
   const recipients = await listActiveSubscriberEmails("updates");
 
-  await sendPublishedUpdateNotifications({
+  if (recipients.length === 0) {
+    await markUpdateSubscriptionEmailSent(update.id);
+    return;
+  }
+
+  await enqueuePublishedUpdateNotifications({
     recipients,
+    updateId: update.id,
     siteName,
-    avatarUrl: siteSettings?.authorAvatarUrl,
+    avatarUrl,
     updateTitle: update.title,
     updateSummary,
     updateUrl,
@@ -48,13 +58,11 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
     body: interactionSettings.updateNotificationBody,
     ctaLabel: interactionSettings.updateNotificationCtaLabel,
   });
-
-  await markUpdateSubscriptionEmailSent(update.id);
-  await markSubscribersLastEmailSent(recipients.map((recipient) => recipient.email));
 }
 
-async function sendPublishedUpdateNotifications(input: {
+async function enqueuePublishedUpdateNotifications(input: {
   recipients: ActiveSubscriberEmail[];
+  updateId: number;
   siteName: string;
   avatarUrl: string | null | undefined;
   updateTitle: string;
@@ -66,6 +74,8 @@ async function sendPublishedUpdateNotifications(input: {
   body: string;
   ctaLabel: string;
 }) {
+  const jobs: EnqueueMailJobInput[] = [];
+
   for (const recipient of input.recipients) {
     const unsubscribeUrl = new URL(
       `/unsubscribe?token=${encodeURIComponent(recipient.unsubscribeToken)}`,
@@ -84,13 +94,22 @@ async function sendPublishedUpdateNotifications(input: {
       ctaLabel: input.ctaLabel,
     });
 
-    await sendMail({
-      to: recipient.email,
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
+    jobs.push({
+      kind: MailJobKind.UPDATE_PUBLISHED,
+      contentType: MailJobContentType.UPDATE,
+      contentId: input.updateId,
+      recipientEmail: recipient.email,
+      dedupeKey: `update-published:${input.updateId}:${recipient.email.toLowerCase()}`,
+      payload: {
+        to: recipient.email,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      },
     });
   }
+
+  await enqueueMailJobs(jobs);
 }
 
 function summarizeUpdate(update: UpdateItem) {

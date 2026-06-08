@@ -8,6 +8,7 @@ PUBLIC_DIR="$ROOT_DIR/public"
 PRISMA_DIR="$ROOT_DIR/prisma"
 REALTIME_DIR="$ROOT_DIR/realtime"
 RUN_SERVICES_SCRIPT="$ROOT_DIR/scripts/run-services.mjs"
+MAIL_WORKER_SCRIPT="$ROOT_DIR/scripts/mail-worker.mjs"
 DIST_ROOT="$ROOT_DIR/.dist"
 PACKAGE_DIR="$DIST_ROOT/chihiro-standalone"
 ARCHIVE_PATH="$DIST_ROOT/chihiro-standalone.tar.gz"
@@ -42,6 +43,10 @@ mkdir -p "$PACKAGE_DIR/scripts"
 
 if [ -f "$RUN_SERVICES_SCRIPT" ]; then
   cp "$RUN_SERVICES_SCRIPT" "$PACKAGE_DIR/scripts/run-services.mjs"
+fi
+
+if [ -f "$MAIL_WORKER_SCRIPT" ]; then
+  cp "$MAIL_WORKER_SCRIPT" "$PACKAGE_DIR/scripts/mail-worker.mjs"
 fi
 
 mkdir -p "$DIST_ROOT"

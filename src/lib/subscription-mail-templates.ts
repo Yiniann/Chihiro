@@ -7,11 +7,11 @@ export const subscriptionMailTemplateDefaults = {
   postNotificationSubject: "[{{siteName}}] New Content Published",
   postNotificationHeadline: "{{title}}",
   postNotificationBody: "{{summary}}",
-  postNotificationCtaLabel: "阅读这篇文章",
+  postNotificationCtaLabel: "查看全文",
   updateNotificationSubject: "[{{siteName}}] New Content Published",
   updateNotificationHeadline: "{{title}}",
   updateNotificationBody: "{{summary}}",
-  updateNotificationCtaLabel: "查看这条动态",
+  updateNotificationCtaLabel: "查看动态",
 } as const;
 
 export const subscriptionMailTemplateVariableHints = {

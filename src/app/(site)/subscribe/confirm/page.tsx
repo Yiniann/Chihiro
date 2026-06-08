@@ -45,12 +45,6 @@ export default async function ConfirmSubscriptionPage({
           >
             返回首页
           </Link>
-          <Link
-            href="/updates"
-            className="inline-flex h-10 items-center justify-center px-1 text-zinc-500 underline underline-offset-4 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-          >
-            去看最新动态
-          </Link>
         </div>
       </section>
     </main>

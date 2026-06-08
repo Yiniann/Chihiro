@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
+import { resolveAbsoluteAssetUrl, resolveCanonicalSiteUrl, siteConfig } from "@/lib/site";
 import { sendMail } from "@/server/mail/send-mail";
 import { buildSubscriptionConfirmationTemplate } from "@/server/mail/templates/subscription-confirmation";
 import { getPublicSiteSettings } from "@/server/public-content";
@@ -33,6 +33,7 @@ export async function subscribeAction(
     const siteSettings = await getPublicSiteSettings();
     const siteName = siteSettings.siteName ?? siteConfig.name;
     const siteUrl = resolveCanonicalSiteUrl(siteSettings);
+    const authorAvatarUrl = resolveAbsoluteAssetUrl(siteSettings.authorAvatarUrl, siteSettings);
     const existing = await findSubscriberByEmail(email);
 
     if (existing?.status === "ACTIVE") {
@@ -72,7 +73,7 @@ export async function subscribeAction(
 
     const template = buildSubscriptionConfirmationTemplate({
       siteName,
-      avatarUrl: siteSettings.authorAvatarUrl,
+      avatarUrl: authorAvatarUrl,
       confirmUrl,
       unsubscribeUrl,
       subject: interactionSettings.subscriptionConfirmSubject,

@@ -4,9 +4,10 @@
   "private": true,
   "packageManager": "pnpm@10.26.1",
   "scripts": {
-    "dev": "concurrently -k -s first \"pnpm:dev:app\" \"pnpm:dev:realtime\"",
+    "dev": "concurrently -k -s first \"pnpm:dev:app\" \"pnpm:dev:realtime\" \"pnpm:dev:mail-worker\"",
     "dev:app": "next dev",
     "dev:realtime": "node --watch realtime/server.mjs",
+    "dev:mail-worker": "node --watch scripts/mail-worker.mjs",
     "build": "next build",
     "package:standalone": "bash ./scripts/deploy/build-standalone-bundle.sh",
     "start": "node scripts/run-services.mjs",

@@ -31,6 +31,7 @@ export function buildSubscriptionConfirmationTemplate(
   );
   const ctaLabel = renderSubscriptionMailTemplate(input.ctaLabel ?? "确认订阅", variables);
   const bodyParagraphs = splitTemplateParagraphs(body);
+  const footerLabel = `© ${new Date().getFullYear()} ${input.siteName}`;
 
   return {
     subject,
@@ -107,18 +108,21 @@ export function buildSubscriptionConfirmationTemplate(
             </div>
 
             <div style="border-top: 1px solid #f1f5f9; padding: 18px 26px 20px; background: linear-gradient(180deg, rgba(250,250,249,0.65) 0%, rgba(255,255,255,1) 100%);">
-              <p style="margin: 0 0 6px; font-size: 12px; line-height: 1.7; color: #71717a;">
-                如果这不是你本人操作，可以忽略这封邮件，不会自动开始订阅。
-              </p>
-              <p style="margin: 0; font-size: 12px; line-height: 1.7; color: #71717a;">
-                如果你已经改变主意，也可以直接退订：
-                <a
-                  href="${escapeAttribute(input.unsubscribeUrl)}"
-                  style="color: #44403c; text-decoration: underline; text-underline-offset: 2px;"
-                >
-                  ${escapeHtml(input.unsubscribeUrl)}
-                </a>
-              </p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <tr>
+                  <td style="font-size: 12px; line-height: 1.7; color: #71717a;">
+                    ${escapeHtml(footerLabel)}
+                  </td>
+                  <td align="right" style="font-size: 13px; line-height: 1.7;">
+                    <a
+                      href="${escapeAttribute(input.unsubscribeUrl)}"
+                      style="color: #44403c; text-decoration: underline; text-underline-offset: 2px; font-weight: 500;"
+                    >
+                      退订
+                    </a>
+                  </td>
+                </tr>
+              </table>
             </div>
           </div>
         </div>
@@ -128,8 +132,8 @@ export function buildSubscriptionConfirmationTemplate(
       `${headline}\n\n` +
       `${body}\n\n` +
       `确认链接：${input.confirmUrl}\n\n` +
-      `如果这不是你本人操作，可以忽略这封邮件。\n` +
-      `如果你已经改变主意，也可以直接退订：${input.unsubscribeUrl}`,
+      `${footerLabel}\n` +
+      `退订：${input.unsubscribeUrl}`,
   };
 }
 
