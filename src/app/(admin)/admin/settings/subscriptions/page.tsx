@@ -24,7 +24,7 @@ export default async function AdminSubscriptionSettingsPage() {
         </button>
       </div>
       <div className="mx-auto w-full max-w-2xl">
-        <SubscriptionSettingsForm defaultEnabled={settings.subscriptionsEnabled} />
+        <SubscriptionSettingsForm defaults={settings} />
       </div>
     </div>
   );

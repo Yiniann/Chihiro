@@ -8,6 +8,7 @@ import {
   listActiveSubscriberEmails,
   type ActiveSubscriberEmail,
 } from "@/server/repositories/subscribers";
+import { getPublicInteractionSettings } from "@/server/repositories/public-interactions";
 import { getSiteSettings } from "@/server/repositories/site";
 import {
   markUpdateSubscriptionEmailSent,
@@ -19,7 +20,10 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
     return;
   }
 
-  const siteSettings = await getSiteSettings();
+  const [siteSettings, interactionSettings] = await Promise.all([
+    getSiteSettings(),
+    getPublicInteractionSettings(),
+  ]);
   const siteName = siteSettings?.siteName ?? siteConfig.name;
   const siteUrl = resolveCanonicalSiteUrl(siteSettings);
   const updateUrl = new URL(
@@ -34,10 +38,15 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
   await sendPublishedUpdateNotifications({
     recipients,
     siteName,
+    avatarUrl: siteSettings?.authorAvatarUrl,
     updateTitle: update.title,
     updateSummary,
     updateUrl,
     siteUrl,
+    subject: interactionSettings.updateNotificationSubject,
+    headline: interactionSettings.updateNotificationHeadline,
+    body: interactionSettings.updateNotificationBody,
+    ctaLabel: interactionSettings.updateNotificationCtaLabel,
   });
 
   await markUpdateSubscriptionEmailSent(update.id);
@@ -47,10 +56,15 @@ export async function notifySubscribersAboutPublishedUpdate(update: UpdateItem) 
 async function sendPublishedUpdateNotifications(input: {
   recipients: ActiveSubscriberEmail[];
   siteName: string;
+  avatarUrl: string | null | undefined;
   updateTitle: string;
   updateSummary: string;
   updateUrl: string;
   siteUrl: string;
+  subject: string;
+  headline: string;
+  body: string;
+  ctaLabel: string;
 }) {
   for (const recipient of input.recipients) {
     const unsubscribeUrl = new URL(
@@ -59,10 +73,15 @@ async function sendPublishedUpdateNotifications(input: {
     ).toString();
     const template = buildPublishedUpdateNotificationTemplate({
       siteName: input.siteName,
+      avatarUrl: input.avatarUrl,
       updateTitle: input.updateTitle,
       updateSummary: input.updateSummary,
       updateUrl: input.updateUrl,
       unsubscribeUrl,
+      subject: input.subject,
+      headline: input.headline,
+      body: input.body,
+      ctaLabel: input.ctaLabel,
     });
 
     await sendMail({

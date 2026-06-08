@@ -72,8 +72,13 @@ export async function subscribeAction(
 
     const template = buildSubscriptionConfirmationTemplate({
       siteName,
+      avatarUrl: siteSettings.authorAvatarUrl,
       confirmUrl,
       unsubscribeUrl,
+      subject: interactionSettings.subscriptionConfirmSubject,
+      headline: interactionSettings.subscriptionConfirmHeadline,
+      body: interactionSettings.subscriptionConfirmBody,
+      ctaLabel: interactionSettings.subscriptionConfirmCtaLabel,
     });
 
     await sendMail({

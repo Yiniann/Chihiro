@@ -216,6 +216,18 @@ model PublicInteractionSettings {
   id                     String   @id @default("default")
   commentsEnabled        Boolean  @default(false)
   subscriptionsEnabled   Boolean  @default(true)
+  subscriptionConfirmSubject String?
+  subscriptionConfirmHeadline String?
+  subscriptionConfirmBody String?
+  subscriptionConfirmCtaLabel String?
+  postNotificationSubject String?
+  postNotificationHeadline String?
+  postNotificationBody String?
+  postNotificationCtaLabel String?
+  updateNotificationSubject String?
+  updateNotificationHeadline String?
+  updateNotificationBody String?
+  updateNotificationCtaLabel String?
   loginRequiredToComment Boolean  @default(true)
   commentModeration      Boolean  @default(true)
   githubLoginEnabled     Boolean  @default(true)

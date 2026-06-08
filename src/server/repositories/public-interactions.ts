@@ -1,9 +1,22 @@
 import { prisma } from "@/server/db/client";
 import { randomBytes } from "node:crypto";
+import { subscriptionMailTemplateDefaults } from "@/lib/subscription-mail-templates";
 
 export type PublicInteractionSettingsRecord = {
   commentsEnabled: boolean;
   subscriptionsEnabled: boolean;
+  subscriptionConfirmSubject: string;
+  subscriptionConfirmHeadline: string;
+  subscriptionConfirmBody: string;
+  subscriptionConfirmCtaLabel: string;
+  postNotificationSubject: string;
+  postNotificationHeadline: string;
+  postNotificationBody: string;
+  postNotificationCtaLabel: string;
+  updateNotificationSubject: string;
+  updateNotificationHeadline: string;
+  updateNotificationBody: string;
+  updateNotificationCtaLabel: string;
   loginRequiredToComment: boolean;
   commentModeration: boolean;
   githubLoginEnabled: boolean;
@@ -27,6 +40,18 @@ export type PublicInteractionSettingsInput = Omit<
 export const defaultPublicInteractionSettings: PublicInteractionSettingsRecord = {
   commentsEnabled: false,
   subscriptionsEnabled: true,
+  subscriptionConfirmSubject: subscriptionMailTemplateDefaults.subscriptionConfirmSubject,
+  subscriptionConfirmHeadline: subscriptionMailTemplateDefaults.subscriptionConfirmHeadline,
+  subscriptionConfirmBody: subscriptionMailTemplateDefaults.subscriptionConfirmBody,
+  subscriptionConfirmCtaLabel: subscriptionMailTemplateDefaults.subscriptionConfirmCtaLabel,
+  postNotificationSubject: subscriptionMailTemplateDefaults.postNotificationSubject,
+  postNotificationHeadline: subscriptionMailTemplateDefaults.postNotificationHeadline,
+  postNotificationBody: subscriptionMailTemplateDefaults.postNotificationBody,
+  postNotificationCtaLabel: subscriptionMailTemplateDefaults.postNotificationCtaLabel,
+  updateNotificationSubject: subscriptionMailTemplateDefaults.updateNotificationSubject,
+  updateNotificationHeadline: subscriptionMailTemplateDefaults.updateNotificationHeadline,
+  updateNotificationBody: subscriptionMailTemplateDefaults.updateNotificationBody,
+  updateNotificationCtaLabel: subscriptionMailTemplateDefaults.updateNotificationCtaLabel,
   loginRequiredToComment: true,
   commentModeration: true,
   githubLoginEnabled: true,
@@ -52,6 +77,30 @@ export async function getPublicInteractionSettings(): Promise<PublicInteractionS
   return {
     commentsEnabled: settings.commentsEnabled,
     subscriptionsEnabled: settings.subscriptionsEnabled,
+    subscriptionConfirmSubject:
+      settings.subscriptionConfirmSubject ?? defaultPublicInteractionSettings.subscriptionConfirmSubject,
+    subscriptionConfirmHeadline:
+      settings.subscriptionConfirmHeadline ?? defaultPublicInteractionSettings.subscriptionConfirmHeadline,
+    subscriptionConfirmBody:
+      settings.subscriptionConfirmBody ?? defaultPublicInteractionSettings.subscriptionConfirmBody,
+    subscriptionConfirmCtaLabel:
+      settings.subscriptionConfirmCtaLabel ?? defaultPublicInteractionSettings.subscriptionConfirmCtaLabel,
+    postNotificationSubject:
+      settings.postNotificationSubject ?? defaultPublicInteractionSettings.postNotificationSubject,
+    postNotificationHeadline:
+      settings.postNotificationHeadline ?? defaultPublicInteractionSettings.postNotificationHeadline,
+    postNotificationBody:
+      settings.postNotificationBody ?? defaultPublicInteractionSettings.postNotificationBody,
+    postNotificationCtaLabel:
+      settings.postNotificationCtaLabel ?? defaultPublicInteractionSettings.postNotificationCtaLabel,
+    updateNotificationSubject:
+      settings.updateNotificationSubject ?? defaultPublicInteractionSettings.updateNotificationSubject,
+    updateNotificationHeadline:
+      settings.updateNotificationHeadline ?? defaultPublicInteractionSettings.updateNotificationHeadline,
+    updateNotificationBody:
+      settings.updateNotificationBody ?? defaultPublicInteractionSettings.updateNotificationBody,
+    updateNotificationCtaLabel:
+      settings.updateNotificationCtaLabel ?? defaultPublicInteractionSettings.updateNotificationCtaLabel,
     loginRequiredToComment: settings.loginRequiredToComment,
     commentModeration: settings.commentModeration,
     githubLoginEnabled: settings.githubLoginEnabled,
@@ -92,6 +141,30 @@ export async function upsertPublicInteractionSettings(
   return {
     commentsEnabled: settings.commentsEnabled,
     subscriptionsEnabled: settings.subscriptionsEnabled,
+    subscriptionConfirmSubject:
+      settings.subscriptionConfirmSubject ?? defaultPublicInteractionSettings.subscriptionConfirmSubject,
+    subscriptionConfirmHeadline:
+      settings.subscriptionConfirmHeadline ?? defaultPublicInteractionSettings.subscriptionConfirmHeadline,
+    subscriptionConfirmBody:
+      settings.subscriptionConfirmBody ?? defaultPublicInteractionSettings.subscriptionConfirmBody,
+    subscriptionConfirmCtaLabel:
+      settings.subscriptionConfirmCtaLabel ?? defaultPublicInteractionSettings.subscriptionConfirmCtaLabel,
+    postNotificationSubject:
+      settings.postNotificationSubject ?? defaultPublicInteractionSettings.postNotificationSubject,
+    postNotificationHeadline:
+      settings.postNotificationHeadline ?? defaultPublicInteractionSettings.postNotificationHeadline,
+    postNotificationBody:
+      settings.postNotificationBody ?? defaultPublicInteractionSettings.postNotificationBody,
+    postNotificationCtaLabel:
+      settings.postNotificationCtaLabel ?? defaultPublicInteractionSettings.postNotificationCtaLabel,
+    updateNotificationSubject:
+      settings.updateNotificationSubject ?? defaultPublicInteractionSettings.updateNotificationSubject,
+    updateNotificationHeadline:
+      settings.updateNotificationHeadline ?? defaultPublicInteractionSettings.updateNotificationHeadline,
+    updateNotificationBody:
+      settings.updateNotificationBody ?? defaultPublicInteractionSettings.updateNotificationBody,
+    updateNotificationCtaLabel:
+      settings.updateNotificationCtaLabel ?? defaultPublicInteractionSettings.updateNotificationCtaLabel,
     loginRequiredToComment: settings.loginRequiredToComment,
     commentModeration: settings.commentModeration,
     githubLoginEnabled: settings.githubLoginEnabled,
