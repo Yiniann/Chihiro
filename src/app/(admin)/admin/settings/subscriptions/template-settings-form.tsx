@@ -153,56 +153,56 @@ export function TemplateSettingsForm({
 
           <div className="grid gap-4">
             <div className="overflow-hidden rounded-[24px] border border-zinc-200 bg-white shadow-[0_18px_40px_rgba(24,24,27,0.06)] dark:border-zinc-800 dark:bg-zinc-900">
-              <div className="grid gap-5 p-8">
+              <div className="grid gap-4 p-6">
                 <div className="flex items-center justify-between gap-4">
                   <div className="inline-flex min-w-0 items-center gap-3">
                     {previewAvatarUrl ? (
                       <img
                         src={previewAvatarUrl}
                         alt={previewSiteName}
-                        className="size-10 rounded-full object-cover"
+                        className="size-8 rounded-full object-cover"
                       />
                     ) : null}
-                    <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                    <p className="text-[11px] uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
                       {previewSiteName}
                     </p>
                   </div>
 
-                  <div className="inline-flex shrink-0 items-center rounded-full border border-zinc-200 px-3 py-1 text-[11px] uppercase tracking-[0.16em] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+                  <div className="inline-flex shrink-0 items-center rounded-full border border-zinc-200 px-3 py-1 text-[10px] uppercase tracking-[0.12em] text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
                     {previewEyebrow}
                   </div>
                 </div>
 
-                <h3 className="text-3xl font-semibold tracking-[-0.03em] text-zinc-900 dark:text-zinc-100">
+                <h3 className="text-[2rem] font-semibold leading-[1.2] tracking-[-0.03em] text-zinc-900 dark:text-zinc-100">
                   {previewHeadline}
                 </h3>
 
-                <div className="grid gap-3 text-base leading-8 text-zinc-600 dark:text-zinc-300">
+                <div className="grid gap-2.5 text-[15px] leading-8 text-zinc-600 dark:text-zinc-300">
                   {previewParagraphs.map((paragraph, index) => (
                     <p key={`${template}-preview-${index}`}>{paragraph}</p>
                   ))}
                 </div>
 
-                <div className="pt-1">
-                  <span className="inline-flex items-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-950">
+                <div className="flex justify-center pt-1">
+                  <span className="inline-flex items-center rounded-[14px] bg-zinc-950 px-5 py-3 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-950">
                     {previewCtaLabel}
                   </span>
                 </div>
 
                 <div className="rounded-[18px] border border-[#f0ece7] bg-[#fafaf9] p-4 dark:border-zinc-800 dark:bg-zinc-950/80">
-                  <p className="mb-2 text-[13px] leading-7 text-zinc-500 dark:text-zinc-400">
+                  <p className="mb-2 text-[12px] leading-6 text-zinc-500 dark:text-zinc-400">
                     {template === "confirm"
                       ? "如果按钮无法点击，可以直接打开这个链接："
                       : "邮件里的按钮会跳到这里："}
                   </p>
-                  <p className="break-all text-[13px] leading-7 text-zinc-900 underline underline-offset-2 dark:text-zinc-100">
+                  <p className="break-all text-[12px] leading-6 text-zinc-900 underline underline-offset-2 dark:text-zinc-100">
                     {previewPrimaryUrl}
                   </p>
                 </div>
               </div>
 
-              <div className="border-t border-zinc-100 bg-[linear-gradient(180deg,rgba(250,250,249,0.65)_0%,rgba(255,255,255,1)_100%)] px-8 py-6 dark:border-zinc-800 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.35)_0%,rgba(24,24,27,0.9)_100%)]">
-                <div className="flex items-center justify-between gap-4 text-[13px] leading-7 text-zinc-500 dark:text-zinc-400">
+              <div className="border-t border-zinc-100 bg-[linear-gradient(180deg,rgba(250,250,249,0.65)_0%,rgba(255,255,255,1)_100%)] px-6 py-5 dark:border-zinc-800 dark:bg-[linear-gradient(180deg,rgba(24,24,27,0.35)_0%,rgba(24,24,27,0.9)_100%)]">
+                <div className="flex items-center justify-between gap-4 text-[12px] leading-6 text-zinc-500 dark:text-zinc-400">
                   <p>{previewFooterLabel}</p>
                   <span className="text-[13px] font-medium text-zinc-700 underline underline-offset-2 dark:text-zinc-300">
                     退订
