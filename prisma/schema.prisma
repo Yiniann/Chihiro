@@ -75,6 +75,7 @@ model Post {
   contentHtml       String?
   authorName        String?
   publishedAt       DateTime?
+  subscriptionEmailSentAt DateTime?
   commentsEnabled   Boolean       @default(true)
   publishedSnapshot Json?
   draftSnapshot     Json?
@@ -236,6 +237,7 @@ model Update {
   content       Json?
   contentHtml   String?
   publishedAt   DateTime?
+  subscriptionEmailSentAt DateTime?
   draftSnapshot Json?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -310,6 +312,7 @@ model Bookmark {
   id         Int              @id @default(autoincrement())
   title      String
   url        String
+  logoUrl    String?
   summary    String
   note       String?
   categoryId Int

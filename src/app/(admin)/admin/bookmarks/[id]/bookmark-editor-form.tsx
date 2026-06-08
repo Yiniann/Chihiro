@@ -1,7 +1,8 @@
 "use client";
 
 import { BookmarkKind } from "@prisma/client";
-import { useActionState, useEffect } from "react";
+import { ChevronDown, ChevronUp, SlidersHorizontal } from "lucide-react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
@@ -32,6 +33,9 @@ export function BookmarkEditorForm({
 }) {
   const router = useRouter();
   const isCreateMode = !bookmark;
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isVisible, setIsVisible] = useState(bookmark?.isVisible ?? true);
+  const [isFeatured, setIsFeatured] = useState(bookmark?.isFeatured ?? false);
   const [state, formAction] = useActionState(
     isCreateMode ? createBookmarkAction : saveBookmarkAction,
     initialState,
@@ -46,6 +50,158 @@ export function BookmarkEditorForm({
   return (
     <form action={formAction} className="grid gap-6">
       {bookmark ? <input type="hidden" name="id" value={bookmark.id} /> : null}
+
+      <div className="sticky top-[-1rem] z-30 -mx-4 -mt-4 border-b border-zinc-200/80 bg-white/92 backdrop-blur supports-[backdrop-filter]:bg-white/78 dark:border-zinc-800/80 dark:bg-zinc-950/92 supports-[backdrop-filter]:dark:bg-zinc-950/78 md:-mx-6 md:-mt-6 md:top-[-1.5rem]">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-3.5">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+              Editor
+            </p>
+            <h1 className="truncate text-[14px] font-medium text-zinc-700 dark:text-zinc-200">
+              {isCreateMode ? "添加书签" : "编辑书签"}
+            </h1>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsSettingsOpen((current) => !current)}
+            className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-sm font-medium transition ${
+              isSettingsOpen
+                ? "bg-primary/10 text-primary dark:bg-primary/15"
+                : "text-zinc-500 hover:bg-[rgb(var(--primary-rgb)/0.06)] hover:text-primary dark:text-zinc-300 dark:hover:bg-[rgb(var(--primary-rgb)/0.1)] dark:hover:text-primary"
+            }`}
+            aria-expanded={isSettingsOpen}
+            aria-label={isSettingsOpen ? "收起设置" : "展开设置"}
+            title={isSettingsOpen ? "收起设置" : "更多设置"}
+          >
+            <SlidersHorizontal className="h-4 w-4" />
+            <span>{isSettingsOpen ? "收起设置" : "更多设置"}</span>
+            {isSettingsOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </button>
+        </div>
+
+        <div
+          className={`${isSettingsOpen ? "block" : "hidden"} border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6 md:py-5`}
+        >
+          <div className="grid gap-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <label className="grid gap-2">
+                <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  分类
+                </span>
+                <select
+                  name="categoryId"
+                  defaultValue={bookmark?.category.id ?? categories[0]?.id ?? ""}
+                  className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-200"
+                >
+                  {categories.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  类型
+                </span>
+                <select
+                  name="kind"
+                  defaultValue={bookmark?.kind ?? BookmarkKind.ARTICLE}
+                  className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-200"
+                >
+                  {bookmarkKindOptions.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_10rem]">
+              <label className="grid gap-2">
+                <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  排序
+                </span>
+                <input
+                  name="sortOrder"
+                  type="number"
+                  defaultValue={bookmark?.sortOrder ?? 0}
+                  className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition focus:border-primary/50 dark:border-zinc-800/80 dark:text-zinc-200"
+                />
+              </label>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <label className="grid gap-2 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+                <input
+                  type="checkbox"
+                  name="isVisible"
+                  checked={isVisible}
+                  onChange={(event) => setIsVisible(event.target.checked)}
+                  className="sr-only"
+                />
+                <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  前台可见
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isVisible}
+                  aria-label="前台可见"
+                  onClick={() => setIsVisible((current) => !current)}
+                  className="relative inline-flex h-5 w-9 shrink-0 items-center"
+                >
+                  <span
+                    className={`absolute inset-0 rounded-full transition ${
+                      isVisible ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+                    }`}
+                  />
+                  <span
+                    className={`relative size-4 rounded-full bg-white shadow-sm transition-transform ${
+                      isVisible ? "translate-x-[1.125rem]" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </label>
+
+              <label className="grid gap-2 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+                <input
+                  type="checkbox"
+                  name="isFeatured"
+                  checked={isFeatured}
+                  onChange={(event) => setIsFeatured(event.target.checked)}
+                  className="sr-only"
+                />
+                <span className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  精选展示
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={isFeatured}
+                  aria-label="精选展示"
+                  onClick={() => setIsFeatured((current) => !current)}
+                  className="relative inline-flex h-5 w-9 shrink-0 items-center"
+                >
+                  <span
+                    className={`absolute inset-0 rounded-full transition ${
+                      isFeatured ? "bg-primary" : "bg-zinc-200 dark:bg-zinc-800"
+                    }`}
+                  />
+                  <span
+                    className={`relative size-4 rounded-full bg-white shadow-sm transition-transform ${
+                      isFeatured ? "translate-x-[1.125rem]" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <section className="grid gap-6">
         <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
@@ -92,6 +248,19 @@ export function BookmarkEditorForm({
 
         <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
           <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            标签
+          </span>
+          <input
+            name="tags"
+            type="text"
+            defaultValue={bookmark ? formatBookmarkTags(bookmark.tags) : ""}
+            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+            placeholder="React, Docs, Performance"
+          />
+        </label>
+
+        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             备注
           </span>
           <textarea
@@ -103,100 +272,21 @@ export function BookmarkEditorForm({
           />
         </label>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              分类
-            </span>
-            <select
-              name="categoryId"
-              defaultValue={bookmark?.category.id ?? categories[0]?.id ?? ""}
-              className="h-11 rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-700"
-            >
-              {categories.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
-          </label>
+        <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+          <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            Logo 覆盖地址
+          </span>
+          <input
+            name="logoOverrideUrl"
+            type="text"
+            className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
+            placeholder="可选。留空时自动抓取站点 icon。"
+          />
+          <span className="text-xs leading-6 text-zinc-400 dark:text-zinc-500">
+            保存时会优先抓这个地址，并把结果缓存到书签记录里；留空则自动从站点 icon、manifest、常见路径和分享图里尝试。
+          </span>
+        </label>
 
-          <label className="grid gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              类型
-            </span>
-            <select
-              name="kind"
-              defaultValue={bookmark?.kind ?? BookmarkKind.ARTICLE}
-              className="h-11 rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-700"
-            >
-              {bookmarkKindOptions.map((item) => (
-                <option key={item.value} value={item.value}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_10rem]">
-          <label className="grid gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              标签
-            </span>
-            <input
-              name="tags"
-              type="text"
-              defaultValue={bookmark ? formatBookmarkTags(bookmark.tags) : ""}
-              className="h-11 rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:placeholder:text-zinc-600 dark:focus:border-zinc-700"
-              placeholder="React, Docs, Performance"
-            />
-          </label>
-
-          <label className="grid gap-2">
-            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              排序
-            </span>
-            <input
-              name="sortOrder"
-              type="number"
-              defaultValue={bookmark?.sortOrder ?? 0}
-              className="h-11 rounded-2xl border border-zinc-200 bg-white px-4 text-sm text-zinc-950 outline-none transition focus:border-zinc-400 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:focus:border-zinc-700"
-            />
-          </label>
-        </div>
-
-        <div className="grid gap-3 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
-          <label className="flex items-start gap-3">
-            <input
-              name="isVisible"
-              type="checkbox"
-              defaultChecked={bookmark?.isVisible ?? true}
-              className="mt-1 h-4 w-4 rounded border-zinc-300 text-zinc-950 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
-            <span className="grid gap-1">
-              <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">前台可见</span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                关闭后会保留在后台，但不会出现在 `/bookmarks`。
-              </span>
-            </span>
-          </label>
-
-          <label className="flex items-start gap-3">
-            <input
-              name="isFeatured"
-              type="checkbox"
-              defaultChecked={bookmark?.isFeatured ?? false}
-              className="mt-1 h-4 w-4 rounded border-zinc-300 text-zinc-950 focus:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
-            />
-            <span className="grid gap-1">
-              <span className="text-sm font-medium text-zinc-950 dark:text-zinc-50">精选展示</span>
-              <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                会出现在书签页的 Featured 区域。
-              </span>
-            </span>
-          </label>
-        </div>
       </section>
 
       {state.error ? <EmptyPanel text={state.error} /> : null}

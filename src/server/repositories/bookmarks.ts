@@ -16,6 +16,7 @@ export type BookmarkItem = {
   title: string;
   url: string;
   host: string;
+  logoUrl: string | null;
   summary: string;
   note: string | null;
   category: BookmarkCategorySummary;
@@ -32,6 +33,7 @@ export type SaveBookmarkInput = {
   id?: number;
   title: string;
   url: string;
+  logoUrl: string | null;
   summary: string;
   note: string | null;
   categoryId: number;
@@ -94,6 +96,7 @@ export async function createBookmark(input: SaveBookmarkInput): Promise<Bookmark
     data: {
       title: input.title,
       url: input.url,
+      logoUrl: input.logoUrl,
       summary: input.summary,
       note: input.note,
       categoryId: input.categoryId,
@@ -117,6 +120,7 @@ export async function updateBookmark(input: SaveBookmarkInput & { id: number }):
     data: {
       title: input.title,
       url: input.url,
+      logoUrl: input.logoUrl,
       summary: input.summary,
       note: input.note,
       categoryId: input.categoryId,
@@ -157,6 +161,7 @@ function mapBookmarkRecord(
     title: record.title,
     url: record.url,
     host: getBookmarkHost(record.url),
+    logoUrl: record.logoUrl,
     summary: record.summary,
     note: record.note,
     category: {

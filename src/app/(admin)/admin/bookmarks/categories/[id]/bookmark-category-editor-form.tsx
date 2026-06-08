@@ -64,7 +64,7 @@ export function BookmarkCategoryEditorForm({ category }: { category?: BookmarkCa
               required
               defaultValue={category?.slug ?? ""}
               className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:outline-none dark:text-zinc-200 dark:placeholder:text-zinc-600"
-              placeholder="例如: frontend"
+              placeholder="例如: dev"
             />
           </label>
 

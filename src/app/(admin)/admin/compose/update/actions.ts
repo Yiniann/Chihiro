@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseStoredRichTextContent } from "@/lib/rich-text-content";
 import { requireAdminSession } from "@/server/auth";
+import { notifySubscribersAboutPublishedUpdate } from "@/server/mail/update-subscription-notifier";
 import {
   discardUpdateRevisionById,
   publishUpdateById,
@@ -47,7 +48,8 @@ export async function saveUpdateAction(
     });
 
     if (intent === "publish") {
-      await publishUpdateById(update.id);
+      const publishedUpdate = await publishUpdateById(update.id);
+      await notifySubscribersAboutPublishedUpdate(publishedUpdate);
 
       revalidateUpdateSurface();
     }

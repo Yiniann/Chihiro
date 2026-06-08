@@ -33,6 +33,7 @@ export type PostItem = {
   contentHtml: string | null;
   authorName: string | null;
   publishedAt: string | null;
+  subscriptionEmailSentAt: string | null;
   commentsEnabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -762,6 +763,18 @@ export async function publishPostById(id: number): Promise<PostItem> {
   return mapPostRecord(post);
 }
 
+export async function markPostSubscriptionEmailSent(id: number, sentAt = new Date()): Promise<PostItem> {
+  const post = await prisma.post.update({
+    where: { id },
+    data: {
+      subscriptionEmailSentAt: sentAt,
+    },
+    include: postInclude,
+  });
+
+  return mapPostRecord(post);
+}
+
 export async function discardPostRevisionById(id: number): Promise<PostItem> {
   const current = await prisma.post.findUnique({
     where: { id },
@@ -976,6 +989,7 @@ function mapPostRecord(record: PostRecord): PostItem {
     contentHtml: record.contentHtml,
     authorName: record.authorName,
     publishedAt: toIsoString(record.publishedAt),
+    subscriptionEmailSentAt: toIsoString(record.subscriptionEmailSentAt),
     commentsEnabled: record.commentsEnabled,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
@@ -1026,6 +1040,7 @@ function mapPublishedPostRecord(record: PostRecord): PostItem {
     contentHtml: snapshot.contentHtml,
     authorName: snapshot.authorName,
     publishedAt: snapshot.publishedAt,
+    subscriptionEmailSentAt: toIsoString(record.subscriptionEmailSentAt),
     commentsEnabled: snapshot.commentsEnabled,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),

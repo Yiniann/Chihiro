@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import {
   deleteBookmarkAction,
+  refreshBookmarkLogoAction,
   toggleBookmarkVisibilityAction,
 } from "@/app/(admin)/admin/bookmarks/actions";
 import { useToast } from "@/components/toast-provider";
@@ -94,6 +95,30 @@ export function BookmarkActionMenu({
           >
             打开链接
           </Link>
+
+          <form
+            action={refreshBookmarkLogoAction}
+            onSubmit={(event) => {
+              event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+
+              startTransition(async () => {
+                await refreshBookmarkLogoAction(formData);
+                showToast("已重新抓取 Logo");
+                setIsOpen(false);
+                router.refresh();
+              });
+            }}
+          >
+            <input type="hidden" name="id" value={bookmarkId} />
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex w-full items-center whitespace-nowrap rounded-xl px-3 py-2 text-left text-xs font-medium text-zinc-600 transition hover:bg-zinc-50 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+            >
+              {isPending ? "处理中..." : "重新抓取 Logo"}
+            </button>
+          </form>
 
           <form
             action={toggleBookmarkVisibilityAction}

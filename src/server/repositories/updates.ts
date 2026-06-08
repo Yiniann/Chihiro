@@ -15,6 +15,7 @@ export type UpdateItem = {
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
   publishedAt: string | null;
+  subscriptionEmailSentAt: string | null;
   createdAt: string;
   updatedAt: string;
   draftSnapshot: DraftUpdateSnapshot | null;
@@ -57,7 +58,7 @@ export type ListPublishedUpdatesOptions = {
 export async function listUpdatesForAdmin(): Promise<UpdateItem[]> {
   const items = await fetchUpdateRows(
     `
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       ORDER BY "updatedAt" DESC, "createdAt" DESC
     `,
@@ -227,6 +228,20 @@ export async function publishUpdateById(id: number): Promise<UpdateItem> {
   return mapUpdateRecord(refreshed ?? update);
 }
 
+export async function markUpdateSubscriptionEmailSent(
+  id: number,
+  sentAt = new Date(),
+): Promise<UpdateItem> {
+  const update = await prisma.update.update({
+    where: { id },
+    data: {
+      subscriptionEmailSentAt: sentAt,
+    },
+  });
+
+  return mapUpdateRecord(update);
+}
+
 export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
   const update = await prisma.update.update({
     where: { id },
@@ -338,6 +353,7 @@ function mapUpdateRecord(record: UpdateRecord): UpdateItem {
     content: record.content,
     contentHtml: record.contentHtml,
     publishedAt: toIsoString(record.publishedAt),
+    subscriptionEmailSentAt: toIsoString(record.subscriptionEmailSentAt),
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
     draftSnapshot: parseDraftSnapshot(record.draftSnapshot),
@@ -353,6 +369,7 @@ async function fetchUpdateRows(sql: string) {
     content: Prisma.JsonValue | null;
     contentHtml: string | null;
     publishedAt: Date | null;
+    subscriptionEmailSentAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
     draftSnapshot: Prisma.JsonValue | null;
@@ -368,12 +385,13 @@ async function fetchUpdateRowById(id: number) {
     content: Prisma.JsonValue | null;
     contentHtml: string | null;
     publishedAt: Date | null;
+    subscriptionEmailSentAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
     draftSnapshot: Prisma.JsonValue | null;
   }>>(
     Prisma.sql`
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       WHERE id = ${id}
       LIMIT 1
@@ -411,12 +429,13 @@ async function fetchPublishedUpdateRows(
     content: Prisma.JsonValue | null;
     contentHtml: string | null;
     publishedAt: Date | null;
+    subscriptionEmailSentAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
     draftSnapshot: Prisma.JsonValue | null;
   }>>(
     Prisma.sql`
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       ${whereSql}
       ${orderBySql}

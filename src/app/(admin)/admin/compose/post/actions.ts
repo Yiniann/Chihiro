@@ -13,6 +13,7 @@ import {
   savePostDraft,
 } from "@/server/repositories/posts";
 import { siteConfig } from "@/lib/site";
+import { notifySubscribersAboutPublishedPost } from "@/server/mail/post-subscription-notifier";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
 export type SavePostEditorState = {
@@ -66,6 +67,7 @@ export async function savePostDraftAction(
 
     if (intent === "publish") {
       const publishedPost = await publishPostById(post.id);
+      await notifySubscribersAboutPublishedPost(publishedPost);
 
       revalidatePostSurface(post.slug, post.category?.slug);
       revalidatePostSurface(publishedPost.slug, publishedPost.category?.slug);

@@ -16,10 +16,10 @@ CREATE INDEX "BookmarkCategoryItem_sortOrder_name_idx" ON "BookmarkCategoryItem"
 
 INSERT INTO "BookmarkCategoryItem" ("name", "slug", "eyebrow", "description", "sortOrder", "updatedAt")
 VALUES
-  ('前端构建', 'frontend', 'Frontend', '组件、性能、框架和工程化里最常回看的资料。', 0, CURRENT_TIMESTAMP),
-  ('设计参考', 'design', 'Design', '交互、排版、可访问性和视觉语言的灵感来源。', 1, CURRENT_TIMESTAMP),
+  ('开发', 'dev', 'Dev', '编程、框架、数据库与工程实践相关的书签。', 0, CURRENT_TIMESTAMP),
+  ('设计', 'design', 'Design', '界面、交互、排版与视觉参考相关的书签。', 1, CURRENT_TIMESTAMP),
   ('写作与表达', 'writing', 'Writing', '帮助内容更清楚、更耐读，也更有作者气息的文章。', 2, CURRENT_TIMESTAMP),
-  ('产品与方法', 'product', 'Product', '产品判断、工作流设计和长期主义相关的收藏。', 3, CURRENT_TIMESTAMP);
+  ('工具', 'tool', 'Tool', '提高效率、支持创作与日常工作的工具集合。', 3, CURRENT_TIMESTAMP);
 
 ALTER TABLE "Bookmark" ADD COLUMN "categoryId" INTEGER;
 
@@ -29,10 +29,10 @@ FROM (
   SELECT "id", "slug" FROM "BookmarkCategoryItem"
 ) AS category_map
 WHERE
-  ("Bookmark"."category" = 'FRONTEND' AND category_map."slug" = 'frontend')
+  ("Bookmark"."category" = 'FRONTEND' AND category_map."slug" = 'dev')
   OR ("Bookmark"."category" = 'DESIGN' AND category_map."slug" = 'design')
   OR ("Bookmark"."category" = 'WRITING' AND category_map."slug" = 'writing')
-  OR ("Bookmark"."category" = 'PRODUCT' AND category_map."slug" = 'product');
+  OR ("Bookmark"."category" = 'PRODUCT' AND category_map."slug" = 'tool');
 
 ALTER TABLE "Bookmark" ALTER COLUMN "categoryId" SET NOT NULL;
 ALTER TABLE "Bookmark" ADD CONSTRAINT "Bookmark_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "BookmarkCategoryItem"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

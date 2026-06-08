@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getPostPath } from "@/lib/routes";
 import { requireAdminSession } from "@/server/auth";
+import { notifySubscribersAboutPublishedPost } from "@/server/mail/post-subscription-notifier";
+import { notifySubscribersAboutPublishedUpdate } from "@/server/mail/update-subscription-notifier";
 import {
   deletePostById,
   movePostToTrashById,
@@ -30,6 +32,7 @@ export async function publishPostAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredPostId(formData, "id");
   const post = await publishPostById(id);
+  await notifySubscribersAboutPublishedPost(post);
 
   revalidatePostSurface(post.slug, post.category?.slug);
   redirect("/admin/posts");
@@ -41,6 +44,7 @@ export async function publishPostsBulkAction(formData: FormData) {
 
   for (const id of ids) {
     const post = await publishPostById(id);
+    await notifySubscribersAboutPublishedPost(post);
     revalidatePostSurface(post.slug, post.category?.slug);
   }
 
@@ -186,7 +190,8 @@ export async function deletePostsBulkAction(formData: FormData) {
 export async function publishUpdateAction(formData: FormData) {
   await requireAdminSession();
   const id = getRequiredId(formData, "id");
-  await publishUpdateById(id);
+  const update = await publishUpdateById(id);
+  await notifySubscribersAboutPublishedUpdate(update);
 
   revalidateUpdateSurface();
   redirect("/admin/updates");
@@ -197,7 +202,8 @@ export async function publishUpdatesBulkAction(formData: FormData) {
   const ids = getRequiredIds(formData, "ids", "请至少选择一条动态。");
 
   for (const id of ids) {
-    await publishUpdateById(id);
+    const update = await publishUpdateById(id);
+    await notifySubscribersAboutPublishedUpdate(update);
   }
 
   revalidateUpdateSurface();

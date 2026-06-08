@@ -54,9 +54,6 @@ export default async function AdminSubscribersPage({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">订阅者管理</p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              这里管理邮件订阅者，而不是登录读者。只有 `ACTIVE` 状态的邮箱会成为后续邮件通知目标。
-            </p>
           </div>
 
           <LiveSearchInput defaultValue={query} placeholder="搜索邮箱或来源" />

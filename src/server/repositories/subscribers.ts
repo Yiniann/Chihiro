@@ -15,6 +15,13 @@ export type SubscriberListItem = {
   updatedAt: string;
 };
 
+export type ActiveSubscriberEmail = {
+  email: string;
+  unsubscribeToken: string;
+  subscribedToPosts: boolean;
+  subscribedToUpdates: boolean;
+};
+
 export type SubscriberStats = {
   total: number;
   active: number;
@@ -189,7 +196,9 @@ export async function setSubscriberStatusById(id: string, status: SubscriberStat
   });
 }
 
-export async function listActiveSubscriberEmails(kind?: "posts" | "updates") {
+export async function listActiveSubscriberEmails(kind?: "posts" | "updates"): Promise<
+  ActiveSubscriberEmail[]
+> {
   return prisma.subscriber.findMany({
     where: {
       status: SubscriberStatus.ACTIVE,
@@ -207,6 +216,25 @@ export async function listActiveSubscriberEmails(kind?: "posts" | "updates") {
     },
     orderBy: {
       createdAt: "asc",
+    },
+  });
+}
+
+export async function markSubscribersLastEmailSent(emails: string[], sentAt = new Date()) {
+  const uniqueEmails = Array.from(new Set(emails.filter(Boolean)));
+
+  if (uniqueEmails.length === 0) {
+    return { count: 0 };
+  }
+
+  return prisma.subscriber.updateMany({
+    where: {
+      email: {
+        in: uniqueEmails,
+      },
+    },
+    data: {
+      lastEmailSentAt: sentAt,
     },
   });
 }

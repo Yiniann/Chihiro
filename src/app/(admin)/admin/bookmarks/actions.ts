@@ -11,7 +11,11 @@ import {
   updateBookmark,
   type BookmarkItem,
 } from "@/server/repositories/bookmarks";
-import { normalizeBookmarkUrl, parseBookmarkTags } from "@/lib/bookmarks";
+import {
+  normalizeBookmarkUrl,
+  parseBookmarkTags,
+  resolveBookmarkLogoUrl,
+} from "@/lib/bookmarks";
 import { getBookmarkCategoryByIdForAdmin } from "@/server/repositories/bookmark-categories";
 
 export type SaveBookmarkEditorState = {
@@ -117,6 +121,7 @@ export async function toggleBookmarkVisibilityAction(formData: FormData) {
     id,
     title: currentBookmark.title,
     url: currentBookmark.url,
+    logoUrl: currentBookmark.logoUrl,
     summary: currentBookmark.summary,
     note: currentBookmark.note,
     categoryId: currentBookmark.category.id,
@@ -130,10 +135,41 @@ export async function toggleBookmarkVisibilityAction(formData: FormData) {
   revalidateBookmarkSurfaces(id);
 }
 
+export async function refreshBookmarkLogoAction(formData: FormData) {
+  await requireAdminSession();
+  const id = getRequiredNumber(formData, "id");
+  const currentBookmark = await getBookmarkByIdForAdmin(id);
+
+  if (!currentBookmark) {
+    throw new Error("书签不存在。");
+  }
+
+  await updateBookmark({
+    id,
+    title: currentBookmark.title,
+    url: currentBookmark.url,
+    logoUrl: await resolveBookmarkLogoUrl(currentBookmark.url),
+    summary: currentBookmark.summary,
+    note: currentBookmark.note,
+    categoryId: currentBookmark.category.id,
+    kind: currentBookmark.kind,
+    tags: currentBookmark.tags,
+    sortOrder: currentBookmark.sortOrder,
+    isVisible: currentBookmark.isVisible,
+    isFeatured: currentBookmark.isFeatured,
+  });
+
+  revalidateBookmarkSurfaces(id);
+}
+
 async function parseBookmarkFormData(formData: FormData) {
+  const url = normalizeBookmarkUrl(getRequiredString(formData, "url"));
+  const logoOverrideUrl = getOptionalString(formData, "logoOverrideUrl");
+
   return {
     title: getRequiredString(formData, "title"),
-    url: normalizeBookmarkUrl(getRequiredString(formData, "url")),
+    url,
+    logoUrl: await resolveBookmarkLogoUrl(url, { overrideUrl: logoOverrideUrl }),
     summary: getRequiredString(formData, "summary"),
     note: getOptionalString(formData, "note"),
     categoryId: await getBookmarkCategoryId(formData, "categoryId"),

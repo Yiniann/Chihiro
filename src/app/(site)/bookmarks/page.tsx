@@ -7,7 +7,10 @@ import {
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import { getMoreSectionBySlug } from "@/lib/more-sections";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
-import { getBookmarkKindLabel } from "@/lib/bookmarks";
+import {
+  getBookmarkFallbackLogoUrl,
+  getBookmarkKindLabel,
+} from "@/lib/bookmarks";
 import {
   isPublicSiteUnavailableError,
   listPublicBookmarkCategories,
@@ -15,6 +18,7 @@ import {
   type PublicBookmarkCategory,
   type PublicBookmarkItem,
 } from "@/server/public-content";
+import { BookmarkLogo } from "@/app/(site)/bookmarks/bookmark-logo";
 
 export const metadata: Metadata = {
   title: "书签",
@@ -75,9 +79,6 @@ export default async function BookmarksPage() {
                   <p className="text-sm uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
                     Featured
                   </p>
-                  <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                    先从这些常开的入口开始
-                  </h2>
                 </div>
               </div>
 
@@ -141,6 +142,8 @@ export default async function BookmarksPage() {
 }
 
 function FeaturedBookmarkCard({ item }: { item: PublicBookmarkItem }) {
+  const logoUrl = item.logoUrl ?? getBookmarkFallbackLogoUrl(item.url);
+
   return (
     <a
       href={item.url}
@@ -155,11 +158,19 @@ function FeaturedBookmarkCard({ item }: { item: PublicBookmarkItem }) {
         </div>
         <ArrowUpRight className="h-4 w-4 text-zinc-400 transition group-hover:text-zinc-950 dark:group-hover:text-zinc-50" />
       </div>
-      <div className="grid gap-3">
-        <h3 className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-          {item.title}
-        </h3>
-        <p className="text-sm leading-7 text-zinc-600 dark:text-zinc-300">{item.summary}</p>
+      <div className="flex items-start gap-4">
+        <BookmarkLogo
+          title={item.title}
+          host={item.host}
+          logoUrl={item.logoUrl}
+          fallbackLogoUrl={logoUrl}
+        />
+        <div className="grid gap-3">
+          <h3 className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            {item.title}
+          </h3>
+          <p className="text-sm leading-7 text-zinc-600 dark:text-zinc-300">{item.summary}</p>
+        </div>
       </div>
       <div className="grid gap-3">
         {item.note ? (
@@ -181,6 +192,8 @@ function FeaturedBookmarkCard({ item }: { item: PublicBookmarkItem }) {
 }
 
 function BookmarkCard({ item }: { item: PublicBookmarkItem }) {
+  const logoUrl = item.logoUrl ?? getBookmarkFallbackLogoUrl(item.url);
+
   return (
     <a
       href={item.url}
@@ -189,26 +202,34 @@ function BookmarkCard({ item }: { item: PublicBookmarkItem }) {
       className="group grid gap-4 rounded-2xl border border-zinc-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition hover:border-zinc-300 hover:shadow-md dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] dark:hover:border-white/20"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="grid gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
-              {getBookmarkKindLabel(item.kind)}
-            </span>
-            <span className="text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-              {item.host}
-            </span>
-            <span className="text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-              {item.category.eyebrow ?? item.category.name}
-            </span>
-          </div>
-          <h3 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-            {item.title}
-          </h3>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium uppercase tracking-[0.18em] text-zinc-600 dark:bg-zinc-900 dark:text-zinc-300">
+            {getBookmarkKindLabel(item.kind)}
+          </span>
+          <span className="text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            {item.host}
+          </span>
+          <span className="text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            {item.category.eyebrow ?? item.category.name}
+          </span>
         </div>
         <ArrowUpRight className="h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-950 dark:group-hover:text-zinc-50" />
       </div>
 
-      <p className="text-sm leading-7 text-zinc-600 dark:text-zinc-300">{item.summary}</p>
+      <div className="flex items-start gap-3">
+        <BookmarkLogo
+          title={item.title}
+          host={item.host}
+          logoUrl={item.logoUrl}
+          fallbackLogoUrl={logoUrl}
+        />
+        <div className="grid gap-3">
+          <h3 className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            {item.title}
+          </h3>
+          <p className="text-sm leading-7 text-zinc-600 dark:text-zinc-300">{item.summary}</p>
+          </div>
+        </div>
       {item.note ? (
         <p className="rounded-2xl bg-zinc-50 px-4 py-3 text-sm text-zinc-500 dark:bg-zinc-900/80 dark:text-zinc-400">
           {item.note}
