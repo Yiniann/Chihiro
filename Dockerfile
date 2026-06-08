@@ -39,6 +39,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=nextjs:nodejs /app/realtime ./realtime
 COPY --from=builder --chown=nextjs:nodejs /app/scripts/run-services.mjs ./scripts/run-services.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/mail-worker.mjs ./scripts/mail-worker.mjs
 COPY --chown=nextjs:nodejs docker/entrypoint.sh /usr/local/bin/chihiro-entrypoint
 
 RUN chmod +x /usr/local/bin/chihiro-entrypoint
