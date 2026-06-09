@@ -47,9 +47,6 @@ export default async function AdminCommentsPage({
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">评论管理</p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              待审核评论会单独显示在上面，已处理评论放在下方分组查看。
-            </p>
           </div>
 
           <LiveSearchInput
@@ -57,28 +54,16 @@ export default async function AdminCommentsPage({
             placeholder="搜索评论、作者、邮箱或内容"
           />
         </div>
-
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {query
-            ? `待审核 ${filteredPendingComments.length} 条，已处理 ${filteredGroupedComments.length} 条匹配评论`
-            : `待审核 ${stats.pending} 条，下方显示 ${getGroupedFilterCount(activeStatus, stats)} 条已处理评论`}
-        </p>
       </section>
 
       <CommentSection
         title="待审核评论"
-        description={query ? `匹配到 ${filteredPendingComments.length} 条待审核评论` : "需要你优先处理的评论会显示在这里。"}
         comments={filteredPendingComments}
         emptyText={query ? "没有找到匹配的待审核评论。" : "当前没有待审核评论。"}
       />
 
       <CommentSection
         title="已处理评论"
-        description={
-          query
-            ? `匹配到 ${filteredGroupedComments.length} 条评论`
-            : `当前筛选 ${getGroupedFilterLabel(activeStatus)}，共 ${getGroupedFilterCount(activeStatus, stats)} 条`
-        }
         comments={filteredGroupedComments}
         emptyText={query ? "没有找到匹配的评论。" : "当前筛选下还没有评论。"}
         actions={
@@ -116,13 +101,11 @@ export default async function AdminCommentsPage({
 
 function CommentSection({
   title,
-  description,
   comments,
   emptyText,
   actions,
 }: {
   title: string;
-  description: string;
   comments: AdminCommentItem[];
   emptyText: string;
   actions?: React.ReactNode;
@@ -132,7 +115,6 @@ function CommentSection({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
         <div className="grid gap-1">
           <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">{title}</h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">{description}</p>
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
       </div>
@@ -254,14 +236,6 @@ function getGroupedFilterCount(
   }
 
   return stats.spam;
-}
-
-function getGroupedFilterLabel(filter: Exclude<AdminCommentStatusFilter, "pending" | "all">) {
-  if (filter === "approved") {
-    return "已公开";
-  }
-
-  return "垃圾";
 }
 
 function getCommentsFilterHref(

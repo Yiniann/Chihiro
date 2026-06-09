@@ -20,7 +20,6 @@ import {
   ChevronDown,
   ChevronUp,
   Compass,
-  Film,
   FileArchive,
   FileText,
   GalleryVerticalEnd,
@@ -78,7 +77,6 @@ const navItems = [
 const moreSectionIcons = {
   "/projects": BriefcaseBusiness,
   "/friends": Handshake,
-  "/reviews": Film,
   "/bookmarks": Bookmark,
 } as const;
 

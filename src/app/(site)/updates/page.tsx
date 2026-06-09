@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { PublicSiteUnavailableScreen } from "@/components/public-site-unavailable-screen";
 import Link from "next/link";
 import { Suspense } from "react";
+import { UpdateKindPreviewCard } from "@/components/update-kind-preview-card";
 import {
   getContentPreview,
   getContentText,
@@ -218,6 +219,9 @@ async function UpdatesPageContent({
                               No preview available yet.
                             </p>
                           )}
+                          {item.kind !== "NOTE" ? (
+                            <UpdateKindPreviewCard kind={item.kind} metadata={item.metadata} className="mt-5" />
+                          ) : null}
                           <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
                             <span>{formatFeedTime(item.publishedAt)}</span>
                             <span>{item.authorName ?? "未署名"}</span>

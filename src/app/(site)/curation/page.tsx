@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function ReviewsRedirectPage() {
+export default function CurationRedirectPage() {
   redirect("/updates");
 }

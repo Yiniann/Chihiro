@@ -19,6 +19,7 @@ const RESERVED_STANDALONE_PAGE_SLUGS = new Set([
   "auth",
   "bookmarks",
   "comments",
+  "curation",
   "friends",
   "install",
   "media",

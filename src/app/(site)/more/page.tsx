@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bookmark, BriefcaseBusiness, Film, Handshake } from "lucide-react";
+import { Bookmark, BriefcaseBusiness, Handshake } from "lucide-react";
 import { moreSections } from "@/lib/more-sections";
 import { listPublicStandalonePagesForNavigation } from "@/server/public-content";
 import { StandalonePageNavGroup } from "@prisma/client";
@@ -12,7 +12,6 @@ export const metadata: Metadata = {
 const sectionIcons = {
   projects: BriefcaseBusiness,
   friends: Handshake,
-  reviews: Film,
   bookmarks: Bookmark,
 } as const;
 

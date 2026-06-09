@@ -31,6 +31,7 @@ import { PostActionMenu } from "@/app/(admin)/admin/workbench/post-action-menu";
 import { StandalonePageActionMenu } from "@/app/(admin)/admin/workbench/standalone-page-action-menu";
 import { TagCloudPanel } from "@/app/(admin)/admin/workbench/tag-cloud-panel";
 import { UpdateActionMenu } from "@/app/(admin)/admin/workbench/update-action-menu";
+import { CreateUpdateDialog } from "@/app/(admin)/admin/updates/new/new-update-entry";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
 import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
@@ -376,13 +377,20 @@ function ContentTableToolbar({
         <LiveSearchInput defaultValue={query} sort={sort} />
       </form>
       <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href={createHref}
-          className="inline-flex h-10 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
-        >
-          <Plus className="h-4 w-4" />
-          {createLabel}
-        </Link>
+        {createHref === "/admin/updates/new" ? (
+          <CreateUpdateDialog
+            triggerLabel={createLabel}
+            triggerClassName="inline-flex h-10 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+          />
+        ) : (
+          <Link
+            href={createHref}
+            className="inline-flex h-10 items-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+          >
+            <Plus className="h-4 w-4" />
+            {createLabel}
+          </Link>
+        )}
       </div>
     </div>
   );

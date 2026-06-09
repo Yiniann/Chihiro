@@ -28,6 +28,7 @@ import { getSiteSettings } from "@/server/repositories/site";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 import { RealtimeOverviewPanel } from "@/app/(admin)/admin/realtime-overview-panel";
+import { CreateUpdateDialog } from "@/app/(admin)/admin/updates/new/new-update-entry";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
 
 type AdminOverviewPageProps = {
@@ -304,7 +305,14 @@ function ContentOperationsPanel({
             </div>
 
             <div className="mt-2 flex items-center gap-2 pl-9 sm:pl-11">
-              <ActionLink href={item.writeHref} label={item.writeLabel} />
+              {item.writeHref === "/admin/updates/new" ? (
+                <CreateUpdateDialog
+                  triggerLabel={item.writeLabel}
+                  triggerClassName="inline-flex items-center border-b border-zinc-300/80 pb-0.5 text-[11px] text-zinc-600 transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-700 dark:text-zinc-300 dark:hover:border-zinc-100 dark:hover:text-zinc-50 sm:text-sm"
+                />
+              ) : (
+                <ActionLink href={item.writeHref} label={item.writeLabel} />
+              )}
               <ActionLink href={item.manageHref} label={item.manageLabel} />
             </div>
           </article>

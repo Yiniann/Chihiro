@@ -1,0 +1,314 @@
+"use client";
+
+import Link from "next/link";
+import { ArrowUpRight, Disc3, Film, Package2 } from "lucide-react";
+import type { UpdateMetadata, UpdateKindValue } from "@/lib/update-kind";
+
+export function UpdateKindPreviewCard({
+  kind,
+  metadata,
+  interactive = true,
+  className = "",
+}: {
+  kind: UpdateKindValue;
+  metadata: UpdateMetadata;
+  interactive?: boolean;
+  className?: string;
+}) {
+  if (kind === "MOVIE" && metadata.kind === "MOVIE") {
+    const inner = (
+      <>
+        <PosterBlock
+          tone="amber"
+          kicker={`Movie · ${metadata.data.year ?? "Unknown"}`}
+          title={metadata.data.title || "未命名电影"}
+          subtitle={metadata.data.originalTitle ?? metadata.data.director ?? ""}
+          imageUrl={metadata.data.posterUrl ?? undefined}
+        />
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                Movie · {metadata.data.year ?? "Unknown"}
+              </p>
+              <p className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                {metadata.data.title || "未命名电影"}
+              </p>
+              {metadata.data.director ? (
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{metadata.data.director}</p>
+              ) : null}
+            </div>
+            {interactive ? (
+              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
+            ) : null}
+          </div>
+          {metadata.data.overview ? (
+            <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">{metadata.data.overview}</p>
+          ) : null}
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+            {metadata.data.rating ? (
+              <span className="inline-flex items-center gap-2">
+                <Film className="h-4 w-4" />
+                {metadata.data.rating}
+              </span>
+            ) : null}
+            {metadata.data.genres.length > 0 ? <span>{metadata.data.genres.join(" · ")}</span> : null}
+            {metadata.data.sourceName ? <span>{metadata.data.sourceName}</span> : null}
+          </div>
+        </div>
+      </>
+    );
+
+    return renderCardShell({
+      href: metadata.data.sourceUrl ?? undefined,
+      interactive,
+      className,
+      layoutClassName: "sm:grid-cols-[9rem_minmax(0,1fr)]",
+      children: inner,
+    });
+  }
+
+  if (kind === "MUSIC" && metadata.kind === "MUSIC") {
+    const inner = (
+      <>
+        <SquareBlock
+          tone="violet"
+          kicker={`${metadata.data.format ?? "Music"} · ${metadata.data.releaseYear ?? "Unknown"}`}
+          title={metadata.data.title || "未命名曲目"}
+          subtitle={metadata.data.artist ?? ""}
+          imageUrl={metadata.data.coverUrl ?? undefined}
+        />
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                {metadata.data.format ?? "Music"} · {metadata.data.releaseYear ?? "Unknown"}
+              </p>
+              <p className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                {metadata.data.title || "未命名曲目"}
+              </p>
+              {metadata.data.artist ? (
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{metadata.data.artist}</p>
+              ) : null}
+            </div>
+            {interactive ? (
+              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
+            ) : null}
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+            {metadata.data.genres.length > 0 ? (
+              <span className="inline-flex items-center gap-2">
+                <Disc3 className="h-4 w-4" />
+                {metadata.data.genres.join(" · ")}
+              </span>
+            ) : null}
+            {metadata.data.album ? <span>{metadata.data.album}</span> : null}
+            <span>Apple Music</span>
+          </div>
+        </div>
+      </>
+    );
+
+    return renderCardShell({
+      href: metadata.data.appleMusicUrl ?? undefined,
+      interactive,
+      className,
+      layoutClassName: "sm:grid-cols-[8rem_minmax(0,1fr)]",
+      children: inner,
+    });
+  }
+
+  if (kind === "OBJECT" && metadata.kind === "OBJECT") {
+    const href = metadata.data.detailPath ?? undefined;
+    const inner = (
+      <>
+        <BannerBlock
+          tone="emerald"
+          kicker={`Object · ${metadata.data.category ?? "Daily Use"}`}
+          title={metadata.data.title || "未命名物品"}
+          subtitle={[metadata.data.brand, metadata.data.model].filter(Boolean).join(" · ")}
+          imageUrl={metadata.data.heroImage ?? undefined}
+        />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+              {metadata.data.title || "未命名物品"}
+            </p>
+            {metadata.data.summary ? (
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                {metadata.data.summary}
+              </p>
+            ) : null}
+          </div>
+          {href ? (
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-zinc-600 transition group-hover:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-300 dark:group-hover:text-zinc-50">
+              查看全文
+              <ArrowUpRight className="h-4 w-4" />
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
+              <Package2 className="h-4 w-4" />
+              详情页待接入
+            </span>
+          )}
+        </div>
+      </>
+    );
+
+    return renderCardShell({
+      href,
+      interactive: interactive && Boolean(href),
+      className,
+      layoutClassName: "",
+      children: inner,
+    });
+  }
+
+  return null;
+}
+
+function renderCardShell({
+  href,
+  interactive,
+  className,
+  layoutClassName,
+  children,
+}: {
+  href?: string;
+  interactive: boolean;
+  className: string;
+  layoutClassName: string;
+  children: React.ReactNode;
+}) {
+  const classes = [
+    "group grid gap-4 rounded-[1.6rem] border border-zinc-200/80 bg-white/80 p-4 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
+    interactive ? "transition hover:border-zinc-300 hover:bg-white/90 dark:hover:border-white/20 dark:hover:bg-[rgba(255,255,255,0.08)]" : "",
+    layoutClassName,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (interactive && href) {
+    if (href.startsWith("/")) {
+      return (
+        <Link href={href} className={classes}>
+          {children}
+        </Link>
+      );
+    }
+
+    return (
+      <a href={href} target="_blank" rel="noreferrer noopener" className={classes}>
+        {children}
+      </a>
+    );
+  }
+
+  return <div className={classes}>{children}</div>;
+}
+
+function PosterBlock({
+  tone,
+  kicker,
+  title,
+  subtitle,
+  imageUrl,
+}: {
+  tone: "amber" | "violet" | "emerald";
+  kicker: string;
+  title: string;
+  subtitle: string;
+  imageUrl?: string;
+}) {
+  if (imageUrl) {
+    return (
+      <div className="relative min-h-[13rem] overflow-hidden rounded-[1.25rem] border border-zinc-200/80 dark:border-zinc-800/80">
+        <img src={imageUrl} alt={title} className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative min-h-[13rem] overflow-hidden rounded-[1.25rem] border ${getToneClasses(tone)}`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.18))]" />
+      <div className="relative flex h-full flex-col justify-between p-4">
+        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{kicker}</p>
+        <div>
+          <p className="text-lg font-semibold tracking-tight text-white">{title}</p>
+          <p className="mt-1 text-sm text-white/75">{subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SquareBlock(props: {
+  tone: "amber" | "violet" | "emerald";
+  kicker: string;
+  title: string;
+  subtitle: string;
+  imageUrl?: string;
+}) {
+  if (props.imageUrl) {
+    return (
+      <div className="relative aspect-square overflow-hidden rounded-[1.25rem] border border-zinc-200/80 dark:border-zinc-800/80">
+        <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative aspect-square overflow-hidden rounded-[1.25rem] border ${getToneClasses(props.tone)}`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_40%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.18))]" />
+      <div className="relative flex h-full flex-col justify-between p-4">
+        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
+        <div>
+          <p className="text-lg font-semibold tracking-tight text-white">{props.title}</p>
+          <p className="mt-1 text-sm text-white/75">{props.subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BannerBlock(props: {
+  tone: "amber" | "violet" | "emerald";
+  kicker: string;
+  title: string;
+  subtitle: string;
+  imageUrl?: string;
+}) {
+  if (props.imageUrl) {
+    return (
+      <div className="relative min-h-[11rem] overflow-hidden rounded-[1.3rem] border border-zinc-200/80 dark:border-zinc-800/80">
+        <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
+      </div>
+    );
+  }
+
+  return (
+    <div className={`relative min-h-[11rem] overflow-hidden rounded-[1.3rem] border ${getToneClasses(props.tone)}`}>
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.46),transparent_40%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(0,0,0,0.18))]" />
+      <div className="relative flex h-full flex-col justify-between p-5">
+        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
+        <div>
+          <p className="text-2xl font-semibold tracking-tight text-white">{props.title}</p>
+          <p className="mt-2 text-sm text-white/75">{props.subtitle}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function getToneClasses(tone: "amber" | "violet" | "emerald") {
+  if (tone === "amber") {
+    return "border-amber-200/70 bg-[linear-gradient(135deg,#8b5e3c_0%,#d59f6a_46%,#f0d9ae_100%)]";
+  }
+
+  if (tone === "violet") {
+    return "border-violet-200/70 bg-[linear-gradient(135deg,#2d1d54_0%,#6f59b3_48%,#d1c0ff_100%)]";
+  }
+
+  return "border-emerald-200/70 bg-[linear-gradient(135deg,#0f3f34_0%,#2f7f68_48%,#d6eee1_100%)]";
+}

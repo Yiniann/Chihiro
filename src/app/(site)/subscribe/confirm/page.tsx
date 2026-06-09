@@ -38,10 +38,10 @@ export default async function ConfirmSubscriptionPage({
           <p className="text-base leading-8 text-zinc-600 dark:text-zinc-300">{description}</p>
         </div>
 
-        <div className="flex flex-wrap gap-4 text-sm">
+        <div className="flex justify-center text-sm">
           <Link
             href="/"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-300 px-4 text-zinc-700 transition hover:border-zinc-950 hover:text-zinc-950 dark:border-zinc-700 dark:text-zinc-200 dark:hover:border-zinc-100 dark:hover:text-zinc-50"
+            className="inline-flex items-center justify-center text-base font-medium text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-zinc-50"
           >
             返回首页
           </Link>

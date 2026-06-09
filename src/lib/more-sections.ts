@@ -22,13 +22,6 @@ export const moreSections: MoreSection[] = [
     description: "喜欢的网站、朋友与同行者链接。",
   },
   {
-    slug: "reviews",
-    href: "/reviews",
-    eyebrow: "Reviews",
-    title: "品鉴",
-    description: "电影、音乐、游戏与器物短评。",
-  },
-  {
     slug: "bookmarks",
     href: "/bookmarks",
     eyebrow: "Bookmarks",

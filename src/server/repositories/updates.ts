@@ -1,9 +1,15 @@
 import { ContentStatus, Prisma } from "@prisma/client";
 import { getParagraphsFromContent } from "@/lib/content";
+import {
+  isUpdateKindValue,
+  type UpdateKindValue,
+  type UpdateMetadata,
+  type UpdateMovieMetadata,
+  type UpdateMusicMetadata,
+  type UpdateObjectMetadata,
+} from "@/lib/update-kind";
 import { siteConfig } from "@/lib/site";
 import { prisma } from "@/server/db/client";
-
-type UpdateRecord = NonNullable<Awaited<ReturnType<typeof prisma.update.findUnique>>>;
 
 export type UpdateListSort = "latest" | "earliest" | "updated";
 
@@ -12,8 +18,10 @@ export type UpdateItem = {
   title: string;
   authorName: string;
   status: ContentStatus;
+  kind: UpdateKindValue;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
+  metadata: UpdateMetadata;
   publishedAt: string | null;
   subscriptionEmailSentAt: string | null;
   createdAt: string;
@@ -39,8 +47,10 @@ export type UpdateNavigationItem = {
 type PublishedUpdateSnapshot = {
   title: string;
   authorName: string | null;
+  kind: UpdateKindValue;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
+  metadata: UpdateMetadata;
   publishedAt: string | null;
 };
 
@@ -55,10 +65,39 @@ export type ListPublishedUpdatesOptions = {
   query?: string;
 };
 
+export type SaveUpdateInput = {
+  id?: number;
+  kind: UpdateKindValue;
+  content: Prisma.JsonValue | null;
+  contentHtml: string | null;
+  metadata: UpdateMetadata;
+  authorName: string | null;
+  status: ContentStatus;
+  publishedAt: Date | null;
+};
+
+type UpdateRow = {
+  id: number;
+  title: string;
+  authorName: string | null;
+  status: ContentStatus;
+  kind: UpdateKindValue;
+  content: Prisma.JsonValue | null;
+  contentHtml: string | null;
+  metadata: Prisma.JsonValue | null;
+  publishedAt: Date | null;
+  subscriptionEmailSentAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  draftSnapshot: Prisma.JsonValue | null;
+};
+
+type UpdateRecord = UpdateRow;
+
 export async function listUpdatesForAdmin(): Promise<UpdateItem[]> {
   const items = await fetchUpdateRows(
     `
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, kind, content, "contentHtml", metadata, "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       ORDER BY "updatedAt" DESC, "createdAt" DESC
     `,
@@ -114,30 +153,20 @@ export async function listRecentPublishedUpdatesForNavigation(
   }));
 }
 
-export type SaveUpdateInput = {
-  id?: number;
-  content: Prisma.JsonValue | null;
-  contentHtml: string | null;
-  authorName: string | null;
-  status: ContentStatus;
-  publishedAt: Date | null;
-};
-
 export async function saveUpdate(input: SaveUpdateInput): Promise<UpdateItem> {
-  const current =
-    typeof input.id === "number"
-      ? await fetchUpdateRowById(input.id)
-      : null;
+  const current = typeof input.id === "number" ? await fetchUpdateRowById(input.id) : null;
 
   if (current && (current.status === ContentStatus.PUBLISHED || current.draftSnapshot)) {
-    const resolvedTitle = resolveUpdateTitle(current.title, input.content);
+    const resolvedTitle = resolveUpdateTitle(current.title, input.content, input.kind, input.metadata);
     const resolvedAuthorName = input.authorName ?? current.authorName;
 
     const draftSnapshot = buildDraftSnapshot({
       title: resolvedTitle,
       authorName: resolvedAuthorName,
+      kind: input.kind,
       content: input.content,
       contentHtml: input.contentHtml,
+      metadata: input.metadata,
       publishedAt: input.publishedAt,
     });
 
@@ -155,11 +184,13 @@ export async function saveUpdate(input: SaveUpdateInput): Promise<UpdateItem> {
     return mapUpdateRecord(refreshed ?? update);
   }
 
-  const resolvedTitle = resolveUpdateTitle(current?.title ?? null, input.content);
+  const resolvedTitle = resolveUpdateTitle(current?.title ?? null, input.content, input.kind, input.metadata);
   const baseData = {
     title: resolvedTitle,
+    kind: input.kind,
     content: input.content ?? Prisma.DbNull,
     contentHtml: input.contentHtml,
+    metadata: serializeUpdateMetadata(input.metadata),
     publishedAt: input.publishedAt,
     status: input.status,
   };
@@ -201,14 +232,18 @@ export async function publishUpdateById(id: number): Promise<UpdateItem> {
   const updateData = draftSnapshot
     ? {
         title: draftSnapshot.title,
+        kind: draftSnapshot.kind,
         content: draftSnapshot.content ?? Prisma.DbNull,
         contentHtml: draftSnapshot.contentHtml,
+        metadata: serializeUpdateMetadata(draftSnapshot.metadata),
         publishedAt: resolvedPublishedAt,
       }
     : {
         title: current.title,
+        kind: current.kind,
         content: current.content ?? Prisma.DbNull,
         contentHtml: current.contentHtml,
+        metadata: (current.metadata ?? Prisma.JsonNull) as Prisma.InputJsonValue | typeof Prisma.JsonNull,
         publishedAt,
       };
   const update = await prisma.update.update({
@@ -239,7 +274,7 @@ export async function markUpdateSubscriptionEmailSent(
     },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
@@ -251,7 +286,7 @@ export async function unpublishUpdateById(id: number): Promise<UpdateItem> {
     },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 export async function deleteUpdateById(id: number): Promise<UpdateItem> {
@@ -259,7 +294,7 @@ export async function deleteUpdateById(id: number): Promise<UpdateItem> {
     where: { id },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 export async function moveUpdateToTrashById(id: number): Promise<UpdateItem> {
@@ -270,7 +305,7 @@ export async function moveUpdateToTrashById(id: number): Promise<UpdateItem> {
     },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 export async function restoreUpdateFromTrashById(id: number): Promise<UpdateItem> {
@@ -281,7 +316,7 @@ export async function restoreUpdateFromTrashById(id: number): Promise<UpdateItem
     },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 export async function discardUpdateRevisionById(id: number): Promise<UpdateItem> {
@@ -307,7 +342,7 @@ export async function discardUpdateRevisionById(id: number): Promise<UpdateItem>
     },
   });
 
-  return mapUpdateRecord(update);
+  return mapUpdateRecord(update as unknown as UpdateRow);
 }
 
 function buildPublishedUpdateWhere(
@@ -345,13 +380,17 @@ function buildPublishedUpdateWhere(
 }
 
 function mapUpdateRecord(record: UpdateRecord): UpdateItem {
+  const kind = record.kind as UpdateKindValue;
+
   return {
     id: record.id,
     title: record.title,
     authorName: record.authorName ?? siteConfig.author,
     status: record.status,
+    kind,
     content: record.content,
     contentHtml: record.contentHtml,
+    metadata: parseUpdateMetadata(kind, record.metadata ?? null),
     publishedAt: toIsoString(record.publishedAt),
     subscriptionEmailSentAt: toIsoString(record.subscriptionEmailSentAt),
     createdAt: record.createdAt.toISOString(),
@@ -361,37 +400,13 @@ function mapUpdateRecord(record: UpdateRecord): UpdateItem {
 }
 
 async function fetchUpdateRows(sql: string) {
-  return prisma.$queryRaw<Array<{
-    id: number;
-    title: string;
-    authorName: string | null;
-    status: ContentStatus;
-    content: Prisma.JsonValue | null;
-    contentHtml: string | null;
-    publishedAt: Date | null;
-    subscriptionEmailSentAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-    draftSnapshot: Prisma.JsonValue | null;
-  }>>(Prisma.sql([sql]));
+  return prisma.$queryRaw<Array<UpdateRow>>(Prisma.sql([sql]));
 }
 
 async function fetchUpdateRowById(id: number) {
-  const rows = await prisma.$queryRaw<Array<{
-    id: number;
-    title: string;
-    authorName: string | null;
-    status: ContentStatus;
-    content: Prisma.JsonValue | null;
-    contentHtml: string | null;
-    publishedAt: Date | null;
-    subscriptionEmailSentAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-    draftSnapshot: Prisma.JsonValue | null;
-  }>>(
+  const rows = await prisma.$queryRaw<Array<UpdateRow>>(
     Prisma.sql`
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, kind, content, "contentHtml", metadata, "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       WHERE id = ${id}
       LIMIT 1
@@ -421,21 +436,9 @@ async function fetchPublishedUpdateRows(
       ? Prisma.sql`OFFSET ${(page - 1) * pageSize}`
       : Prisma.empty;
 
-  return prisma.$queryRaw<Array<{
-    id: number;
-    title: string;
-    authorName: string | null;
-    status: ContentStatus;
-    content: Prisma.JsonValue | null;
-    contentHtml: string | null;
-    publishedAt: Date | null;
-    subscriptionEmailSentAt: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-    draftSnapshot: Prisma.JsonValue | null;
-  }>>(
+  return prisma.$queryRaw<Array<UpdateRow>>(
     Prisma.sql`
-      SELECT id, title, "authorName", status, content, "contentHtml", "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
+      SELECT id, title, "authorName", status, kind, content, "contentHtml", metadata, "publishedAt", "subscriptionEmailSentAt", "createdAt", "updatedAt", "draftSnapshot"
       FROM "Update"
       ${whereSql}
       ${orderBySql}
@@ -476,8 +479,10 @@ function toIsoString(value: Date | null) {
 function buildDraftSnapshot(input: {
   title: string;
   authorName: string | null;
+  kind: UpdateKindValue;
   content: Prisma.JsonValue | null;
   contentHtml: string | null;
+  metadata: UpdateMetadata;
   publishedAt: Date | null;
 }): DraftUpdateSnapshot {
   const savedAt = new Date().toISOString();
@@ -485,8 +490,10 @@ function buildDraftSnapshot(input: {
   return {
     title: input.title,
     authorName: input.authorName,
+    kind: input.kind,
     content: input.content,
     contentHtml: input.contentHtml,
+    metadata: input.metadata,
     publishedAt: toIsoString(input.publishedAt),
     savedAt,
   };
@@ -516,11 +523,16 @@ function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftUpdateSnapshot
     return null;
   }
 
+  const kind = isUpdateKindValue(snapshot.kind) ? snapshot.kind : "NOTE";
+  const snapshotMetadata = unwrapStoredMetadata(kind, (snapshot.metadata as Prisma.JsonValue | null) ?? null);
+
   return {
     title: snapshot.title ?? "",
     authorName: typeof snapshot.authorName === "string" ? snapshot.authorName : null,
+    kind,
     content: snapshot.content ?? null,
     contentHtml: snapshot.contentHtml ?? null,
+    metadata: parseUpdateMetadata(kind, kind === "NOTE" ? null : snapshotMetadata),
     publishedAt: snapshot.publishedAt ?? null,
     savedAt,
   };
@@ -529,7 +541,15 @@ function parseDraftSnapshot(value: Prisma.JsonValue | null): DraftUpdateSnapshot
 function resolveUpdateTitle(
   currentTitle: string | null,
   content: Prisma.JsonValue | null,
+  kind: UpdateKindValue,
+  metadata: UpdateMetadata,
 ) {
+  const metadataTitle = deriveTitleFromMetadata(kind, metadata);
+
+  if (metadataTitle) {
+    return metadataTitle;
+  }
+
   const contentTitle = deriveTitleFromContent(content);
   if (contentTitle) {
     return contentTitle;
@@ -540,6 +560,22 @@ function resolveUpdateTitle(
   }
 
   return "未命名动态";
+}
+
+function deriveTitleFromMetadata(kind: UpdateKindValue, metadata: UpdateMetadata) {
+  if (kind === "MOVIE" && metadata.kind === "MOVIE" && metadata.data.title.trim()) {
+    return metadata.data.title.trim();
+  }
+
+  if (kind === "MUSIC" && metadata.kind === "MUSIC" && metadata.data.title.trim()) {
+    return metadata.data.title.trim();
+  }
+
+  if (kind === "OBJECT" && metadata.kind === "OBJECT" && metadata.data.title.trim()) {
+    return metadata.data.title.trim();
+  }
+
+  return null;
 }
 
 function deriveTitleFromContent(content: Prisma.JsonValue | null) {
@@ -578,4 +614,125 @@ async function persistUpdateAuthorName(updateId: number, authorName: string | nu
     SET "authorName" = ${authorName}
     WHERE id = ${updateId}
   `;
+}
+
+function serializeUpdateMetadata(value: UpdateMetadata): Prisma.InputJsonValue | typeof Prisma.JsonNull {
+  if (value.kind === "NOTE") {
+    return Prisma.JsonNull;
+  }
+
+  return value.data as unknown as Prisma.InputJsonValue;
+}
+
+function parseUpdateMetadata(kind: UpdateKindValue, value: Prisma.JsonValue | null): UpdateMetadata {
+  if (kind === "MOVIE") {
+    return {
+      kind,
+      data: parseMovieMetadata(value),
+    };
+  }
+
+  if (kind === "MUSIC") {
+    return {
+      kind,
+      data: parseMusicMetadata(value),
+    };
+  }
+
+  if (kind === "OBJECT") {
+    return {
+      kind,
+      data: parseObjectMetadata(value),
+    };
+  }
+
+  return {
+    kind: "NOTE",
+    data: null,
+  };
+}
+
+function unwrapStoredMetadata(kind: UpdateKindValue, value: Prisma.JsonValue | null) {
+  const record = asJsonObject(value);
+
+  if (!record) {
+    return value;
+  }
+
+  const wrappedKind = asString(record.kind);
+
+  if (wrappedKind === kind && "data" in record) {
+    return (record.data as Prisma.JsonValue | null) ?? null;
+  }
+
+  return value;
+}
+
+function parseMovieMetadata(value: Prisma.JsonValue | null): UpdateMovieMetadata {
+  const record = asJsonObject(value);
+
+  return {
+    title: asString(record?.title) ?? "",
+    originalTitle: asString(record?.originalTitle),
+    year: asString(record?.year),
+    posterUrl: asString(record?.posterUrl),
+    director: asString(record?.director),
+    genres: asStringArray(record?.genres),
+    overview: asString(record?.overview),
+    rating: asString(record?.rating),
+    sourceName: asString(record?.sourceName),
+    sourceUrl: asString(record?.sourceUrl),
+  };
+}
+
+function parseMusicMetadata(value: Prisma.JsonValue | null): UpdateMusicMetadata {
+  const record = asJsonObject(value);
+
+  return {
+    format: asString(record?.format),
+    title: asString(record?.title) ?? "",
+    artist: asString(record?.artist),
+    album: asString(record?.album),
+    releaseYear: asString(record?.releaseYear),
+    coverUrl: asString(record?.coverUrl),
+    genres: asStringArray(record?.genres),
+    appleMusicId: asString(record?.appleMusicId),
+    appleMusicUrl: asString(record?.appleMusicUrl),
+    listeningNote: asString(record?.listeningNote),
+  };
+}
+
+function parseObjectMetadata(value: Prisma.JsonValue | null): UpdateObjectMetadata {
+  const record = asJsonObject(value);
+
+  return {
+    title: asString(record?.title) ?? "",
+    slug: asString(record?.slug),
+    heroImage: asString(record?.heroImage),
+    brand: asString(record?.brand),
+    model: asString(record?.model),
+    category: asString(record?.category),
+    summary: asString(record?.summary),
+    detailPath: asString(record?.detailPath),
+  };
+}
+
+function asJsonObject(value: Prisma.JsonValue | null) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  return value as Record<string, Prisma.JsonValue>;
+}
+
+function asString(value: Prisma.JsonValue | undefined) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+function asStringArray(value: Prisma.JsonValue | undefined) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter((item): item is string => typeof item === "string" && item.trim().length > 0);
 }

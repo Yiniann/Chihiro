@@ -69,6 +69,13 @@ enum StandalonePageNavGroup {
   MORE
 }
 
+enum UpdateKind {
+  NOTE
+  MOVIE
+  MUSIC
+  OBJECT
+}
+
 enum FriendLinkApplicationStatus {
   PENDING
   APPROVED
@@ -263,8 +270,10 @@ model Update {
   title         String
   authorName    String?
   status        ContentStatus @default(DRAFT)
+  kind          UpdateKind    @default(NOTE)
   content       Json?
   contentHtml   String?
+  metadata      Json?
   publishedAt   DateTime?
   subscriptionEmailSentAt DateTime?
   draftSnapshot Json?

@@ -4,6 +4,11 @@ import { ContentStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseStoredRichTextContent } from "@/lib/rich-text-content";
+import {
+  isUpdateKindValue,
+  type UpdateKindValue,
+  type UpdateMetadata,
+} from "@/lib/update-kind";
 import { requireAdminSession } from "@/server/auth";
 import { notifySubscribersAboutPublishedUpdate } from "@/server/mail/update-subscription-notifier";
 import {
@@ -34,14 +39,18 @@ export async function saveUpdateAction(
   const updateId = getOptionalUpdateId(formData, "updateId");
   const ownerProfile = await getOwnerDisplayProfile();
   const fallbackAuthorName = getOwnerDisplayName(ownerProfile, siteConfig.author);
+  const kind = getUpdateKind(formData, "updateKind");
   const content = parseRichTextContent(formData);
   const contentHtml = getOptionalString(formData, "contentHtml");
+  const metadata = parseUpdateMetadataForm(formData, kind);
 
   try {
     const update = await saveUpdate({
       id: updateId ?? undefined,
+      kind,
       content: content as unknown as Prisma.JsonValue,
       contentHtml,
+      metadata,
       authorName: fallbackAuthorName,
       status: currentStatus,
       publishedAt,
@@ -56,8 +65,9 @@ export async function saveUpdateAction(
 
     revalidatePath("/admin/updates");
     revalidatePath("/admin/updates/new");
+    revalidatePath(`/admin/updates/${encodeURIComponent(update.id)}`);
 
-    if (intent !== "publish" && typeof updateId !== "number") {
+    if (intent !== "publish") {
       return {
         error: null,
         redirectTo: `/admin/updates/${encodeURIComponent(update.id)}`,
@@ -154,6 +164,16 @@ function getContentStatus(formData: FormData, key: string): ContentStatus {
   return value === ContentStatus.PUBLISHED ? ContentStatus.PUBLISHED : ContentStatus.DRAFT;
 }
 
+function getUpdateKind(formData: FormData, key: string): UpdateKindValue {
+  const value = getOptionalString(formData, key);
+
+  if (!value || !isUpdateKindValue(value)) {
+    return "NOTE";
+  }
+
+  return value;
+}
+
 function parseRichTextContent(formData: FormData) {
   const raw = getOptionalString(formData, "content");
 
@@ -210,4 +230,92 @@ function revalidateUpdateSurface() {
   revalidatePath("/updates");
   revalidatePath("/feed");
   revalidatePath("/sitemap.xml");
+}
+
+function parseUpdateMetadataForm(formData: FormData, kind: UpdateKindValue): UpdateMetadata {
+  const serializedMetadata = getOptionalString(formData, "updateMetadataJson");
+
+  if (serializedMetadata) {
+    try {
+      const parsed = JSON.parse(serializedMetadata) as UpdateMetadata;
+
+      if (parsed && typeof parsed === "object" && "kind" in parsed && parsed.kind === kind) {
+        return parsed;
+      }
+    } catch {
+      // Fall through to field-based parsing when JSON payload is invalid.
+    }
+  }
+
+  if (kind === "MOVIE") {
+    return {
+      kind,
+      data: {
+        title: getOptionalString(formData, "movieTitle") ?? "",
+        originalTitle: getOptionalString(formData, "movieOriginalTitle"),
+        year: getOptionalString(formData, "movieYear"),
+        posterUrl: getOptionalString(formData, "moviePosterUrl"),
+        director: getOptionalString(formData, "movieDirector"),
+        genres: parseCsvField(formData, "movieGenres"),
+        overview: getOptionalString(formData, "movieOverview"),
+        rating: getOptionalString(formData, "movieRating"),
+        sourceName: getOptionalString(formData, "movieSourceName"),
+        sourceUrl: getOptionalString(formData, "movieSourceUrl"),
+      },
+    };
+  }
+
+  if (kind === "MUSIC") {
+    return {
+      kind,
+      data: {
+        format: getOptionalString(formData, "musicFormat"),
+        title: getOptionalString(formData, "musicTitle") ?? "",
+        artist: getOptionalString(formData, "musicArtist"),
+        album: getOptionalString(formData, "musicAlbum"),
+        releaseYear: getOptionalString(formData, "musicReleaseYear"),
+        coverUrl: getOptionalString(formData, "musicCoverUrl"),
+        genres: parseCsvField(formData, "musicGenres"),
+        appleMusicId: getOptionalString(formData, "musicAppleMusicId"),
+        appleMusicUrl: getOptionalString(formData, "musicAppleMusicUrl"),
+        listeningNote: getOptionalString(formData, "musicListeningNote"),
+      },
+    };
+  }
+
+  if (kind === "OBJECT") {
+    const slug = getOptionalString(formData, "objectSlug");
+
+    return {
+      kind,
+      data: {
+        title: getOptionalString(formData, "objectTitle") ?? "",
+        slug,
+        heroImage: getOptionalString(formData, "objectHeroImage"),
+        brand: getOptionalString(formData, "objectBrand"),
+        model: getOptionalString(formData, "objectModel"),
+        category: getOptionalString(formData, "objectCategory"),
+        summary: getOptionalString(formData, "objectSummary"),
+        detailPath: slug ? `/updates/objects/${slug}` : null,
+      },
+    };
+  }
+
+  return {
+    kind: "NOTE",
+    data: null,
+  };
+}
+
+function parseCsvField(formData: FormData, key: string) {
+  const value = getOptionalString(formData, key);
+
+  if (!value) {
+    return [];
+  }
+
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
 }
