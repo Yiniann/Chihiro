@@ -1,0 +1,14 @@
+DO $$
+BEGIN
+  CREATE TYPE "UpdateKind" AS ENUM ('NOTE', 'MOVIE', 'MUSIC', 'OBJECT');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "Update"
+ADD COLUMN IF NOT EXISTS "kind" "UpdateKind" NOT NULL DEFAULT 'NOTE',
+ADD COLUMN IF NOT EXISTS "metadata" JSONB;
+
+UPDATE "Update"
+SET "kind" = 'NOTE'
+WHERE "kind" IS NULL;
