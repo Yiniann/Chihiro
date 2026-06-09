@@ -192,6 +192,9 @@ async function UpdatesPageContent({
                   const updateContentHtml = normalizeHtmlForHydration(
                     renderedContentHtml ?? "",
                   );
+                  const hasBodyContent = Boolean(
+                    getContentText(item.contentHtml, item.content).trim(),
+                  );
 
                   return (
                     <StaggerRevealItem key={item.id}>
@@ -209,20 +212,24 @@ async function UpdatesPageContent({
                         </div>
 
                         <div>
-                          {renderedContentHtml ? (
+                          {hasBodyContent && renderedContentHtml ? (
                             <div
                               className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300"
                               dangerouslySetInnerHTML={{ __html: updateContentHtml }}
                             />
-                          ) : (
-                            <p className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
-                              No preview available yet.
-                            </p>
-                          )}
-                          {item.kind !== "NOTE" ? (
-                            <UpdateKindPreviewCard kind={item.kind} metadata={item.metadata} className="mt-5" />
                           ) : null}
-                          <div className="mt-3 flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                          {item.kind !== "NOTE" ? (
+                            <UpdateKindPreviewCard
+                              kind={item.kind}
+                              metadata={item.metadata}
+                              className={hasBodyContent ? "mt-5" : "mt-1"}
+                            />
+                          ) : null}
+                          <div
+                            className={`flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400 ${
+                              hasBodyContent || item.kind === "NOTE" ? "mt-3" : "mt-2"
+                            }`}
+                          >
                             <span>{formatFeedTime(item.publishedAt)}</span>
                             <span>{item.authorName ?? "未署名"}</span>
                           </div>

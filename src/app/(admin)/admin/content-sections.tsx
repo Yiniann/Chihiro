@@ -565,7 +565,7 @@ function AdminUpdatesTable({
           <AdminUpdateMobileRow item={item} />
         )}
         renderRow={(item) => {
-          const content = getContentText(item.contentHtml, item.content) || "空内容";
+          const primaryText = getContentText(item.contentHtml, item.content) || item.title;
 
           return (
             <>
@@ -584,7 +584,7 @@ function AdminUpdatesTable({
                     href={`/admin/updates/${encodeURIComponent(item.id)}`}
                     className="truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
                   >
-                    {content}
+                    {primaryText}
                   </Link>
                   <Link
                     href={`/admin/updates/${encodeURIComponent(item.id)}`}
@@ -937,7 +937,7 @@ function AdminUpdateMobileRow({
 }: {
   item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number];
 }) {
-  const content = getContentText(item.contentHtml, item.content) || "空内容";
+  const primaryText = getContentText(item.contentHtml, item.content) || item.title;
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -947,7 +947,7 @@ function AdminUpdateMobileRow({
             href={`/admin/updates/${encodeURIComponent(item.id)}`}
             className="block w-full truncate text-[15px] font-medium leading-6 text-zinc-900 dark:text-zinc-50"
           >
-            {content}
+            {primaryText}
           </Link>
         </div>
       </div>

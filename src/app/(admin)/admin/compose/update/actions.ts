@@ -3,6 +3,7 @@
 import { ContentStatus, Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getParagraphsFromContent } from "@/lib/content";
 import { parseStoredRichTextContent } from "@/lib/rich-text-content";
 import {
   isUpdateKindValue,
@@ -45,6 +46,10 @@ export async function saveUpdateAction(
   const metadata = parseUpdateMetadataForm(formData, kind);
 
   try {
+    if (kind === "NOTE" && !hasMeaningfulUpdateContent(content)) {
+      throw new Error("普通动态需要填写内容。");
+    }
+
     const update = await saveUpdate({
       id: updateId ?? undefined,
       kind,
@@ -174,14 +179,24 @@ function getUpdateKind(formData: FormData, key: string): UpdateKindValue {
   return value;
 }
 
-function parseRichTextContent(formData: FormData) {
+function parseRichTextContent(formData: FormData): Prisma.JsonValue | null {
   const raw = getOptionalString(formData, "content");
 
   if (!raw) {
     return null;
   }
 
-  return parseStoredRichTextContent(raw);
+  return parseStoredRichTextContent(raw) as Prisma.JsonValue;
+}
+
+function hasMeaningfulUpdateContent(content: Prisma.JsonValue | null) {
+  if (!content) {
+    return false;
+  }
+
+  return getParagraphsFromContent(content)
+    .map((line) => line.trim())
+    .some(Boolean);
 }
 
 function parsePublishedAtInput(value: string) {
