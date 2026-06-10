@@ -1,5 +1,6 @@
 import { getContentPreview, getContentText } from "@/lib/content";
 import { getPostPath, getUpdateAnchorPath } from "@/lib/routes";
+import { getUpdateKindLabel, type UpdateKindValue } from "@/lib/update-kind";
 
 export type TimelineSourceType = "all" | "posts" | "updates";
 
@@ -9,7 +10,7 @@ export type TimelineItem = {
   title: string;
   publishedAt: string | null;
   categoryLabel: string;
-  kindLabel: "Posts" | "Updates";
+  kindLabel: "Posts" | "Update" | "Movie" | "Music" | "Object";
   meta?: string;
   summary: string;
   searchText: string;
@@ -37,6 +38,7 @@ type TimelinePost = {
 type TimelineUpdate = {
   id: string | number;
   title: string;
+  kind?: UpdateKindValue;
   contentHtml?: string | null;
   content?: unknown;
   authorName?: string | null;
@@ -72,6 +74,16 @@ export function getTimelineItems(
   const updateItems: TimelineItem[] = updates.map((update, index) => {
     const numericUpdateId =
       typeof update.id === "number" ? update.id : Number.parseInt(String(update.id), 10);
+    const updateKindLabel =
+      update.kind === "NOTE" ? "动态" : update.kind ? getUpdateKindLabel(update.kind) : "动态";
+    const updateKindBadge =
+      update.kind === "MOVIE"
+        ? "Movie"
+        : update.kind === "MUSIC"
+          ? "Music"
+          : update.kind === "OBJECT"
+            ? "Object"
+            : "Update";
 
     return {
       id: update.id,
@@ -81,14 +93,15 @@ export function getTimelineItems(
       }),
       title: update.title,
       publishedAt: update.publishedAt,
-      categoryLabel: "动态",
-      kindLabel: "Updates",
+      categoryLabel: updateKindLabel,
+      kindLabel: updateKindBadge,
       meta: update.authorName ?? undefined,
       authorName: update.authorName,
       summary: getContentPreview(update.contentHtml ?? null, update.content),
       searchText: [
         update.title,
-        "Updates",
+        updateKindBadge,
+        updateKindLabel,
         update.authorName ?? "",
         getContentText(update.contentHtml ?? null, update.content),
       ].join(" "),

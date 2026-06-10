@@ -10,7 +10,7 @@ type ArchiveItem = {
   title: string;
   publishedAt: string | null;
   categoryLabel: string;
-  kindLabel: "Posts" | "Updates";
+  kindLabel: "Posts" | "Update" | "Movie" | "Music" | "Object";
   meta?: string;
 };
 
