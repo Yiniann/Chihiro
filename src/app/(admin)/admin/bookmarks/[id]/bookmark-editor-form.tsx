@@ -134,8 +134,8 @@ export function BookmarkEditorForm({
               </label>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="grid gap-2 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+            <div className="grid gap-4 md:grid-cols-2 md:items-end md:gap-6">
+              <label className="grid min-w-0 gap-2">
                 <input
                   type="checkbox"
                   name="isVisible"
@@ -167,7 +167,7 @@ export function BookmarkEditorForm({
                 </button>
               </label>
 
-              <label className="grid gap-2 rounded-2xl border border-zinc-200/80 bg-white/70 p-4 dark:border-zinc-800/80 dark:bg-zinc-950/40">
+              <label className="grid min-w-0 gap-2">
                 <input
                   type="checkbox"
                   name="isFeatured"

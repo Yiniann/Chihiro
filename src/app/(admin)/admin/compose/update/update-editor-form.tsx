@@ -2,6 +2,7 @@
 
 import { ContentStatus } from "@prisma/client";
 import { ChevronDown, ChevronUp, Code2, FileText, Pencil, SlidersHorizontal } from "lucide-react";
+import type { ReactNode } from "react";
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
@@ -21,13 +22,12 @@ import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
 import { DialogShell } from "@/components/dialog-shell";
 import { UpdateKindPreviewCard } from "@/components/update-kind-preview-card";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
-import { getRenderedContentHtml } from "@/lib/content";
+import { getContentText, getRenderedContentHtml } from "@/lib/content";
 import {
-  getUpdateKindLabel,
   type UpdateMetadata,
   type UpdateKindValue,
 } from "@/lib/update-kind";
-import { getRichTextPreviewTitle, parseStoredRichTextContent } from "@/lib/rich-text-content";
+import { parseStoredRichTextContent } from "@/lib/rich-text-content";
 import { useUnsavedChangesWarning } from "@/hooks/use-unsaved-changes-warning";
 import type { UpdateItem } from "@/server/repositories/updates";
 
@@ -49,7 +49,7 @@ type UpdatePreviewState = {
   title: string;
   subtitle: string | null;
   meta: string;
-  body: string;
+  body: ReactNode;
 };
 
 export function UpdateEditorForm({
@@ -210,7 +210,9 @@ export function UpdateEditorForm({
         footerRight={
           <>
             <PreviewButton
-              onClick={() => setPreviewState(buildUpdatePreviewState(formRef.current, authorName, selectedKind))}
+              onClick={() =>
+                setPreviewState(buildUpdatePreviewState(formRef.current, authorName, selectedKind, metadata))
+              }
             />
             <SaveButton />
             <PublishButton isPublished={status === ContentStatus.PUBLISHED} />
@@ -219,15 +221,10 @@ export function UpdateEditorForm({
       />
       <ContentPreviewDialog
         open={Boolean(previewState)}
-        title={previewState?.title ?? "预览"}
+        title={previewState?.title ?? ""}
         subtitle={previewState?.subtitle}
         meta={previewState?.meta ? <span>{previewState.meta}</span> : null}
-        body={
-          <div
-            className="reading-copy space-y-4 text-base leading-8 text-zinc-700 dark:text-zinc-300"
-            dangerouslySetInnerHTML={{ __html: previewState?.body ?? "" }}
-          />
-        }
+        body={previewState?.body ?? null}
         onOpenChange={(open) => {
           if (!open) {
             setPreviewState(null);
@@ -379,6 +376,7 @@ function buildUpdatePreviewState(
   form: HTMLFormElement | null,
   authorName: string,
   kind: UpdateKindValue,
+  metadata: UpdateMetadata,
 ): UpdatePreviewState | null {
   if (!form) {
     return null;
@@ -388,19 +386,57 @@ function buildUpdatePreviewState(
   const content = parseStoredRichTextContent(getFormValue(formData, "content"));
   const contentHtml = getFormValue(formData, "contentHtml") || null;
   const publishedAt = getFormValue(formData, "publishedAt");
-  const title = getRichTextPreviewTitle(contentHtml, content, "未命名动态");
-  const body = highlightCodeBlocksInHtml(contentHtml ?? getRenderedContentHtml(null, content) ?? "<p>暂无内容。</p>");
-  const formattedPublishedAt = publishedAt ? formatAdminDateTime(publishedAt) : null;
+  const renderedBodyHtml = contentHtml ?? getRenderedContentHtml(null, content) ?? "";
+  const bodyHtml = renderedBodyHtml ? highlightCodeBlocksInHtml(renderedBodyHtml) : "";
+  const hasBodyContent = Boolean(getContentText(contentHtml, content).trim());
+  const previewDateValue = normalizePreviewDateValue(publishedAt) ?? new Date().toISOString();
 
   return {
-    title,
-    subtitle: `${getUpdateKindLabel(kind)}预览`,
-    meta: [authorName, formattedPublishedAt ? `发布时间：${formattedPublishedAt}` : "未设置发布时间"].join(" · "),
-    body: `
-      <div class="reading-copy space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200">
-        ${body}
-      </div>
-    `,
+    title: "",
+    subtitle: null,
+    meta: "",
+    body: (
+      <article className="grid gap-4 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6">
+        <div className="min-w-[4.5rem]">
+          <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            {formatPreviewFeedMonth(previewDateValue)}
+          </p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+            {formatPreviewFeedDay(previewDateValue)}
+          </p>
+        </div>
+
+        <div>
+          {hasBodyContent ? (
+            <div
+              className="reading-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300"
+              dangerouslySetInnerHTML={{ __html: bodyHtml }}
+            />
+          ) : null}
+          {kind !== "NOTE" ? (
+            <UpdateKindPreviewCard
+              kind={kind}
+              metadata={metadata}
+              interactive={false}
+              className={hasBodyContent ? "mt-5" : "mt-1"}
+            />
+          ) : null}
+          {!hasBodyContent && kind === "NOTE" ? (
+            <p className="reading-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300">
+              暂无内容。
+            </p>
+          ) : null}
+          <div
+            className={`flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400 ${
+              hasBodyContent || kind === "NOTE" ? "mt-3" : "mt-2"
+            }`}
+          >
+            <span>{formatPreviewFeedTime(previewDateValue)}</span>
+            <span>{authorName || "未署名"}</span>
+          </div>
+        </div>
+      </article>
+    ),
   };
 }
 
@@ -412,6 +448,79 @@ function getFormValue(formData: FormData, key: string) {
   }
 
   return value.trim();
+}
+
+function normalizePreviewDateValue(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const [, year, month, day, hour, minute] = match;
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+  );
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date.toISOString();
+}
+
+function formatPreviewFeedMonth(value: string | null) {
+  if (!value) {
+    return "Unknown";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+  }).format(date);
+}
+
+function formatPreviewFeedDay(value: string | null) {
+  if (!value) {
+    return "--";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "--";
+  }
+
+  return new Intl.DateTimeFormat("en", {
+    day: "2-digit",
+  }).format(date);
+}
+
+function formatPreviewFeedTime(value: string | null) {
+  if (!value) {
+    return "--:--";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "--:--";
+  }
+
+  return new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
 }
 
 function SaveButton() {

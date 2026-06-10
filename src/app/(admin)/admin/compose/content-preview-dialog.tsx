@@ -21,6 +21,8 @@ export function ContentPreviewDialog({
   body,
   onOpenChange,
 }: ContentPreviewDialogProps) {
+  const hasHeaderContent = Boolean(title || subtitle || meta);
+
   useEffect(() => {
     if (!open || typeof document === "undefined") {
       return;
@@ -75,23 +77,25 @@ export function ContentPreviewDialog({
 
           <div className="max-h-[80vh] overflow-y-auto px-6 py-10 sm:px-10 sm:py-12">
             <div className="mx-auto w-full max-w-3xl">
-              <div className="grid gap-3">
-                {title ? (
-                  <h2 className="text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                    {title}
-                  </h2>
-                ) : null}
-                {subtitle ? (
-                  <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-300">{subtitle}</p>
-                ) : null}
-                {meta ? (
-                  <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                    {meta}
-                  </div>
-                ) : null}
-              </div>
+              {hasHeaderContent ? (
+                <div className="grid gap-3">
+                  {title ? (
+                    <h2 className="text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                      {title}
+                    </h2>
+                  ) : null}
+                  {subtitle ? (
+                    <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-300">{subtitle}</p>
+                  ) : null}
+                  {meta ? (
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+                      {meta}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
 
-              <div className="mt-10 border-t border-zinc-200/80 pt-10 dark:border-zinc-800/80">
+              <div className={hasHeaderContent ? "mt-10 border-t border-zinc-200/80 pt-10 dark:border-zinc-800/80" : ""}>
                 {body}
               </div>
             </div>
