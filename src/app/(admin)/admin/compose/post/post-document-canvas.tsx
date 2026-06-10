@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { PostRichTextEditor } from "@/app/(admin)/admin/compose/post/post-rich-text-editor";
 
 type PostDocumentCanvasProps = {
@@ -25,17 +26,36 @@ export function PostDocumentCanvas({
   isCodeView,
   onCodeViewChange,
 }: PostDocumentCanvasProps) {
+  const titleRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    const element = titleRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    element.style.height = "0px";
+    element.style.height = `${element.scrollHeight}px`;
+  }, [defaultTitle]);
+
   return (
     <article className="grid gap-0">
       <div className="mx-auto grid w-full max-w-[64rem] gap-5 px-1 pb-2 pt-3 sm:px-2 sm:pb-3 sm:pt-4 2xl:max-w-[72rem]">
-        <input
+        <textarea
+          ref={titleRef}
           id="title"
           name="title"
-          type="text"
           required
+          rows={1}
           defaultValue={defaultTitle}
           placeholder="输入标题..."
-          className="w-full bg-transparent px-0 text-[2rem] font-semibold tracking-tight text-zinc-950 outline-none transition placeholder:text-zinc-300 focus:placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-600 sm:text-[2.7rem]"
+          onInput={(event) => {
+            const element = event.currentTarget;
+            element.style.height = "0px";
+            element.style.height = `${element.scrollHeight}px`;
+          }}
+          className="w-full resize-none overflow-hidden bg-transparent px-0 py-0 text-[2rem] font-semibold leading-[1.2] tracking-tight text-zinc-950 outline-none transition placeholder:text-zinc-300 focus:placeholder:text-zinc-400 dark:text-zinc-50 dark:placeholder:text-zinc-600 sm:text-[2.7rem]"
         />
 
         <label className="grid gap-2">

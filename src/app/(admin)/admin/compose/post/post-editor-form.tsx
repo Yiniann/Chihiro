@@ -2,6 +2,7 @@
 
 import { ContentStatus } from "@prisma/client";
 import { Check, ChevronDown, ChevronUp, Code2, FileText, SlidersHorizontal } from "lucide-react";
+import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -17,7 +18,7 @@ import { ContentPreviewDialog } from "@/app/(admin)/admin/compose/content-previe
 import { ConfirmActionDialog } from "@/app/(admin)/admin/confirm-action-dialog";
 import { PublishedAtField } from "@/app/(admin)/admin/compose/post/published-at-field";
 import { formatAdminDateTime } from "@/app/(admin)/admin/utils";
-import { escapeHtmlText, stripHtml } from "@/lib/content";
+import { stripHtml } from "@/lib/content";
 import { highlightCodeBlocksInHtml } from "@/lib/code-highlighting";
 import { createCategoryAction } from "@/app/(admin)/admin/categories/actions";
 import { createTagAction } from "@/app/(admin)/admin/tags/actions";
@@ -44,7 +45,7 @@ type PostPreviewState = {
   title: string;
   subtitle: string | null;
   meta: string;
-  body: string;
+  body: ReactNode;
 };
 
 export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName }: PostEditorFormProps) {
@@ -344,15 +345,10 @@ export function PostEditorForm({ post, categories, tags, siteUrlBase, authorName
       />
       <ContentPreviewDialog
         open={Boolean(previewState)}
-      title={previewState?.title ?? "预览"}
-      subtitle={previewState?.subtitle}
-      meta={previewState?.meta ? <span>{previewState.meta}</span> : null}
-        body={
-          <div
-            className="reading-copy space-y-4 text-base leading-8 text-zinc-700 dark:text-zinc-300"
-            dangerouslySetInnerHTML={{ __html: previewState?.body ?? "" }}
-          />
-        }
+        title={previewState?.title ?? ""}
+        subtitle={previewState?.subtitle}
+        meta={previewState?.meta ? <span>{previewState.meta}</span> : null}
+        body={previewState?.body ?? null}
         onOpenChange={(open) => {
           if (!open) {
             setPreviewState(null);
@@ -433,35 +429,49 @@ function buildPostPreviewState(
   const category = categories.find((item) => String(item.id) === categoryId);
   const selectedTags = tags.filter((tag) => selectedTagIds.has(tag.id));
   const publishedAt = getFormValue(formData, "publishedAt");
-  const categoryLabel = category?.name ? escapeHtmlText(category.name) : "未分类";
-  const tagLabels =
-    selectedTags.length > 0
-      ? selectedTags.map((tag) => `<span class="rounded-full bg-zinc-100 px-3 py-1 text-xs font-medium text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">#${escapeHtmlText(tag.name)}</span>`).join("")
-      : "";
   const previewContentHtml = highlightCodeBlocksInHtml(
     contentHtml && stripHtml(contentHtml) ? contentHtml : "<p>暂无内容。</p>",
   );
   const formattedPublishedAt = publishedAt ? formatAdminDateTime(publishedAt) : null;
 
   return {
-    title,
-    subtitle: summary || null,
-    meta: [
-      authorName,
-      formattedPublishedAt ? `发布时间：${formattedPublishedAt}` : "未设置发布时间",
-      category ? `分类：${category.name}` : "未分类",
-    ].join(" · "),
-    body: `
-      <article class="mx-auto max-w-3xl">
-        <div class="mt-5 flex flex-wrap gap-2">
-          <span class="rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">${categoryLabel}</span>
-          ${tagLabels}
+    title: "",
+    subtitle: null,
+    meta: "",
+    body: (
+      <article className="min-w-0">
+        <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          {title}
+        </h1>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <span>{formattedPublishedAt ? `发布时间：${formattedPublishedAt}` : "未设置发布时间"}</span>
+          <span>{authorName}</span>
         </div>
-        <div class="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200">
-          ${previewContentHtml}
+
+        <div className="mt-4 flex flex-wrap gap-3">
+          {category ? (
+            <span className="text-xs font-medium text-primary">/{category.name}</span>
+          ) : null}
+          {selectedTags.map((tag) => (
+            <span key={tag.id} className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              #{tag.name}
+            </span>
+          ))}
         </div>
+
+        {summary ? (
+          <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+            {summary}
+          </p>
+        ) : null}
+
+        <div
+          className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+          dangerouslySetInnerHTML={{ __html: previewContentHtml }}
+        />
       </article>
-    `,
+    ),
   };
 }
 
