@@ -168,24 +168,24 @@ export function UpdateEditorForm({
                 </div>
             </div>
 
-            <div className="border-t border-zinc-200/80 px-4 py-4 dark:border-zinc-800/80 md:px-6">
-              <UpdateSelectionPreview
-                kind={selectedKind}
-                metadata={metadata}
-                onEdit={() => {
-                  setDraftKind(selectedKind);
-                  setDraftMetadata(metadata);
-                  setSelectionStep(selectedKind === "NOTE" ? "choose" : "details");
-                  setIsSelectionDialogOpen(true);
-                }}
-              />
-            </div>
           </div>
         }
         stateError={state.error}
         main={
           <article className="grid gap-0">
             <div className="mx-auto w-full max-w-[64rem] px-1 pb-5 pt-3 sm:px-2 sm:pb-8 sm:pt-4 2xl:max-w-[72rem]">
+              <div className="mb-6">
+                <UpdateSelectionPreview
+                  kind={selectedKind}
+                  metadata={metadata}
+                  onEdit={() => {
+                    setDraftKind(selectedKind);
+                    setDraftMetadata(metadata);
+                    setSelectionStep(selectedKind === "NOTE" ? "choose" : "details");
+                    setIsSelectionDialogOpen(true);
+                  }}
+                />
+              </div>
               <PostRichTextEditor
                 initialContent={editableUpdate?.content}
                 initialContentHtml={editableUpdate?.contentHtml}
@@ -505,7 +505,7 @@ function UpdateSelectionPreview({
           </p>
           <p className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">普通动态</p>
           <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-            这条动态不附带电影、音乐或物品对象卡片。
+            这条动态不含对象内容。
           </p>
         </div>
       ) : (

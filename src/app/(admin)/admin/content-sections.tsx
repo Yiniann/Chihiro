@@ -35,6 +35,7 @@ import { CreateUpdateDialog } from "@/app/(admin)/admin/updates/new/new-update-e
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
 import { getContentText } from "@/lib/content";
 import { getPostPath } from "@/lib/routes";
+import { getUpdateKindLabel } from "@/lib/update-kind";
 import type { CategoryOption } from "@/server/repositories/categories";
 import { listPostsForAdmin } from "@/server/repositories/posts";
 import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
@@ -549,6 +550,7 @@ function AdminUpdatesTable({
         columns={[
           { key: "select", label: "", className: "2.25rem" },
           { key: "title", label: "内容", className: "minmax(17rem,2.6fr)" },
+          { key: "kind", label: "类型", className: "6rem" },
           { key: "author", label: "作者", className: "5.5rem" },
           { key: "words", label: "字数", className: "4.1rem", align: "right", icon: AlignLeft },
           { key: "created", label: "创建于", className: "6.5rem", sortable: "created", icon: CalendarDays, align: "right" },
@@ -594,6 +596,9 @@ function AdminUpdatesTable({
                     <FilePenLine className="h-3.5 w-3.5" />
                   </Link>
                 </div>
+              </div>
+              <div>
+                <UpdateKindTag kind={item.kind} />
               </div>
               <div className="text-sm text-zinc-600 dark:text-zinc-300">{item.authorName ?? "未署名"}</div>
               <TableMetric value={formatAdminNumber(getTableWordCount(item.contentHtml, item.content))} />
@@ -950,6 +955,9 @@ function AdminUpdateMobileRow({
             {primaryText}
           </Link>
         </div>
+        <div className="mt-2">
+          <UpdateKindTag kind={item.kind} />
+        </div>
       </div>
       <div className="flex shrink-0 items-center pl-1 text-zinc-400 dark:text-zinc-500">
         <UpdateActionMenu
@@ -1057,6 +1065,18 @@ function TableStatus({ status }: { status: ContentStatus }) {
   return (
     <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${className}`}>
       {label}
+    </span>
+  );
+}
+
+function UpdateKindTag({
+  kind,
+}: {
+  kind: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]["kind"];
+}) {
+  return (
+    <span className="inline-flex rounded-full border border-zinc-200/80 bg-zinc-50/80 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:border-zinc-800/80 dark:bg-zinc-900/60 dark:text-zinc-300">
+      {getUpdateKindLabel(kind)}
     </span>
   );
 }

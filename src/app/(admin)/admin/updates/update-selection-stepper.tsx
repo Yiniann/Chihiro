@@ -40,7 +40,7 @@ export function UpdateSelectionStepper({
               key={option.value}
               type="button"
               onClick={() => onSelectKind(option.value)}
-              className="rounded-[1.1rem] border border-zinc-200/80 bg-white px-4 py-4 text-left text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+              className="rounded-[1.1rem] border border-zinc-200/80 bg-white px-4 py-4 text-center text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
             >
               <p className="text-sm font-medium">{option.label}</p>
             </button>
