@@ -13,6 +13,9 @@ export type SiteSettingsRecord = {
   motto: string | null;
   email: string | null;
   githubUrl: string | null;
+  tmdbApiKey: string | null;
+  movieSource: string | null;
+  musicSource: string | null;
   projectsGitHubUsername: string | null;
   hiddenProjectSlugs: string[];
   siteLiveVisitorsEnabled: boolean;
@@ -44,6 +47,9 @@ export async function getSiteSettings(): Promise<SiteSettingsRecord | null> {
     motto: settings.motto,
     email: settings.email,
     githubUrl: settings.githubUrl,
+    tmdbApiKey: settings.tmdbApiKey,
+    movieSource: settings.movieSource,
+    musicSource: settings.musicSource,
     projectsGitHubUsername: settings.projectsGitHubUsername,
     hiddenProjectSlugs: settings.hiddenProjectSlugs,
     siteLiveVisitorsEnabled: settings.siteLiveVisitorsEnabled,
@@ -83,6 +89,9 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      tmdbApiKey: input.tmdbApiKey,
+      movieSource: input.movieSource,
+      musicSource: input.musicSource,
       projectsGitHubUsername: input.projectsGitHubUsername,
       hiddenProjectSlugs: input.hiddenProjectSlugs,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,
@@ -103,6 +112,9 @@ export async function upsertSiteSettings(input: SiteSettingsRecord) {
       motto: input.motto,
       email: input.email,
       githubUrl: input.githubUrl,
+      tmdbApiKey: input.tmdbApiKey,
+      movieSource: input.movieSource,
+      musicSource: input.musicSource,
       projectsGitHubUsername: input.projectsGitHubUsername,
       hiddenProjectSlugs: input.hiddenProjectSlugs,
       siteLiveVisitorsEnabled: input.siteLiveVisitorsEnabled,

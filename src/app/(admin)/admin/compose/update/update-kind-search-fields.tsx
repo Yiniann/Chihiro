@@ -10,6 +10,21 @@ import type {
   UpdateObjectMetadata,
 } from "@/lib/update-kind";
 
+type TvSeasonCandidate = {
+  seasonNumber: string;
+  seasonName: string;
+  episodeCount: string | null;
+};
+
+type TvEpisodeCandidate = {
+  episodeNumber: string;
+  episodeTitle: string;
+  seasonName: string | null;
+  year: string | null;
+  overview: string | null;
+  rating: string | null;
+};
+
 export function KindMetadataFields({
   kind,
   metadata,
@@ -140,6 +155,20 @@ function MovieSearchFields({
 }) {
   const [query, setQuery] = useState(metadata.title ?? "");
   const [results, setResults] = useState<UpdateMovieMetadata[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<UpdateMovieMetadata | null>(
+    metadata.format === "TV" && metadata.tmdbId ? metadata : null,
+  );
+  const [seasons, setSeasons] = useState<TvSeasonCandidate[]>([]);
+  const [episodes, setEpisodes] = useState<TvEpisodeCandidate[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<TvSeasonCandidate | null>(
+    metadata.seasonNumber
+      ? {
+          seasonNumber: metadata.seasonNumber,
+          seasonName: metadata.seasonName ?? `Season ${metadata.seasonNumber}`,
+          episodeCount: null,
+        }
+      : null,
+  );
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
 
@@ -155,6 +184,10 @@ function MovieSearchFields({
         onSearch={async () => {
           setStatus("loading");
           setError(null);
+          setSelectedSeries(null);
+          setSelectedSeason(null);
+          setSeasons([]);
+          setEpisodes([]);
 
           try {
             const response = await fetch(`/api/admin/updates/media-search?kind=movie&q=${encodeURIComponent(query)}`, {
@@ -184,7 +217,45 @@ function MovieSearchFields({
             <button
               key={`${item.title}-${item.year}-${item.sourceUrl ?? ""}`}
               type="button"
-              onClick={() => {
+              onClick={async () => {
+                if (item.format === "TV" && item.tmdbId) {
+                  setStatus("loading");
+                  setError(null);
+
+                  try {
+                    const response = await fetch(
+                      `/api/admin/updates/media-search?kind=tv-seasons&tmdbId=${encodeURIComponent(item.tmdbId)}`,
+                      {
+                        method: "GET",
+                        cache: "no-store",
+                      },
+                    );
+                    const payload = (await response.json()) as {
+                      items?: TvSeasonCandidate[];
+                      error?: string;
+                    };
+
+                    if (!response.ok) {
+                      setStatus("error");
+                      setError(payload.error ?? "季列表加载失败。");
+                      return;
+                    }
+
+                    setSelectedSeries(item);
+                    setSelectedSeason(null);
+                    setSeasons(payload.items ?? []);
+                    setEpisodes([]);
+                    setResults([]);
+                    setQuery(item.title);
+                    setStatus("idle");
+                    return;
+                  } catch {
+                    setStatus("error");
+                    setError("季列表加载失败。");
+                    return;
+                  }
+                }
+
                 if (onSelectResult) {
                   onSelectResult(item);
                   return;
@@ -199,7 +270,7 @@ function MovieSearchFields({
             >
               <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{item.title}</p>
               <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                {[item.year, item.originalTitle, item.sourceName].filter(Boolean).join(" · ")}
+                {[item.format, item.year, item.originalTitle, item.sourceName].filter(Boolean).join(" · ")}
               </p>
               {item.overview ? (
                 <p className="mt-2 line-clamp-2 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
@@ -208,6 +279,140 @@ function MovieSearchFields({
               ) : null}
             </button>
           ))}
+        </div>
+      ) : null}
+
+      {selectedSeries && seasons.length > 0 ? (
+        <div className="grid gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              选择季度
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                if (onSelectResult) {
+                  onSelectResult(selectedSeries);
+                  return;
+                }
+
+                onMetadataChange(selectedSeries);
+                setQuery(selectedSeries.title);
+                setResults([]);
+                setSeasons([]);
+                setEpisodes([]);
+                onDirty();
+              }}
+              className="text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              使用整部剧
+            </button>
+          </div>
+          <div className="grid max-h-[16rem] gap-3 overflow-y-auto pr-1">
+            {seasons.map((season) => (
+              <button
+                key={season.seasonNumber}
+                type="button"
+                onClick={async () => {
+                  setStatus("loading");
+                  setError(null);
+
+                  try {
+                    const response = await fetch(
+                      `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
+                        selectedSeries.tmdbId ?? "",
+                      )}&seasonNumber=${encodeURIComponent(season.seasonNumber)}`,
+                      {
+                        method: "GET",
+                        cache: "no-store",
+                      },
+                    );
+                    const payload = (await response.json()) as {
+                      items?: TvEpisodeCandidate[];
+                      error?: string;
+                    };
+
+                    if (!response.ok) {
+                      setStatus("error");
+                      setError(payload.error ?? "集列表加载失败。");
+                      return;
+                    }
+
+                    setSelectedSeason(season);
+                    setEpisodes(payload.items ?? []);
+                    setStatus("idle");
+                  } catch {
+                    setStatus("error");
+                    setError("集列表加载失败。");
+                  }
+                }}
+                className="rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-4 text-left transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+              >
+                <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  {seasonLabel(season.seasonNumber)} · {season.seasonName}
+                </p>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  {season.episodeCount ? `${season.episodeCount} 集` : "查看本季剧集"}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {selectedSeries && selectedSeason && episodes.length > 0 ? (
+        <div className="grid gap-3">
+          <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+            选择剧集
+          </p>
+          <div className="grid max-h-[18rem] gap-3 overflow-y-auto pr-1">
+            {episodes.map((episode) => (
+              <button
+                key={`${selectedSeason.seasonNumber}-${episode.episodeNumber}`}
+                type="button"
+                onClick={() => {
+                  const nextMetadata: UpdateMovieMetadata = {
+                    ...selectedSeries,
+                    year: episode.year ?? selectedSeries.year,
+                    seasonNumber: selectedSeason.seasonNumber,
+                    seasonName: selectedSeason.seasonName,
+                    episodeNumber: episode.episodeNumber,
+                    episodeTitle: episode.episodeTitle,
+                    overview: episode.overview ?? selectedSeries.overview,
+                    rating: episode.rating ?? selectedSeries.rating,
+                    sourceUrl: selectedSeries.tmdbId
+                      ? `https://www.themoviedb.org/tv/${selectedSeries.tmdbId}/season/${selectedSeason.seasonNumber}/episode/${episode.episodeNumber}`
+                      : selectedSeries.sourceUrl,
+                  };
+
+                  if (onSelectResult) {
+                    onSelectResult(nextMetadata);
+                    return;
+                  }
+
+                  onMetadataChange(nextMetadata);
+                  setQuery(selectedSeries.title);
+                  setResults([]);
+                  setSeasons([]);
+                  setEpisodes([]);
+                  onDirty();
+                }}
+                className="rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-4 text-left transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+              >
+                <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                  {episodeLabel(selectedSeason.seasonNumber, episode.episodeNumber)} · {episode.episodeTitle}
+                </p>
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  {[selectedSeries.title, episode.year].filter(Boolean).join(" · ")}
+                </p>
+                {episode.overview ? (
+                  <p className="mt-2 line-clamp-2 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                    {episode.overview}
+                  </p>
+                ) : null}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>
@@ -405,6 +610,12 @@ function TextareaField({
 
 function emptyMovieMetadata(): UpdateMovieMetadata {
   return {
+    format: null,
+    tmdbId: null,
+    seasonNumber: null,
+    seasonName: null,
+    episodeNumber: null,
+    episodeTitle: null,
     title: "",
     originalTitle: null,
     year: null,
@@ -416,6 +627,14 @@ function emptyMovieMetadata(): UpdateMovieMetadata {
     sourceName: null,
     sourceUrl: null,
   };
+}
+
+function seasonLabel(seasonNumber: string) {
+  return `S${seasonNumber.padStart(2, "0")}`;
+}
+
+function episodeLabel(seasonNumber: string, episodeNumber: string) {
+  return `${seasonLabel(seasonNumber)}E${episodeNumber.padStart(2, "0")}`;
 }
 
 function emptyMusicMetadata(): UpdateMusicMetadata {

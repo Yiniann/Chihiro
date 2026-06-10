@@ -266,6 +266,12 @@ function parseUpdateMetadataForm(formData: FormData, kind: UpdateKindValue): Upd
     return {
       kind,
       data: {
+        format: getOptionalString(formData, "movieFormat"),
+        tmdbId: getOptionalString(formData, "movieTmdbId"),
+        seasonNumber: getOptionalString(formData, "movieSeasonNumber"),
+        seasonName: getOptionalString(formData, "movieSeasonName"),
+        episodeNumber: getOptionalString(formData, "movieEpisodeNumber"),
+        episodeTitle: getOptionalString(formData, "movieEpisodeTitle"),
         title: getOptionalString(formData, "movieTitle") ?? "",
         originalTitle: getOptionalString(formData, "movieOriginalTitle"),
         year: getOptionalString(formData, "movieYear"),

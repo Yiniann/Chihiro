@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { UpdateMovieMetadata, UpdateMusicMetadata } from "@/lib/update-kind";
+import { getSiteSettings } from "@/server/repositories/site";
 
 const TMDB_IMAGE_BASE = "https://image.tmdb.org/t/p/w500";
 
@@ -18,6 +19,26 @@ type TmdbSearchResponse = {
     overview?: string;
     vote_average?: number;
     genre_ids?: number[];
+  }>;
+};
+
+type TmdbTvDetailsResponse = {
+  seasons?: Array<{
+    season_number?: number;
+    name?: string;
+    episode_count?: number;
+  }>;
+};
+
+type TmdbSeasonDetailsResponse = {
+  name?: string;
+  episodes?: Array<{
+    episode_number?: number;
+    name?: string;
+    air_date?: string;
+    overview?: string;
+    vote_average?: number;
+    still_path?: string | null;
   }>;
 };
 
@@ -46,11 +67,21 @@ type ItunesSearchResponse = {
 };
 
 export async function searchMovieCandidates(query: string): Promise<UpdateMovieMetadata[]> {
-  const apiKey = process.env.TMDB_API_KEY?.trim();
+  const siteSettings = await getSiteSettings();
+  const apiKey = siteSettings?.tmdbApiKey?.trim();
+  const movieSource = siteSettings?.movieSource?.trim() ?? "tmdb";
   const normalizedQuery = query.trim();
 
-  if (!apiKey || !normalizedQuery) {
+  if (!normalizedQuery) {
     return [];
+  }
+
+  if (movieSource !== "tmdb") {
+    throw new Error("当前电影内容源暂未接入搜索。");
+  }
+
+  if (!apiKey) {
+    throw new Error("请先在后台内容源设置中填写 TMDB API Key。");
   }
 
   const [movieGenres, tvGenres, movieResults, tvResults] = await Promise.all([
@@ -84,10 +115,16 @@ export async function searchMovieCandidates(query: string): Promise<UpdateMovieM
 }
 
 export async function searchMusicCandidates(query: string): Promise<UpdateMusicMetadata[]> {
+  const siteSettings = await getSiteSettings();
+  const musicSource = siteSettings?.musicSource?.trim() ?? "apple-music";
   const normalizedQuery = query.trim();
 
   if (!normalizedQuery) {
     return [];
+  }
+
+  if (musicSource !== "apple-music") {
+    throw new Error("当前音乐内容源暂未接入搜索。");
   }
 
   try {
@@ -160,6 +197,12 @@ async function fetchTmdbSearch(
       const yearSource = item.release_date || item.first_air_date || null;
 
       return {
+        format: mediaType === "tv" ? "TV" : "Movie",
+        tmdbId: String(item.id),
+        seasonNumber: null,
+        seasonName: null,
+        episodeNumber: null,
+        episodeTitle: null,
         title,
         originalTitle,
         year: yearSource ? String(new Date(yearSource).getFullYear()) : null,
@@ -187,6 +230,94 @@ async function fetchTmdbSearch(
   }
 }
 
+export async function searchTvSeasonCandidates(tmdbId: string) {
+  const apiKey = await getTmdbApiKey();
+
+  try {
+    const params = new URLSearchParams({
+      api_key: apiKey,
+      language: "zh-CN",
+    });
+    const response = await fetch(`https://api.themoviedb.org/3/tv/${tmdbId}?${params.toString()}`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return [] as Array<{ seasonNumber: string; seasonName: string; episodeCount: string | null }>;
+    }
+
+    const payload = (await response.json()) as TmdbTvDetailsResponse;
+
+    return (payload.seasons ?? [])
+      .filter((season) => typeof season.season_number === "number" && season.season_number >= 0)
+      .map((season) => ({
+        seasonNumber: String(season.season_number),
+        seasonName: season.name?.trim() || `Season ${season.season_number}`,
+        episodeCount:
+          typeof season.episode_count === "number" && season.episode_count > 0
+            ? String(season.episode_count)
+            : null,
+      }))
+      .sort((left, right) => Number(left.seasonNumber) - Number(right.seasonNumber));
+  } catch {
+    return [] as Array<{ seasonNumber: string; seasonName: string; episodeCount: string | null }>;
+  }
+}
+
+export async function searchTvEpisodeCandidates(tmdbId: string, seasonNumber: string) {
+  const apiKey = await getTmdbApiKey();
+
+  try {
+    const params = new URLSearchParams({
+      api_key: apiKey,
+      language: "zh-CN",
+    });
+    const response = await fetch(
+      `https://api.themoviedb.org/3/tv/${tmdbId}/season/${seasonNumber}?${params.toString()}`,
+      {
+        cache: "no-store",
+      },
+    );
+
+    if (!response.ok) {
+      return [] as Array<{
+        episodeNumber: string;
+        episodeTitle: string;
+        seasonName: string | null;
+        year: string | null;
+        overview: string | null;
+        rating: string | null;
+      }>;
+    }
+
+    const payload = (await response.json()) as TmdbSeasonDetailsResponse;
+
+    return (payload.episodes ?? [])
+      .filter((episode) => typeof episode.episode_number === "number")
+      .map((episode) => ({
+        episodeNumber: String(episode.episode_number),
+        episodeTitle: episode.name?.trim() || `Episode ${episode.episode_number}`,
+        seasonName: payload.name?.trim() || null,
+        year: episode.air_date ? String(new Date(episode.air_date).getFullYear()) : null,
+        overview: episode.overview?.trim() || null,
+        rating:
+          typeof episode.vote_average === "number" && episode.vote_average > 0
+            ? episode.vote_average.toFixed(1)
+            : null,
+      }))
+      .sort((left, right) => Number(left.episodeNumber) - Number(right.episodeNumber));
+  } catch {
+    return [] as Array<{
+      episodeNumber: string;
+      episodeTitle: string;
+      seasonName: string | null;
+      year: string | null;
+      overview: string | null;
+      rating: string | null;
+    }>;
+  }
+}
+
 async function fetchTmdbGenres(mediaType: "movie" | "tv", apiKey: string) {
   try {
     const params = new URLSearchParams({
@@ -209,6 +340,22 @@ async function fetchTmdbGenres(mediaType: "movie" | "tv", apiKey: string) {
   } catch {
     return new Map<number, string>();
   }
+}
+
+async function getTmdbApiKey() {
+  const siteSettings = await getSiteSettings();
+  const apiKey = siteSettings?.tmdbApiKey?.trim();
+  const movieSource = siteSettings?.movieSource?.trim() ?? "tmdb";
+
+  if (movieSource !== "tmdb") {
+    throw new Error("当前电影内容源暂未接入搜索。");
+  }
+
+  if (!apiKey) {
+    throw new Error("请先在后台内容源设置中填写 TMDB API Key。");
+  }
+
+  return apiKey;
 }
 
 function normalizeItunesFormat(wrapperType?: string, kind?: string) {

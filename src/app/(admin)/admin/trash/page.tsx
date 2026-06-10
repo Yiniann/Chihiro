@@ -11,6 +11,7 @@ import {
   filterTrashedAdminStandalonePages,
   filterTrashedAdminUpdates,
 } from "@/app/(admin)/admin/content-sections";
+import { getUpdateKindLabel, type UpdateKindValue } from "@/lib/update-kind";
 import { listPostsForAdmin } from "@/server/repositories/posts";
 import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
@@ -18,6 +19,7 @@ import { listUpdatesForAdmin } from "@/server/repositories/updates";
 type TrashItem = {
   key: string;
   kind: "post" | "update" | "page";
+  updateKind?: UpdateKindValue;
   id: number;
   title: string;
   updatedAt: string;
@@ -40,6 +42,7 @@ export default async function AdminTrashPage() {
     ...filterTrashedAdminUpdates(updates).map((item) => ({
       key: `update:${item.id}`,
       kind: "update" as const,
+      updateKind: item.kind,
       id: item.id,
       title: item.title,
       updatedAt: item.updatedAt,
@@ -115,13 +118,13 @@ export default async function AdminTrashPage() {
                       </p>
                     </div>
                     <div>
-                      <TypeChip kind={item.kind} />
+                      <TypeChip kind={item.kind} updateKind={item.updateKind} />
                     </div>
                     <div className="text-right text-sm text-zinc-500 dark:text-zinc-400">
                       {formatAdminDateTime(item.updatedAt)}
                     </div>
                     <div className="justify-self-start">
-                      <TrashActionMenu itemKey={item.key} itemLabel={getTrashItemLabel(item.kind)} />
+                      <TrashActionMenu itemKey={item.key} itemLabel={getTrashItemLabel(item.kind, item.updateKind)} />
                     </div>
                   </div>
 
@@ -132,13 +135,13 @@ export default async function AdminTrashPage() {
                           {item.title}
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
-                          <TypeChip kind={item.kind} />
+                          <TypeChip kind={item.kind} updateKind={item.updateKind} />
                           <span>{formatAdminDateTime(item.updatedAt)}</span>
                         </div>
                       </div>
                       <TrashActionMenu
                         itemKey={item.key}
-                        itemLabel={getTrashItemLabel(item.kind)}
+                        itemLabel={getTrashItemLabel(item.kind, item.updateKind)}
                         compact
                       />
                     </div>
@@ -155,14 +158,28 @@ export default async function AdminTrashPage() {
   );
 }
 
-function TypeChip({ kind }: { kind: "post" | "update" | "page" }) {
+function TypeChip({
+  kind,
+  updateKind,
+}: {
+  kind: "post" | "update" | "page";
+  updateKind?: UpdateKindValue;
+}) {
   return (
     <span className="inline-flex rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-600 dark:bg-white/[0.06] dark:text-zinc-300">
-      {kind === "post" ? "文章" : kind === "update" ? "动态" : "独立页面"}
+      {kind === "post" ? "文章" : kind === "update" ? getUpdateKindLabel(updateKind ?? "NOTE") : "独立页面"}
     </span>
   );
 }
 
-function getTrashItemLabel(kind: "post" | "update" | "page") {
-  return kind === "post" ? "篇文章" : kind === "update" ? "条动态" : "个独立页面";
+function getTrashItemLabel(kind: "post" | "update" | "page", updateKind?: UpdateKindValue) {
+  if (kind === "post") {
+    return "篇文章";
+  }
+
+  if (kind === "update") {
+    return `条${getUpdateKindLabel(updateKind ?? "NOTE")}`;
+  }
+
+  return "个独立页面";
 }

@@ -3,6 +3,12 @@ export const updateKindValues = ["NOTE", "MOVIE", "MUSIC", "OBJECT"] as const;
 export type UpdateKindValue = (typeof updateKindValues)[number];
 
 export type UpdateMovieMetadata = {
+  format: string | null;
+  tmdbId: string | null;
+  seasonNumber: string | null;
+  seasonName: string | null;
+  episodeNumber: string | null;
+  episodeTitle: string | null;
   title: string;
   originalTitle: string | null;
   year: string | null;
@@ -57,8 +63,8 @@ export const updateKindOptions: Array<{
   },
   {
     value: "MOVIE",
-    label: "电影鉴赏",
-    description: "短评加电影信息卡，点击跳外部页面。",
+    label: "影视鉴赏",
+    description: "短评加影视信息卡，点击跳外部页面。",
   },
   {
     value: "MUSIC",

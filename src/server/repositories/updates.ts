@@ -564,7 +564,10 @@ function resolveUpdateTitle(
 
 function deriveTitleFromMetadata(kind: UpdateKindValue, metadata: UpdateMetadata) {
   if (kind === "MOVIE" && metadata.kind === "MOVIE" && metadata.data.title.trim()) {
-    return metadata.data.title.trim();
+    const baseTitle = metadata.data.title.trim();
+    const episodeCode = getMovieEpisodeCode(metadata.data);
+
+    return episodeCode ? `${baseTitle} · ${episodeCode}` : baseTitle;
   }
 
   if (kind === "MUSIC" && metadata.kind === "MUSIC" && metadata.data.title.trim()) {
@@ -576,6 +579,14 @@ function deriveTitleFromMetadata(kind: UpdateKindValue, metadata: UpdateMetadata
   }
 
   return null;
+}
+
+function getMovieEpisodeCode(metadata: UpdateMovieMetadata) {
+  if (!metadata.seasonNumber || !metadata.episodeNumber) {
+    return null;
+  }
+
+  return `S${metadata.seasonNumber.padStart(2, "0")}E${metadata.episodeNumber.padStart(2, "0")}`;
 }
 
 function deriveTitleFromContent(content: Prisma.JsonValue | null) {
@@ -672,6 +683,12 @@ function parseMovieMetadata(value: Prisma.JsonValue | null): UpdateMovieMetadata
   const record = asJsonObject(value);
 
   return {
+    format: asString(record?.format),
+    tmdbId: asString(record?.tmdbId),
+    seasonNumber: asString(record?.seasonNumber),
+    seasonName: asString(record?.seasonName),
+    episodeNumber: asString(record?.episodeNumber),
+    episodeTitle: asString(record?.episodeTitle),
     title: asString(record?.title) ?? "",
     originalTitle: asString(record?.originalTitle),
     year: asString(record?.year),

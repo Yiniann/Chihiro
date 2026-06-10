@@ -1,6 +1,6 @@
 import { getContentPreview, getContentText } from "@/lib/content";
 import { getPostPath, getUpdateAnchorPath } from "@/lib/routes";
-import { getUpdateKindLabel, type UpdateKindValue } from "@/lib/update-kind";
+import { getUpdateKindLabel, type UpdateKindValue, type UpdateMetadata } from "@/lib/update-kind";
 
 export type TimelineSourceType = "all" | "posts" | "updates";
 
@@ -39,6 +39,7 @@ type TimelineUpdate = {
   id: string | number;
   title: string;
   kind?: UpdateKindValue;
+  metadata?: UpdateMetadata | null;
   contentHtml?: string | null;
   content?: unknown;
   authorName?: string | null;
@@ -85,6 +86,8 @@ export function getTimelineItems(
             ? "Object"
             : "Update";
 
+    const updateMeta = getUpdateTimelineMeta(update);
+
     return {
       id: update.id,
       href: getUpdateAnchorPath({
@@ -95,13 +98,14 @@ export function getTimelineItems(
       publishedAt: update.publishedAt,
       categoryLabel: updateKindLabel,
       kindLabel: updateKindBadge,
-      meta: update.authorName ?? undefined,
+      meta: updateMeta ?? undefined,
       authorName: update.authorName,
       summary: getContentPreview(update.contentHtml ?? null, update.content),
       searchText: [
         update.title,
         updateKindBadge,
         updateKindLabel,
+        updateMeta ?? "",
         update.authorName ?? "",
         getContentText(update.contentHtml ?? null, update.content),
       ].join(" "),
@@ -120,4 +124,40 @@ export function getTimelineItems(
     const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
     return bTime - aTime;
   });
+}
+
+function getUpdateTimelineMeta(update: TimelineUpdate) {
+  if (update.kind === "MOVIE" && update.metadata?.kind === "MOVIE") {
+    const episodeCode = getMovieEpisodeCode(update.metadata.data.seasonNumber, update.metadata.data.episodeNumber);
+
+    if (episodeCode) {
+      return ["单集", episodeCode, update.metadata.data.episodeTitle].filter(Boolean).join(" · ");
+    }
+
+    if (update.metadata.data.format === "TV") {
+      return update.metadata.data.seasonName ?? "剧集";
+    }
+
+    return [update.metadata.data.format, update.metadata.data.year].filter(Boolean).join(" · ");
+  }
+
+  if (update.kind === "MUSIC" && update.metadata?.kind === "MUSIC") {
+    return [update.metadata.data.artist, update.metadata.data.album].filter(Boolean).join(" · ");
+  }
+
+  if (update.kind === "OBJECT" && update.metadata?.kind === "OBJECT") {
+    return [update.metadata.data.brand, update.metadata.data.model, update.metadata.data.category]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return update.authorName ?? null;
+}
+
+function getMovieEpisodeCode(seasonNumber: string | null, episodeNumber: string | null) {
+  if (!seasonNumber || !episodeNumber) {
+    return null;
+  }
+
+  return `S${seasonNumber.padStart(2, "0")}E${episodeNumber.padStart(2, "0")}`;
 }

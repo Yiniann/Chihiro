@@ -12,9 +12,8 @@ import {
   getContentText,
   getRenderedContentHtml,
   normalizeHtmlForHydration,
-  stripMediaFromHtml,
 } from "@/lib/content";
-import { getPostPath } from "@/lib/routes";
+import { getPostPath, getUpdateAnchorPath } from "@/lib/routes";
 import { siteConfig } from "@/lib/site";
 import type { SocialLink } from "@/lib/social-links";
 import { getTimelineItems } from "@/lib/timeline-items";
@@ -77,9 +76,15 @@ export default async function HomePage() {
     ? getContentText(latestUpdate.contentHtml, latestUpdate.content)
     : "";
   const latestUpdateDisplayHtml = latestUpdateHtml
-    ? normalizeHtmlForHydration(stripMediaFromHtml(latestUpdateHtml))
+    ? normalizeHtmlForHydration(latestUpdateHtml)
     : null;
+  const latestUpdateHasBodyContent = Boolean(
+    latestUpdate ? getContentText(latestUpdate.contentHtml, latestUpdate.content).trim() : "",
+  );
   const shouldClampLatestUpdate = latestUpdateText.length > 520;
+  const latestUpdateSummary = latestUpdate
+    ? buildHomeLatestUpdateSummary(latestUpdate)
+    : null;
 
   return (
     <main className="relative w-full px-6 sm:px-12 lg:px-24">
@@ -162,8 +167,13 @@ export default async function HomePage() {
               title="最近动态"
             >
               {latestUpdate ? (
-                <article className="border-b border-zinc-200/80 py-4 dark:border-zinc-800/80">
-                  {latestUpdateDisplayHtml ? (
+                <article className="group relative border-b border-zinc-200/80 py-4 dark:border-zinc-800/80">
+                  <Link
+                    href={getUpdateAnchorPath({ updateId: latestUpdate.id, page: 1 })}
+                    aria-label={`Open latest update ${latestUpdate.title}`}
+                    className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  />
+                  {latestUpdateHasBodyContent && latestUpdateDisplayHtml ? (
                     <div className="grid gap-3">
                       <div
                         className={
@@ -173,23 +183,27 @@ export default async function HomePage() {
                         }
                       >
                         <div
-                          className="home-feed-update-content text-zinc-900 dark:text-zinc-100"
+                          className="pointer-events-none home-feed-update-content text-zinc-900 dark:text-zinc-100"
                           dangerouslySetInnerHTML={{ __html: latestUpdateDisplayHtml }}
                         />
                       </div>
                       {shouldClampLatestUpdate ? (
-                        <Link
-                          href="/updates"
-                          className="w-fit text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
-                        >
+                        <span className="pointer-events-none w-fit text-sm font-medium text-zinc-500 transition group-hover:text-primary dark:text-zinc-400">
                           查看更多动态
-                        </Link>
+                        </span>
                       ) : null}
                     </div>
                   ) : (
-                    <p className="home-feed-item-title text-zinc-900 dark:text-zinc-100">
-                      {latestUpdate.title}
-                    </p>
+                    <div className="pointer-events-none grid gap-2">
+                      <p className="home-feed-item-title text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
+                        {latestUpdate.title}
+                      </p>
+                      {latestUpdateSummary ? (
+                        <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                          {latestUpdateSummary}
+                        </p>
+                      ) : null}
+                    </div>
                   )}
                   <p className="home-feed-date mt-3 text-zinc-500 dark:text-zinc-400">
                     <RelativeDate value={latestUpdate.publishedAt} />
@@ -258,6 +272,34 @@ function EmptyHomeFeed({ copy }: { copy: string }) {
       {copy}
     </p>
   );
+}
+
+function buildHomeLatestUpdateSummary(
+  update: NonNullable<Awaited<ReturnType<typeof listPublicUpdates>>[number]>,
+) {
+  if (update.kind === "MOVIE" && update.metadata.kind === "MOVIE") {
+    if (update.metadata.data.seasonNumber && update.metadata.data.episodeNumber) {
+      return [
+        "影视鉴赏",
+        `单集 · S${update.metadata.data.seasonNumber.padStart(2, "0")}E${update.metadata.data.episodeNumber.padStart(2, "0")}`,
+        update.metadata.data.episodeTitle,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    }
+
+    return ["影视鉴赏", update.metadata.data.format, update.metadata.data.year].filter(Boolean).join(" · ");
+  }
+
+  if (update.kind === "MUSIC" && update.metadata.kind === "MUSIC") {
+    return ["音乐鉴赏", update.metadata.data.artist, update.metadata.data.album].filter(Boolean).join(" · ");
+  }
+
+  if (update.kind === "OBJECT" && update.metadata.kind === "OBJECT") {
+    return ["物品鉴赏", update.metadata.data.brand, update.metadata.data.model].filter(Boolean).join(" · ");
+  }
+
+  return null;
 }
 
 function buildHeroSocialLinks(

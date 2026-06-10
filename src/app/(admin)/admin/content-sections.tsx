@@ -567,7 +567,9 @@ function AdminUpdatesTable({
           <AdminUpdateMobileRow item={item} />
         )}
         renderRow={(item) => {
-          const primaryText = getContentText(item.contentHtml, item.content) || item.title;
+          const primaryText = getAdminUpdatePrimaryText(item);
+          const secondaryText = getAdminUpdateSecondaryText(item);
+          const bodyPreview = getAdminUpdateBodyPreview(item);
 
           return (
             <>
@@ -581,13 +583,25 @@ function AdminUpdatesTable({
                 />
               </div>
               <div className="min-w-0">
-                <div className="flex min-w-0 items-center gap-2">
-                  <Link
-                    href={`/admin/updates/${encodeURIComponent(item.id)}`}
-                    className="truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
-                  >
-                    {primaryText}
-                  </Link>
+                <div className="flex min-w-0 items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/admin/updates/${encodeURIComponent(item.id)}`}
+                      className="block truncate text-[15px] font-medium leading-6 text-zinc-900 transition hover:text-primary dark:text-zinc-50"
+                    >
+                      {primaryText}
+                    </Link>
+                    {secondaryText ? (
+                      <p className="mt-1 truncate text-sm text-zinc-500 dark:text-zinc-400">
+                        {secondaryText}
+                      </p>
+                    ) : null}
+                    {bodyPreview ? (
+                      <p className="mt-1 truncate text-sm text-zinc-400 dark:text-zinc-500">
+                        {bodyPreview}
+                      </p>
+                    ) : null}
+                  </div>
                   <Link
                     href={`/admin/updates/${encodeURIComponent(item.id)}`}
                     className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-zinc-400 transition hover:bg-[rgb(var(--primary-rgb)/0.08)] hover:text-primary dark:text-zinc-500"
@@ -942,7 +956,9 @@ function AdminUpdateMobileRow({
 }: {
   item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number];
 }) {
-  const primaryText = getContentText(item.contentHtml, item.content) || item.title;
+  const primaryText = getAdminUpdatePrimaryText(item);
+  const secondaryText = getAdminUpdateSecondaryText(item);
+  const bodyPreview = getAdminUpdateBodyPreview(item);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
@@ -955,6 +971,12 @@ function AdminUpdateMobileRow({
             {primaryText}
           </Link>
         </div>
+        {secondaryText ? (
+          <p className="mt-1 truncate text-sm text-zinc-500 dark:text-zinc-400">{secondaryText}</p>
+        ) : null}
+        {bodyPreview ? (
+          <p className="mt-1 truncate text-sm text-zinc-400 dark:text-zinc-500">{bodyPreview}</p>
+        ) : null}
         <div className="mt-2">
           <UpdateKindTag kind={item.kind} />
         </div>
@@ -1079,6 +1101,72 @@ function UpdateKindTag({
       {getUpdateKindLabel(kind)}
     </span>
   );
+}
+
+function getAdminUpdatePrimaryText(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
+  if (item.kind === "MOVIE" && item.metadata.kind === "MOVIE") {
+    return item.metadata.data.title || item.title;
+  }
+
+  if (item.kind === "MUSIC" && item.metadata.kind === "MUSIC") {
+    return item.metadata.data.title || item.title;
+  }
+
+  if (item.kind === "OBJECT" && item.metadata.kind === "OBJECT") {
+    return item.metadata.data.title || item.title;
+  }
+
+  return getContentText(item.contentHtml, item.content) || item.title;
+}
+
+function getAdminUpdateSecondaryText(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
+  if (item.kind === "MOVIE" && item.metadata.kind === "MOVIE") {
+    if (item.metadata.data.seasonNumber && item.metadata.data.episodeNumber) {
+      return [
+        "TV",
+        `单集 · S${item.metadata.data.seasonNumber.padStart(2, "0")}E${item.metadata.data.episodeNumber.padStart(2, "0")}`,
+        item.metadata.data.episodeTitle,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+    }
+
+    return [
+      item.metadata.data.format,
+      item.metadata.data.year,
+      item.metadata.data.originalTitle ?? item.metadata.data.director,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  if (item.kind === "MUSIC" && item.metadata.kind === "MUSIC") {
+    return [item.metadata.data.artist, item.metadata.data.album, item.metadata.data.releaseYear]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  if (item.kind === "OBJECT" && item.metadata.kind === "OBJECT") {
+    return [item.metadata.data.brand, item.metadata.data.model, item.metadata.data.category]
+      .filter(Boolean)
+      .join(" · ");
+  }
+
+  return null;
+}
+
+function getAdminUpdateBodyPreview(item: Awaited<ReturnType<typeof listUpdatesForAdmin>>[number]) {
+  const bodyText = getContentText(item.contentHtml, item.content).trim();
+
+  if (!bodyText) {
+    return null;
+  }
+
+  if (item.kind === "NOTE") {
+    return null;
+  }
+
+  return bodyText;
 }
 
 function buildAdminListHref(

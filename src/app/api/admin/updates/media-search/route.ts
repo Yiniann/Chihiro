@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/server/auth";
-import { searchMovieCandidates, searchMusicCandidates } from "@/server/media-search";
+import {
+  searchMovieCandidates,
+  searchMusicCandidates,
+  searchTvEpisodeCandidates,
+  searchTvSeasonCandidates,
+} from "@/server/media-search";
 
 export async function GET(request: Request) {
   if (!(await isAdminAuthenticated())) {
@@ -10,8 +15,10 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const kind = searchParams.get("kind");
   const query = searchParams.get("q")?.trim() ?? "";
+  const tmdbId = searchParams.get("tmdbId")?.trim() ?? "";
+  const seasonNumber = searchParams.get("seasonNumber")?.trim() ?? "";
 
-  if (!query) {
+  if ((kind === "movie" || kind === "music") && !query) {
     return NextResponse.json({ items: [] });
   }
 
@@ -23,6 +30,24 @@ export async function GET(request: Request) {
 
     if (kind === "music") {
       const items = await searchMusicCandidates(query);
+      return NextResponse.json({ items });
+    }
+
+    if (kind === "tv-seasons") {
+      if (!tmdbId) {
+        return NextResponse.json({ items: [] });
+      }
+
+      const items = await searchTvSeasonCandidates(tmdbId);
+      return NextResponse.json({ items });
+    }
+
+    if (kind === "tv-episodes") {
+      if (!tmdbId || !seasonNumber) {
+        return NextResponse.json({ items: [] });
+      }
+
+      const items = await searchTvEpisodeCandidates(tmdbId, seasonNumber);
       return NextResponse.json({ items });
     }
 

@@ -358,7 +358,7 @@ function getDraftSavedAt(update: UpdateItem | null) {
 
 function getEditorPlaceholder(kind: UpdateKindValue) {
   if (kind === "MOVIE") {
-    return "先写你对这部电影的短评。电影信息卡在设置里填写或后面接入自动补全。";
+    return "先写你对这部影视作品的短评。影视信息卡在设置里填写或后面接入自动补全。";
   }
 
   if (kind === "MUSIC") {
@@ -631,6 +631,12 @@ function MetadataHiddenFields({ kind, metadata }: { kind: UpdateKindValue; metad
       <HiddenField name="updateMetadataJson" value={JSON.stringify(metadata)} />
       {kind === "MOVIE" && metadata.kind === "MOVIE" ? (
         <>
+          <HiddenField name="movieFormat" value={metadata.data.format} />
+          <HiddenField name="movieTmdbId" value={metadata.data.tmdbId} />
+          <HiddenField name="movieSeasonNumber" value={metadata.data.seasonNumber} />
+          <HiddenField name="movieSeasonName" value={metadata.data.seasonName} />
+          <HiddenField name="movieEpisodeNumber" value={metadata.data.episodeNumber} />
+          <HiddenField name="movieEpisodeTitle" value={metadata.data.episodeTitle} />
           <HiddenField name="movieTitle" value={metadata.data.title} />
           <HiddenField name="movieOriginalTitle" value={metadata.data.originalTitle} />
           <HiddenField name="movieYear" value={metadata.data.year} />
@@ -677,6 +683,12 @@ function createEmptyMetadata(kind: UpdateKindValue): UpdateMetadata {
     return {
       kind,
       data: {
+        format: null,
+        tmdbId: null,
+        seasonNumber: null,
+        seasonName: null,
+        episodeNumber: null,
+        episodeTitle: null,
         title: "",
         originalTitle: null,
         year: null,

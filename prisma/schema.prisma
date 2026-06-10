@@ -521,6 +521,9 @@ model SiteSettings {
   motto                                String?
   email                                String?
   githubUrl                            String?
+  tmdbApiKey                           String?
+  movieSource                          String?
+  musicSource                          String?
   projectsGitHubUsername               String?
   hiddenProjectSlugs                   String[] @default([])
   siteLiveVisitorsEnabled              Boolean  @default(true)

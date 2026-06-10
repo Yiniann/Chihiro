@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowUpRight, Disc3, Film, Package2 } from "lucide-react";
-import type { UpdateMetadata, UpdateKindValue } from "@/lib/update-kind";
+import type { UpdateMetadata, UpdateKindValue, UpdateMovieMetadata } from "@/lib/update-kind";
 
 export function UpdateKindPreviewCard({
   kind,
@@ -16,26 +16,38 @@ export function UpdateKindPreviewCard({
   className?: string;
 }) {
   if (kind === "MOVIE" && metadata.kind === "MOVIE") {
+    const format = resolveMovieFormat(metadata.data);
+    const episodeCode = resolveEpisodeCode(metadata.data);
+    const selectionMode = resolveMovieSelectionMode(metadata.data);
+    const sourceLabel = resolveMovieSourceLabel(metadata.data);
+    const title = metadata.data.title || "未命名影视";
+    const subtitle =
+      selectionMode === "episode"
+        ? ["单集", episodeCode, metadata.data.episodeTitle].filter(Boolean).join(" · ")
+        : metadata.data.originalTitle ?? metadata.data.director ?? "";
+    const kicker = `${format} · ${metadata.data.year ?? "Unknown"}`;
     const inner = (
       <>
         <PosterBlock
           tone="amber"
-          kicker={`Movie · ${metadata.data.year ?? "Unknown"}`}
-          title={metadata.data.title || "未命名电影"}
-          subtitle={metadata.data.originalTitle ?? metadata.data.director ?? ""}
+          kicker={kicker}
+          title={title}
+          subtitle={subtitle}
           imageUrl={metadata.data.posterUrl ?? undefined}
         />
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-                Movie · {metadata.data.year ?? "Unknown"}
+                {kicker}
               </p>
               <p className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
-                {metadata.data.title || "未命名电影"}
+                {title}
               </p>
-              {metadata.data.director ? (
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{metadata.data.director}</p>
+              {subtitle ? (
+                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                  {subtitle}
+                </p>
               ) : null}
             </div>
             {interactive ? (
@@ -45,15 +57,17 @@ export function UpdateKindPreviewCard({
           {metadata.data.overview ? (
             <p className="mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">{metadata.data.overview}</p>
           ) : null}
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="mt-auto pt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
             {metadata.data.rating ? (
               <span className="inline-flex items-center gap-2">
                 <Film className="h-4 w-4" />
                 {metadata.data.rating}
               </span>
             ) : null}
+            {selectionMode === "episode" ? <span>单集</span> : null}
+            {metadata.data.seasonName && selectionMode !== "episode" ? <span>{metadata.data.seasonName}</span> : null}
             {metadata.data.genres.length > 0 ? <span>{metadata.data.genres.join(" · ")}</span> : null}
-            {metadata.data.sourceName ? <span>{metadata.data.sourceName}</span> : null}
+            {sourceLabel ? <span>{sourceLabel}</span> : null}
           </div>
         </div>
       </>
@@ -78,7 +92,7 @@ export function UpdateKindPreviewCard({
           subtitle={metadata.data.artist ?? ""}
           imageUrl={metadata.data.coverUrl ?? undefined}
         />
-        <div className="min-w-0">
+        <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
@@ -95,7 +109,7 @@ export function UpdateKindPreviewCard({
               <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
             ) : null}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="mt-auto pt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
             {metadata.data.genres.length > 0 ? (
               <span className="inline-flex items-center gap-2">
                 <Disc3 className="h-4 w-4" />
@@ -165,6 +179,42 @@ export function UpdateKindPreviewCard({
   }
 
   return null;
+}
+
+function resolveMovieFormat(metadata: UpdateMovieMetadata) {
+  if (metadata.format === "TV" || metadata.format === "Movie") {
+    return metadata.format;
+  }
+
+  if (metadata.sourceName === "TMDB TV" || metadata.sourceUrl?.includes("/tv/")) {
+    return "TV";
+  }
+
+  return "Movie";
+}
+
+function resolveEpisodeCode(metadata: UpdateMovieMetadata) {
+  if (!metadata.seasonNumber || !metadata.episodeNumber) {
+    return null;
+  }
+
+  return `S${metadata.seasonNumber.padStart(2, "0")}E${metadata.episodeNumber.padStart(2, "0")}`;
+}
+
+function resolveMovieSourceLabel(metadata: UpdateMovieMetadata) {
+  if (metadata.sourceName === "TMDB" || metadata.sourceName === "TMDB TV") {
+    return "TMDB";
+  }
+
+  return metadata.sourceName;
+}
+
+function resolveMovieSelectionMode(metadata: UpdateMovieMetadata) {
+  if (metadata.seasonNumber && metadata.episodeNumber) {
+    return "episode";
+  }
+
+  return "work";
 }
 
 function renderCardShell({

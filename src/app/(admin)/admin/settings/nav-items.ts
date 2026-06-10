@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, Image, LogIn, Mail, MessageSquareText, Radio, Settings2, ShieldUser } from "lucide-react";
+import { Bell, Clapperboard, Image, LogIn, Mail, MessageSquareText, Radio, Settings2, ShieldUser } from "lucide-react";
 
 export type SettingsNavItem = {
   href: string;
@@ -26,6 +26,12 @@ export const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     label: "图床设置",
     description: "对象存储与图片上传",
     icon: Image,
+  },
+  {
+    href: "/admin/settings/media",
+    label: "内容源设置",
+    description: "多类型内容源配置",
+    icon: Clapperboard,
   },
   {
     href: "/admin/settings/email",

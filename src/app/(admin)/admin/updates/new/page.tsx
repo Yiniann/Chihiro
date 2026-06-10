@@ -66,6 +66,12 @@ function getInitialMetadata(
     return {
       kind,
       data: {
+        format: getSingleQueryValue(searchParams, "movieFormat"),
+        tmdbId: getSingleQueryValue(searchParams, "movieTmdbId"),
+        seasonNumber: getSingleQueryValue(searchParams, "movieSeasonNumber"),
+        seasonName: getSingleQueryValue(searchParams, "movieSeasonName"),
+        episodeNumber: getSingleQueryValue(searchParams, "movieEpisodeNumber"),
+        episodeTitle: getSingleQueryValue(searchParams, "movieEpisodeTitle"),
         title: getSingleQueryValue(searchParams, "movieTitle") ?? "",
         originalTitle: getSingleQueryValue(searchParams, "movieOriginalTitle"),
         year: getSingleQueryValue(searchParams, "movieYear"),

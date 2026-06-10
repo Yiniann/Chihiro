@@ -8,6 +8,21 @@ import { UpdateSelectionStepper } from "@/app/(admin)/admin/updates/update-selec
 import { DialogShell } from "@/components/dialog-shell";
 import { updateKindOptions, type UpdateKindValue, type UpdateMovieMetadata, type UpdateMusicMetadata } from "@/lib/update-kind";
 
+type TvSeasonCandidate = {
+  seasonNumber: string;
+  seasonName: string;
+  episodeCount: string | null;
+};
+
+type TvEpisodeCandidate = {
+  episodeNumber: string;
+  episodeTitle: string;
+  seasonName: string | null;
+  year: string | null;
+  overview: string | null;
+  rating: string | null;
+};
+
 export function NewUpdateEntry() {
   return (
     <main className="flex min-h-[calc(100vh-5rem)] items-center justify-center px-6 py-12">
@@ -73,6 +88,10 @@ function NewUpdateEntryPanel() {
   const [query, setQuery] = useState("");
   const [movieResults, setMovieResults] = useState<UpdateMovieMetadata[]>([]);
   const [musicResults, setMusicResults] = useState<UpdateMusicMetadata[]>([]);
+  const [selectedSeries, setSelectedSeries] = useState<UpdateMovieMetadata | null>(null);
+  const [seasons, setSeasons] = useState<TvSeasonCandidate[]>([]);
+  const [selectedSeason, setSelectedSeason] = useState<TvSeasonCandidate | null>(null);
+  const [episodes, setEpisodes] = useState<TvEpisodeCandidate[]>([]);
   const [objectTitle, setObjectTitle] = useState("");
   const [objectBrand, setObjectBrand] = useState("");
   const [objectModel, setObjectModel] = useState("");
@@ -97,6 +116,10 @@ function NewUpdateEntryPanel() {
         setQuery("");
         setMovieResults([]);
         setMusicResults([]);
+        setSelectedSeries(null);
+        setSelectedSeason(null);
+        setSeasons([]);
+        setEpisodes([]);
         setError(null);
         setStatus("idle");
       }}
@@ -105,6 +128,10 @@ function NewUpdateEntryPanel() {
         setQuery("");
         setMovieResults([]);
         setMusicResults([]);
+        setSelectedSeries(null);
+        setSelectedSeason(null);
+        setSeasons([]);
+        setEpisodes([]);
         setError(null);
         setStatus("idle");
       }}
@@ -139,25 +166,169 @@ function NewUpdateEntryPanel() {
                     ? `${(item as UpdateMovieMetadata).title}-${(item as UpdateMovieMetadata).sourceUrl ?? ""}`
                     : `${(item as UpdateMusicMetadata).title}-${(item as UpdateMusicMetadata).appleMusicId ?? ""}`}
                   type="button"
-                  onClick={() => {
-                    const targetUrl =
-                      kind === "MOVIE"
-                        ? buildMovieEditorUrl(item as UpdateMovieMetadata)
-                        : buildMusicEditorUrl(item as UpdateMusicMetadata);
-                    router.push(targetUrl);
+                  onClick={async () => {
+                    if (kind === "MOVIE") {
+                      const movieItem = item as UpdateMovieMetadata;
+
+                      if (movieItem.format === "TV" && movieItem.tmdbId) {
+                        setStatus("loading");
+                        setError(null);
+
+                        try {
+                          const response = await fetch(
+                            `/api/admin/updates/media-search?kind=tv-seasons&tmdbId=${encodeURIComponent(movieItem.tmdbId)}`,
+                            { method: "GET", cache: "no-store" },
+                          );
+                          const payload = (await response.json()) as {
+                            items?: TvSeasonCandidate[];
+                            error?: string;
+                          };
+
+                          if (!response.ok) {
+                            setStatus("error");
+                            setError(payload.error ?? "季列表加载失败。");
+                            return;
+                          }
+
+                          setSelectedSeries(movieItem);
+                          setSelectedSeason(null);
+                          setSeasons(payload.items ?? []);
+                          setEpisodes([]);
+                          setMovieResults([]);
+                          setQuery(movieItem.title);
+                          setStatus("idle");
+                          return;
+                        } catch {
+                          setStatus("error");
+                          setError("季列表加载失败。");
+                          return;
+                        }
+                      }
+
+                      router.push(buildMovieEditorUrl(movieItem));
+                      return;
+                    }
+
+                    router.push(buildMusicEditorUrl(item as UpdateMusicMetadata));
                   }}
                   className="block w-full border-b border-zinc-200/80 px-4 py-4 text-left transition last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
                 >
                   <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">{item.title}</p>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
                     {kind === "MOVIE"
-                      ? [((item as UpdateMovieMetadata).year), ((item as UpdateMovieMetadata).originalTitle), ((item as UpdateMovieMetadata).sourceName)].filter(Boolean).join(" · ")
+                      ? [
+                          ((item as UpdateMovieMetadata).format),
+                          ((item as UpdateMovieMetadata).year),
+                          ((item as UpdateMovieMetadata).originalTitle),
+                          ((item as UpdateMovieMetadata).sourceName),
+                        ].filter(Boolean).join(" · ")
                       : [((item as UpdateMusicMetadata).artist), ((item as UpdateMusicMetadata).album), ((item as UpdateMusicMetadata).releaseYear)].filter(Boolean).join(" · ")}
                   </p>
                 </button>
               ))}
             </div>
           </div>
+
+          {kind === "MOVIE" && selectedSeries && seasons.length > 0 ? (
+            <div className="overflow-hidden rounded-[1rem] border border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950">
+              <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800/80">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                  选择季度
+                </p>
+                <button
+                  type="button"
+                  onClick={() => router.push(buildMovieEditorUrl(selectedSeries))}
+                  className="text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+                >
+                  使用整部剧
+                </button>
+              </div>
+              <div className="max-h-[16rem] overflow-y-auto">
+                {seasons.map((season) => (
+                  <button
+                    key={season.seasonNumber}
+                    type="button"
+                    onClick={async () => {
+                      setStatus("loading");
+                      setError(null);
+
+                      try {
+                        const response = await fetch(
+                          `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
+                            selectedSeries.tmdbId ?? "",
+                          )}&seasonNumber=${encodeURIComponent(season.seasonNumber)}`,
+                          { method: "GET", cache: "no-store" },
+                        );
+                        const payload = (await response.json()) as {
+                          items?: TvEpisodeCandidate[];
+                          error?: string;
+                        };
+
+                        if (!response.ok) {
+                          setStatus("error");
+                          setError(payload.error ?? "剧集列表加载失败。");
+                          return;
+                        }
+
+                        setSelectedSeason(season);
+                        setEpisodes(payload.items ?? []);
+                        setStatus("idle");
+                      } catch {
+                        setStatus("error");
+                        setError("剧集列表加载失败。");
+                      }
+                    }}
+                    className="block w-full border-b border-zinc-200/80 px-4 py-4 text-left transition last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                      {seasonLabel(season.seasonNumber)} · {season.seasonName}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                      {season.episodeCount ? `${season.episodeCount} 集` : "查看本季剧集"}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {kind === "MOVIE" && selectedSeries && selectedSeason && episodes.length > 0 ? (
+            <div className="overflow-hidden rounded-[1rem] border border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950">
+              <div className="max-h-[18rem] overflow-y-auto">
+                {episodes.map((episode) => (
+                  <button
+                    key={`${selectedSeason.seasonNumber}-${episode.episodeNumber}`}
+                    type="button"
+                    onClick={() =>
+                      router.push(
+                        buildMovieEditorUrl({
+                          ...selectedSeries,
+                          year: episode.year ?? selectedSeries.year,
+                          seasonNumber: selectedSeason.seasonNumber,
+                          seasonName: selectedSeason.seasonName,
+                          episodeNumber: episode.episodeNumber,
+                          episodeTitle: episode.episodeTitle,
+                          overview: episode.overview ?? selectedSeries.overview,
+                          rating: episode.rating ?? selectedSeries.rating,
+                          sourceUrl: selectedSeries.tmdbId
+                            ? `https://www.themoviedb.org/tv/${selectedSeries.tmdbId}/season/${selectedSeason.seasonNumber}/episode/${episode.episodeNumber}`
+                            : selectedSeries.sourceUrl,
+                        }),
+                      )
+                    }
+                    className="block w-full border-b border-zinc-200/80 px-4 py-4 text-left transition last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+                  >
+                    <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                      {episodeLabel(selectedSeason.seasonNumber, episode.episodeNumber)} · {episode.episodeTitle}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                      {[selectedSeries.title, episode.year].filter(Boolean).join(" · ")}
+                    </p>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -220,6 +391,10 @@ function NewUpdateEntryPanel() {
 
       if (kind === "MOVIE") {
         setMovieResults((payload.items as UpdateMovieMetadata[]) ?? []);
+        setSelectedSeries(null);
+        setSelectedSeason(null);
+        setSeasons([]);
+        setEpisodes([]);
       } else {
         setMusicResults((payload.items as UpdateMusicMetadata[]) ?? []);
       }
@@ -260,6 +435,12 @@ function buildMovieEditorUrl(item: UpdateMovieMetadata) {
     movieTitle: item.title,
   });
 
+  setOptionalParam(params, "movieFormat", item.format);
+  setOptionalParam(params, "movieTmdbId", item.tmdbId);
+  setOptionalParam(params, "movieSeasonNumber", item.seasonNumber);
+  setOptionalParam(params, "movieSeasonName", item.seasonName);
+  setOptionalParam(params, "movieEpisodeNumber", item.episodeNumber);
+  setOptionalParam(params, "movieEpisodeTitle", item.episodeTitle);
   setOptionalParam(params, "movieOriginalTitle", item.originalTitle);
   setOptionalParam(params, "movieYear", item.year);
   setOptionalParam(params, "moviePosterUrl", item.posterUrl);
@@ -296,4 +477,12 @@ function setOptionalParam(params: URLSearchParams, key: string, value: string | 
   if (value && value.trim()) {
     params.set(key, value);
   }
+}
+
+function seasonLabel(seasonNumber: string) {
+  return `S${seasonNumber.padStart(2, "0")}`;
+}
+
+function episodeLabel(seasonNumber: string, episodeNumber: string) {
+  return `${seasonLabel(seasonNumber)}E${episodeNumber.padStart(2, "0")}`;
 }
