@@ -185,6 +185,8 @@ function MovieSearchFields({
       return;
     }
 
+    const tmdbId = selectedSeries.tmdbId;
+
     let cancelled = false;
 
     void (async () => {
@@ -193,7 +195,7 @@ function MovieSearchFields({
 
       try {
         const response = await fetch(
-          `/api/admin/updates/media-search?kind=tv-seasons&tmdbId=${encodeURIComponent(selectedSeries.tmdbId)}`,
+          `/api/admin/updates/media-search?kind=tv-seasons&tmdbId=${encodeURIComponent(tmdbId)}`,
           {
             method: "GET",
             cache: "no-store",
@@ -247,6 +249,9 @@ function MovieSearchFields({
       return;
     }
 
+    const tmdbId = selectedSeries.tmdbId;
+    const seasonNumber = selectedSeason.seasonNumber;
+
     let cancelled = false;
 
     void (async () => {
@@ -256,8 +261,8 @@ function MovieSearchFields({
       try {
         const response = await fetch(
           `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
-            selectedSeries.tmdbId,
-          )}&seasonNumber=${encodeURIComponent(selectedSeason.seasonNumber)}`,
+            tmdbId,
+          )}&seasonNumber=${encodeURIComponent(seasonNumber)}`,
           {
             method: "GET",
             cache: "no-store",
