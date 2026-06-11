@@ -174,6 +174,7 @@ function MovieSearchFields({
   );
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
   const movieSelectionStep = selectedSeries
     ? selectedSeason
       ? "episodes"
@@ -347,12 +348,13 @@ function MovieSearchFields({
           onSearch={async () => {
             setStatus("loading");
             setError(null);
-            setSelectedSeries(null);
-            setSelectedSeason(null);
-            setSeasons([]);
-            setEpisodes([]);
+          setSelectedSeries(null);
+          setSelectedSeason(null);
+          setSeasons([]);
+          setEpisodes([]);
+          setHasSearched(true);
 
-            try {
+          try {
               const response = await fetch(`/api/admin/updates/media-search?kind=movie&q=${encodeURIComponent(query)}`, {
                 method: "GET",
                 cache: "no-store",
@@ -444,6 +446,10 @@ function MovieSearchFields({
             </button>
           ))}
         </div>
+      ) : null}
+
+      {movieSelectionStep === "search" && hasSearched && status === "idle" && !error && results.length === 0 ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">没有搜索到相关影视作品。</p>
       ) : null}
 
       {movieSelectionStep === "seasons" && selectedSeries && seasons.length > 0 ? (
@@ -631,6 +637,7 @@ function MusicSearchFields({
   const [results, setResults] = useState<UpdateMusicMetadata[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const [hasSearched, setHasSearched] = useState(false);
 
   return (
     <div className="grid gap-4">
@@ -644,6 +651,7 @@ function MusicSearchFields({
         onSearch={async () => {
           setStatus("loading");
           setError(null);
+          setHasSearched(true);
 
           try {
             const response = await fetch(`/api/admin/updates/media-search?kind=music&q=${encodeURIComponent(query)}`, {
@@ -693,6 +701,10 @@ function MusicSearchFields({
             </button>
           ))}
         </div>
+      ) : null}
+
+      {hasSearched && status === "idle" && !error && results.length === 0 ? (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">没有搜索到相关音乐内容。</p>
       ) : null}
     </div>
   );

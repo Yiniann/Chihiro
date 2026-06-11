@@ -1002,24 +1002,20 @@ function renderMobileNavContent(
       return (
         <div className="flex flex-wrap gap-2">
           {navigationData.moreStandalonePages.map((item) => (
-            <Link
+            <MobileNavChip
               key={`standalone-${item.id}`}
               href={item.href}
-              onClick={onNavigate}
-              className="rounded-full border border-dashed border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
-            >
-              {item.navLabel}
-            </Link>
+              label={item.navLabel}
+              onNavigate={onNavigate}
+            />
           ))}
           {moreSections.map((item) => (
-            <Link
+            <MobileNavChip
               key={item.eyebrow}
               href={item.href}
-              onClick={onNavigate}
-              className="rounded-full border border-dashed border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
-            >
-              {item.title}
-            </Link>
+              label={item.title}
+              onNavigate={onNavigate}
+            />
           ))}
         </div>
       );

@@ -428,25 +428,25 @@ function getTimelineItemTime(value: string | null) {
 function getClusterPointClass(count: number, isActive: boolean) {
   if (count >= 2) {
     return isActive
-      ? "relative block h-3 w-3 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.18)] transition"
-      : "relative block h-2.5 w-2.5 rounded-full bg-primary/90 shadow-[0_0_6px_rgba(var(--primary-rgb),0.12)] transition group-hover:bg-primary group-hover:shadow-[0_0_9px_rgba(var(--primary-rgb),0.16)]";
+      ? "relative block h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.2)] transition"
+      : "relative block h-2.5 w-2.5 rounded-full bg-primary/90 shadow-[0_0_8px_rgba(var(--primary-rgb),0.14)] transition group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(var(--primary-rgb),0.18)]";
   }
 
   return isActive
-    ? "relative block h-2 w-2 rounded-full bg-primary shadow-[0_0_7px_rgba(var(--primary-rgb),0.14)] transition"
-    : "relative block h-1.5 w-1.5 rounded-full bg-primary/90 shadow-[0_0_5px_rgba(var(--primary-rgb),0.1)] transition group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.14)]";
+    ? "relative block h-2 w-2 rounded-full bg-primary shadow-[0_0_8px_rgba(var(--primary-rgb),0.18)] transition"
+    : "relative block h-2 w-2 rounded-full bg-primary/90 shadow-[0_0_6px_rgba(var(--primary-rgb),0.12)] transition group-hover:bg-primary group-hover:shadow-[0_0_8px_rgba(var(--primary-rgb),0.16)]";
 }
 
 function getClusterPointGlowClass(count: number, isActive: boolean) {
   if (count >= 2) {
     return isActive
-      ? "absolute h-4 w-4 rounded-full bg-primary/10 blur-[2px] transition"
-      : "absolute h-3 w-3 rounded-full bg-primary/7 blur-[2px] transition group-hover:bg-primary/10";
+      ? "absolute h-7 w-7 rounded-full bg-primary/24 blur-[5px] transition"
+      : "absolute h-6 w-6 rounded-full bg-primary/14 blur-[5px] transition group-hover:bg-primary/18";
   }
 
   return isActive
-    ? "absolute h-3 w-3 rounded-full bg-primary/8 blur-[2px] transition"
-    : "absolute h-2 w-2 rounded-full bg-primary/5 blur-[2px] transition group-hover:bg-primary/8";
+    ? "absolute h-6 w-6 rounded-full bg-primary/18 blur-[5px] transition"
+    : "absolute h-5 w-5 rounded-full bg-primary/12 blur-[5px] transition group-hover:bg-primary/16";
 }
 
 function distributeFallbackPosition(index: number, total: number) {

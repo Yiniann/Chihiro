@@ -189,7 +189,7 @@ async function UpdatesPageContent({
               </div>
 
               <StaggerReveal className="grid gap-6" delayChildren={0.02} staggerChildren={0.065}>
-                {group.items.map((item) => {
+                {group.items.map((item, index) => {
                   const renderedContentHtml = getRenderedContentHtml(
                     item.contentHtml,
                     item.content,
@@ -200,6 +200,11 @@ async function UpdatesPageContent({
                   const hasBodyContent = Boolean(
                     getContentText(item.contentHtml, item.content).trim(),
                   );
+                  const previousItem = index > 0 ? group.items[index - 1] : null;
+                  const showDateMarker =
+                    !previousItem ||
+                    getDateGroupKey(previousItem.publishedAt, siteTimeZone) !==
+                      getDateGroupKey(item.publishedAt, siteTimeZone);
 
                   return (
                     <StaggerRevealItem key={item.id}>
@@ -208,15 +213,25 @@ async function UpdatesPageContent({
                         className="grid gap-4 border-b border-zinc-200/80 py-6 last:border-b-0 dark:border-zinc-800/80 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
                       >
                         <div className="min-w-[4.5rem]">
-                          <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                            {formatFeedMonth(item.publishedAt, siteTimeZone)}
-                          </p>
-                          <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                            {formatFeedDay(item.publishedAt, siteTimeZone)}
-                          </p>
+                          {showDateMarker ? (
+                            <>
+                              <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                                {formatFeedMonth(item.publishedAt, siteTimeZone)}
+                              </p>
+                              <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                                {formatFeedDay(item.publishedAt, siteTimeZone)}
+                              </p>
+                            </>
+                          ) : null}
                         </div>
 
                         <div>
+                          {!showDateMarker ? (
+                            <div className="relative mb-4 h-4 w-full overflow-hidden">
+                              <div className="absolute left-0 top-[0.52rem] h-px w-[98%] -rotate-[0.7deg] bg-zinc-300/90 dark:bg-zinc-700/90" />
+                              <div className="absolute left-[1%] top-[0.72rem] h-px w-[95%] rotate-[0.5deg] bg-zinc-300/60 dark:bg-zinc-700/60" />
+                            </div>
+                          ) : null}
                           {hasBodyContent && renderedContentHtml ? (
                             <div
                               className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300"
@@ -305,6 +320,14 @@ async function UpdatesPageContent({
       </StaggerRevealItem>
     </>
   );
+}
+
+function getDateGroupKey(value: string, timeZone: string) {
+  return formatInSiteTimeZone(value, "en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }, timeZone);
 }
 
 const SORT_OPTIONS = [
