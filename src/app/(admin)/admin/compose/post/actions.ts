@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getPostPath } from "@/lib/routes";
 import { parseStoredRichTextContent } from "@/lib/rich-text-content";
+import { parseSiteDateTimeInput } from "@/lib/site-time";
 import { requireAdminSession } from "@/server/auth";
 import {
   discardPostRevisionById,
@@ -13,6 +14,7 @@ import {
   savePostDraft,
 } from "@/server/repositories/posts";
 import { siteConfig } from "@/lib/site";
+import { getSiteSettings } from "@/server/repositories/site";
 import { notifySubscribersAboutPublishedPost } from "@/server/mail/post-subscription-notifier";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 
@@ -30,6 +32,7 @@ export async function savePostDraftAction(
   const intent = getOptionalString(formData, "intent") ?? "save";
 
   try {
+    const siteSettings = await getSiteSettings();
     const currentStatus = getContentStatus(formData, "currentStatus");
     const title = getRequiredString(formData, "title");
     const slugInput = getOptionalString(formData, "slug");
@@ -39,7 +42,9 @@ export async function savePostDraftAction(
     const contentHtml = getOptionalString(formData, "contentHtml");
     const categoryId = getOptionalNumber(formData, "categoryId");
     const publishedAtInput = getOptionalString(formData, "publishedAt");
-    const publishedAt = publishedAtInput ? parsePublishedAtInput(publishedAtInput) : null;
+    const publishedAt = publishedAtInput
+      ? parsePublishedAtInput(publishedAtInput, siteSettings?.timeZone ?? siteConfig.timeZone)
+      : null;
     const commentsEnabled = getBoolean(formData, "commentsEnabled");
     const tagIds = formData
       .getAll("tagIds")
@@ -234,35 +239,8 @@ function normalizeSlug(value: string) {
   return slug;
 }
 
-function parsePublishedAtInput(value: string) {
-  const match = value.match(
-    /^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})$/,
-  );
-
-  if (!match) {
-    throw new Error("请填写有效的发布日期。");
-  }
-
-  const [, year, month, day, hour, minute] = match;
-  const date = new Date(
-    Number(year),
-    Number(month) - 1,
-    Number(day),
-    Number(hour),
-    Number(minute),
-  );
-
-  if (
-    date.getFullYear() !== Number(year) ||
-    date.getMonth() !== Number(month) - 1 ||
-    date.getDate() !== Number(day) ||
-    date.getHours() !== Number(hour) ||
-    date.getMinutes() !== Number(minute)
-  ) {
-    throw new Error("请填写有效的发布日期。");
-  }
-
-  return date;
+function parsePublishedAtInput(value: string, timeZone: string) {
+  return parseSiteDateTimeInput(value, timeZone);
 }
 
 function isUniqueSlugError(error: unknown) {

@@ -85,6 +85,7 @@ export default async function HomePage() {
   const latestUpdateSummary = latestUpdate
     ? buildHomeLatestUpdateSummary(latestUpdate)
     : null;
+  const siteTimeZone = siteSettings.timeZone ?? siteConfig.timeZone;
 
   return (
     <main className="relative w-full px-6 sm:px-12 lg:px-24">
@@ -148,7 +149,7 @@ export default async function HomePage() {
                             {post.title}
                           </p>
                           <p className="home-feed-date text-zinc-500 dark:text-zinc-400">
-                            <RelativeDate value={post.publishedAt} />
+                            <RelativeDate value={post.publishedAt} timeZone={siteTimeZone} />
                           </p>
                         </div>
                       </article>
@@ -206,7 +207,7 @@ export default async function HomePage() {
                     </div>
                   )}
                   <p className="home-feed-date mt-3 text-zinc-500 dark:text-zinc-400">
-                    <RelativeDate value={latestUpdate.publishedAt} />
+                    <RelativeDate value={latestUpdate.publishedAt} timeZone={siteTimeZone} />
                   </p>
                 </article>
               ) : (
@@ -224,6 +225,7 @@ export default async function HomePage() {
               eyebrow="Glimpses Along the Way"
               rangeStart={homeTimelineRange.start}
               rangeEnd={homeTimelineRange.end}
+              timeZone={siteTimeZone}
             />
           </StaggerRevealItem>
         ) : null}

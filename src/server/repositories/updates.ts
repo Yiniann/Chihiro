@@ -566,8 +566,17 @@ function deriveTitleFromMetadata(kind: UpdateKindValue, metadata: UpdateMetadata
   if (kind === "MOVIE" && metadata.kind === "MOVIE" && metadata.data.title.trim()) {
     const baseTitle = metadata.data.title.trim();
     const episodeCode = getMovieEpisodeCode(metadata.data);
+    const seasonCode = getMovieSeasonCode(metadata.data);
 
-    return episodeCode ? `${baseTitle} · ${episodeCode}` : baseTitle;
+    if (episodeCode) {
+      return `${baseTitle} · ${episodeCode}`;
+    }
+
+    if (seasonCode) {
+      return `${baseTitle} · ${seasonCode}`;
+    }
+
+    return baseTitle;
   }
 
   if (kind === "MUSIC" && metadata.kind === "MUSIC" && metadata.data.title.trim()) {
@@ -587,6 +596,14 @@ function getMovieEpisodeCode(metadata: UpdateMovieMetadata) {
   }
 
   return `S${metadata.seasonNumber.padStart(2, "0")}E${metadata.episodeNumber.padStart(2, "0")}`;
+}
+
+function getMovieSeasonCode(metadata: UpdateMovieMetadata) {
+  if (!metadata.seasonNumber || metadata.episodeNumber) {
+    return null;
+  }
+
+  return `S${metadata.seasonNumber.padStart(2, "0")}`;
 }
 
 function deriveTitleFromContent(content: Prisma.JsonValue | null) {

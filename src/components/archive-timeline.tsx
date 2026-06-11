@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
+import { formatInSiteTimeZone } from "@/lib/site-time";
 
 type ArchiveItem = {
   id: string | number;
@@ -24,9 +25,10 @@ export type ArchiveYearGroup = {
 
 type ArchiveTimelineProps = {
   groups: ArchiveYearGroup[];
+  timeZone?: string;
 };
 
-export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
+export function ArchiveTimeline({ groups, timeZone }: ArchiveTimelineProps) {
   const [activePeriod, setActivePeriod] = useState(() => ({
     year: groups[0]?.year ?? "",
     month: groups[0]?.months[0]?.month ?? "",
@@ -138,11 +140,11 @@ export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
                               <article>
                                 {item.href ? (
                                   <Link href={item.href} className="group block py-1.5 transition">
-                                    <ArchiveCardContent item={item} />
+                                    <ArchiveCardContent item={item} timeZone={timeZone} />
                                   </Link>
                                 ) : (
                                   <div className="group block py-1.5">
-                                    <ArchiveCardContent item={item} />
+                                    <ArchiveCardContent item={item} timeZone={timeZone} />
                                   </div>
                                 )}
                               </article>
@@ -162,12 +164,12 @@ export function ArchiveTimeline({ groups }: ArchiveTimelineProps) {
   );
 }
 
-function ArchiveCardContent({ item }: { item: ArchiveItem }) {
+function ArchiveCardContent({ item, timeZone }: { item: ArchiveItem; timeZone?: string }) {
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-xs font-medium tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
-          <span>{formatTimelineDate(item.publishedAt)}</span>
+          <span>{formatTimelineDate(item.publishedAt, timeZone)}</span>
           <span>/</span>
           <span>{item.categoryLabel}</span>
         </div>
@@ -192,7 +194,7 @@ function ArchiveCardContent({ item }: { item: ArchiveItem }) {
   );
 }
 
-function formatTimelineDate(value: string | null) {
+function formatTimelineDate(value: string | null, timeZone?: string) {
   if (!value) {
     return "Unknown date";
   }
@@ -203,8 +205,8 @@ function formatTimelineDate(value: string | null) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     month: "short",
     day: "numeric",
-  }).format(date);
+  }, timeZone);
 }

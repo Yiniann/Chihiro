@@ -46,6 +46,7 @@ export async function saveWebsocketSettingsAction(
       siteDescription: currentSettings?.siteDescription ?? siteConfig.description,
       siteUrl: currentSettings?.siteUrl ?? siteConfig.url,
       locale: currentSettings?.locale ?? siteConfig.locale,
+      timeZone: currentSettings?.timeZone ?? siteConfig.timeZone,
       authorName: currentSettings?.authorName ?? siteConfig.author,
       authorAvatarUrl: currentSettings?.authorAvatarUrl ?? null,
       siteSubtitle: currentSettings?.siteSubtitle ?? siteConfig.subtitle,

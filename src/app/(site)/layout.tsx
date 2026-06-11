@@ -120,6 +120,7 @@ export default async function SiteLayout({
           github: githubAuthAvailable,
           google: googleAuthAvailable,
         }}
+        siteTimeZone={siteSettings.timeZone ?? siteConfig.timeZone}
         postCategories={postCategories}
         recentArchiveItems={recentArchiveItems}
         recentUpdateItems={recentUpdateItems}

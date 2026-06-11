@@ -9,6 +9,7 @@ export const fallbackSiteSettings: SiteSettingsRecord = {
   siteDescription: siteConfig.description,
   siteUrl: siteConfig.url,
   locale: siteConfig.locale,
+  timeZone: siteConfig.timeZone,
   authorName: siteConfig.author,
   authorAvatarUrl: siteConfig.avatar,
   siteSubtitle: siteConfig.subtitle,

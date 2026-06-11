@@ -9,7 +9,8 @@ import { PostTagsPanel } from "@/components/post-tags-panel";
 import { RelativeDate } from "@/components/relative-date";
 import { PostsPageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
-import { isPublicSiteUnavailableError, listPublicPosts } from "@/server/public-content";
+import { getPublicSiteSettings, isPublicSiteUnavailableError, listPublicPosts } from "@/server/public-content";
+import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "篇章",
@@ -75,9 +76,10 @@ async function PostsPageContent({
   currentPage: number;
 }) {
   let allPosts;
+  let siteSettings;
 
   try {
-    allPosts = await listPublicPosts();
+    [allPosts, siteSettings] = await Promise.all([listPublicPosts(), getPublicSiteSettings()]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
       return <PublicSiteUnavailableScreen />;
@@ -85,6 +87,7 @@ async function PostsPageContent({
 
     throw error;
   }
+  const siteTimeZone = siteSettings.timeZone ?? siteConfig.timeZone;
 
   const filteredPosts = allPosts.filter((post) => {
     if (category === "uncategorized") {
@@ -256,7 +259,7 @@ async function PostsPageContent({
                         ))}
                       </div>
                       <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                        <RelativeDate value={post.publishedAt} />
+                        <RelativeDate value={post.publishedAt} timeZone={siteTimeZone} />
                         <span>·</span>
                         <span>{post.authorName ?? "Unknown author"}</span>
                       </div>
@@ -349,6 +352,7 @@ async function PostsPageContent({
                     getContentText(post.contentHtml, post.content),
                   ].join(" "),
                 }))}
+                timeZone={siteTimeZone}
               />
             </div>
 

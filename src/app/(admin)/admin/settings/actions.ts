@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { isOwnerAuthenticated } from "@/server/auth";
 import { getSiteSettings, upsertSiteSettings } from "@/server/repositories/site";
 import { siteConfig } from "@/lib/site";
+import { isValidTimeZone } from "@/lib/site-time";
 
 export type SaveGeneralSettingsState = {
   error: string | null;
@@ -26,6 +27,7 @@ export async function saveGeneralSettingsAction(
   const siteName = getRequiredString(formData, "siteName", "站点名");
   const siteSubtitle = getOptionalString(formData, "siteSubtitle");
   const submittedSiteUrl = getRequiredUrl(formData, "siteUrl", "站点地址");
+  const timeZone = getRequiredTimeZone(formData, "timeZone");
   const heroIntro = getOptionalString(formData, "heroIntro");
   const summary = getOptionalString(formData, "summary");
   const motto = getOptionalString(formData, "motto");
@@ -38,6 +40,7 @@ export async function saveGeneralSettingsAction(
       siteDescription: currentSettings?.siteDescription ?? siteConfig.description,
       siteUrl: submittedSiteUrl,
       locale: currentSettings?.locale ?? siteConfig.locale,
+      timeZone,
       authorName: currentSettings?.authorName ?? siteConfig.author,
       authorAvatarUrl: currentSettings?.authorAvatarUrl ?? null,
       siteSubtitle,
@@ -114,4 +117,14 @@ function parseUrl(value: string, label: string) {
 function getRequiredUrl(formData: FormData, key: string, label: string) {
   const value = getRequiredString(formData, key, label);
   return parseUrl(value, label);
+}
+
+function getRequiredTimeZone(formData: FormData, key: string) {
+  const value = getRequiredString(formData, key, "站点时区");
+
+  if (!isValidTimeZone(value)) {
+    throw new Error("请填写有效的站点时区。");
+  }
+
+  return value;
 }

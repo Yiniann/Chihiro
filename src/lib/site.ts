@@ -6,6 +6,7 @@ export const siteConfig = {
   name: "Chihiro",
   description: "A publishing system for stories, ideas, and product notes.",
   url: defaultSiteUrl,
+  timeZone: "Asia/Shanghai",
   avatar: "/avatar.png",
   author: "Yinian",
   locale: "zh-CN",

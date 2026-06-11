@@ -199,10 +199,10 @@ export default async function PostPage({ params }: PostPageProps) {
 
             <StaggerRevealItem offset={16}>
               <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
-                <RelativeDate value={post.publishedAt} />
+                <RelativeDate value={post.publishedAt} timeZone={siteSettings.timeZone ?? siteConfig.timeZone} />
                 {post.updatedAt ? (
                   <span>
-                    Updated <RelativeDate value={post.updatedAt} />
+                    Updated <RelativeDate value={post.updatedAt} timeZone={siteSettings.timeZone ?? siteConfig.timeZone} />
                   </span>
                 ) : null}
                 <PostEngagement

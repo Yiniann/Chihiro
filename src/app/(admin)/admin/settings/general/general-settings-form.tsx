@@ -13,11 +13,35 @@ const initialState: SaveGeneralSettingsState = {
   nonce: 0,
 };
 
+const timeZoneOptions = [
+  { value: "Asia/Shanghai", label: "Asia/Shanghai (UTC+8)" },
+  { value: "Asia/Hong_Kong", label: "Asia/Hong_Kong (UTC+8)" },
+  { value: "Asia/Singapore", label: "Asia/Singapore (UTC+8)" },
+  { value: "Asia/Taipei", label: "Asia/Taipei (UTC+8)" },
+  { value: "Asia/Tokyo", label: "Asia/Tokyo (UTC+9)" },
+  { value: "Asia/Seoul", label: "Asia/Seoul (UTC+9)" },
+  { value: "Asia/Bangkok", label: "Asia/Bangkok (UTC+7)" },
+  { value: "Asia/Dubai", label: "Asia/Dubai (UTC+4)" },
+  { value: "UTC", label: "UTC (UTC+0)" },
+  { value: "Europe/London", label: "Europe/London" },
+  { value: "Europe/Paris", label: "Europe/Paris" },
+  { value: "Europe/Berlin", label: "Europe/Berlin" },
+  { value: "America/New_York", label: "America/New_York" },
+  { value: "America/Chicago", label: "America/Chicago" },
+  { value: "America/Denver", label: "America/Denver" },
+  { value: "America/Los_Angeles", label: "America/Los_Angeles" },
+  { value: "America/Toronto", label: "America/Toronto" },
+  { value: "America/Vancouver", label: "America/Vancouver" },
+  { value: "Australia/Sydney", label: "Australia/Sydney" },
+  { value: "Pacific/Auckland", label: "Pacific/Auckland" },
+] as const;
+
 type GeneralSettingsFormProps = {
   defaults: {
     siteName: string;
     siteSubtitle: string;
     siteUrl: string;
+    timeZone: string;
     heroIntro: string;
     summary: string;
     motto: string;
@@ -73,6 +97,29 @@ export function GeneralSettingsForm({ defaults }: GeneralSettingsFormProps) {
             />
             <span className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">
               对外的权威域名，用于登录回跳、SEO / RSS / sitemap / og:url。多域名部署请把其它域名在托管层 301 跳转到这里。
+            </span>
+          </label>
+        </div>
+
+        <div className="md:col-span-2">
+          <label className="grid gap-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80">
+            <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              站点时区
+            </span>
+            <select
+              name="timeZone"
+              required
+              defaultValue={defaults.timeZone}
+              className="h-11 bg-transparent px-0 text-base text-zinc-700 outline-none transition focus:outline-none dark:text-zinc-200"
+            >
+              {timeZoneOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+              站点所有公开时间会按这里的 IANA 时区显示与解析，例如 <code className="rounded bg-zinc-100 px-1 py-0.5 font-mono text-[0.72rem] text-zinc-700 dark:bg-zinc-900 dark:text-zinc-200">Asia/Shanghai</code>。
             </span>
           </label>
         </div>

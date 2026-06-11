@@ -513,6 +513,7 @@ model SiteSettings {
   siteDescription                      String
   siteUrl                              String
   locale                               String   @default("zh-CN")
+  timeZone                             String   @default("Asia/Shanghai")
   authorName                           String
   authorAvatarUrl                      String?
   siteSubtitle                         String?

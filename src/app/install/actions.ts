@@ -109,6 +109,7 @@ export async function initializeSiteAction(
       siteDescription,
       siteUrl,
       locale,
+      timeZone: "Asia/Shanghai",
       authorName: initialAuthorName,
       authorAvatarUrl: null,
       siteSubtitle,

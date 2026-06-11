@@ -10,10 +10,12 @@ import {
   normalizeHtmlForHydration,
 } from "@/lib/content";
 import { getUpdateAnchorPath } from "@/lib/routes";
+import { formatInSiteTimeZone, getYearInSiteTimeZone } from "@/lib/site-time";
 import { SearchDialog } from "@/components/search-dialog";
 import { UpdatesPageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerReveal, StaggerRevealItem } from "@/components/stagger-reveal";
-import { isPublicSiteUnavailableError, listPublicUpdates } from "@/server/public-content";
+import { getPublicSiteSettings, isPublicSiteUnavailableError, listPublicUpdates } from "@/server/public-content";
+import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "足迹",
@@ -67,9 +69,10 @@ async function UpdatesPageContent({
   currentPage: number;
 }) {
   let allUpdates;
+  let siteSettings;
 
   try {
-    allUpdates = await listPublicUpdates();
+    [allUpdates, siteSettings] = await Promise.all([listPublicUpdates(), getPublicSiteSettings()]);
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
       return <PublicSiteUnavailableScreen />;
@@ -77,6 +80,7 @@ async function UpdatesPageContent({
 
     throw error;
   }
+  const siteTimeZone = siteSettings.timeZone ?? siteConfig.timeZone;
 
   const sortedUpdates = sortUpdates(allUpdates, activeSort);
   const totalPages = Math.max(1, Math.ceil(sortedUpdates.length / UPDATES_PER_PAGE));
@@ -145,6 +149,7 @@ async function UpdatesPageContent({
                 getContentText(item.contentHtml, item.content),
               ].join(" "),
             }))}
+            timeZone={siteTimeZone}
           />
         </div>
       </StaggerRevealItem>
@@ -204,10 +209,10 @@ async function UpdatesPageContent({
                       >
                         <div className="min-w-[4.5rem]">
                           <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
-                            {formatFeedMonth(item.publishedAt)}
+                            {formatFeedMonth(item.publishedAt, siteTimeZone)}
                           </p>
                           <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-                            {formatFeedDay(item.publishedAt)}
+                            {formatFeedDay(item.publishedAt, siteTimeZone)}
                           </p>
                         </div>
 
@@ -230,7 +235,7 @@ async function UpdatesPageContent({
                               hasBodyContent || item.kind === "NOTE" ? "mt-3" : "mt-2"
                             }`}
                           >
-                            <span>{formatFeedTime(item.publishedAt)}</span>
+                            <span>{formatFeedTime(item.publishedAt, siteTimeZone)}</span>
                             <span>{item.authorName ?? "未署名"}</span>
                           </div>
                         </div>
@@ -335,7 +340,7 @@ function groupUpdatesByYear(updates: PublishedUpdate[]) {
   const groups = new Map<string, PublishedUpdate[]>();
 
   for (const update of updates) {
-    const year = update.publishedAt ? String(new Date(update.publishedAt).getFullYear()) : "Unknown";
+    const year = update.publishedAt ? getYearInSiteTimeZone(update.publishedAt) : "Unknown";
     const current = groups.get(year) ?? [];
     current.push(update);
     groups.set(year, current);
@@ -353,7 +358,7 @@ function compareUpdateDates(left: string | null | undefined, right: string | nul
   return leftTime - rightTime;
 }
 
-function formatFeedMonth(value: string | null) {
+function formatFeedMonth(value: string | null, timeZone: string) {
   if (!value) {
     return "Unknown";
   }
@@ -364,12 +369,12 @@ function formatFeedMonth(value: string | null) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     month: "short",
-  }).format(date);
+  }, timeZone);
 }
 
-function formatFeedDay(value: string | null) {
+function formatFeedDay(value: string | null, timeZone: string) {
   if (!value) {
     return "--";
   }
@@ -380,12 +385,12 @@ function formatFeedDay(value: string | null) {
     return "--";
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     day: "2-digit",
-  }).format(date);
+  }, timeZone);
 }
 
-function formatFeedTime(value: string | null) {
+function formatFeedTime(value: string | null, timeZone: string) {
   if (!value) {
     return "--:--";
   }
@@ -396,11 +401,11 @@ function formatFeedTime(value: string | null) {
     return "--:--";
   }
 
-  return new Intl.DateTimeFormat("zh-CN", {
+  return formatInSiteTimeZone(date, "zh-CN", {
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).format(date);
+  }, timeZone);
 }
 
 

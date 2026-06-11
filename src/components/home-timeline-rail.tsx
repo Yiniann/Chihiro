@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { TimelineItem } from "@/lib/timeline-items";
+import { formatInSiteTimeZone } from "@/lib/site-time";
 
 type HomeTimelineRailProps = {
   items: TimelineItem[];
@@ -12,6 +13,7 @@ type HomeTimelineRailProps = {
   label: string;
   rangeStart: string;
   rangeEnd: string;
+  timeZone?: string;
 };
 
 type TimelineCluster = {
@@ -25,6 +27,7 @@ export function HomeTimelineRail({
   label,
   rangeStart,
   rangeEnd,
+  timeZone,
 }: HomeTimelineRailProps) {
   const prefersReducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
@@ -59,10 +62,6 @@ export function HomeTimelineRail({
       closeTimeoutRef.current = null;
     }, 120);
   };
-
-  if (clusters.length === 0) {
-    return null;
-  }
 
   useEffect(() => {
     setHasMounted(true);
@@ -111,6 +110,10 @@ export function HomeTimelineRail({
       window.removeEventListener("resize", updateTooltipPosition);
     };
   }, [activeIndex]);
+
+  if (clusters.length === 0) {
+    return null;
+  }
 
   return (
     <section className="mx-auto w-full max-w-5xl pb-12 pt-6 lg:pb-14 lg:pt-8">
@@ -267,7 +270,7 @@ export function HomeTimelineRail({
                         item.title
                       )}
                       <span className="ml-2 inline text-[11px] font-medium uppercase tracking-[0.14em] text-primary">
-                        {formatRailMarkerDate(item.publishedAt)}
+                        {formatRailMarkerDate(item.publishedAt, timeZone)}
                       </span>
                     </h3>
                   ))}
@@ -282,7 +285,7 @@ export function HomeTimelineRail({
   );
 }
 
-function formatRailMarkerDate(value: string | null) {
+function formatRailMarkerDate(value: string | null, timeZone?: string) {
   if (!value) {
     return "Unknown";
   }
@@ -293,9 +296,9 @@ function formatRailMarkerDate(value: string | null) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     month: "short",
-  }).format(date);
+  }, timeZone);
 }
 
 function getTimelinePointPositions(items: TimelineItem[], rangeStart: string, rangeEnd: string) {

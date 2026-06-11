@@ -991,7 +991,7 @@ function AdminUpdateMobileRow({
       </div>
       <div className="col-span-2 mt-1 flex items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
         <span className="min-w-0 truncate whitespace-nowrap">
-          {formatRelativeAdminTime(item.publishedAt ?? item.createdAt)}
+          {formatRelativeAdminTime(item.updatedAt)}
         </span>
         <div className="shrink-0">
           <TableStatus status={item.status} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { Search, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   UpdateMetadata,
   UpdateKindValue,
@@ -14,6 +14,7 @@ type TvSeasonCandidate = {
   seasonNumber: string;
   seasonName: string;
   episodeCount: string | null;
+  posterUrl: string | null;
 };
 
 type TvEpisodeCandidate = {
@@ -23,6 +24,7 @@ type TvEpisodeCandidate = {
   year: string | null;
   overview: string | null;
   rating: string | null;
+  stillUrl: string | null;
 };
 
 export function KindMetadataFields({
@@ -162,56 +164,213 @@ function MovieSearchFields({
   const [episodes, setEpisodes] = useState<TvEpisodeCandidate[]>([]);
   const [selectedSeason, setSelectedSeason] = useState<TvSeasonCandidate | null>(
     metadata.seasonNumber
-      ? {
+        ? {
           seasonNumber: metadata.seasonNumber,
           seasonName: metadata.seasonName ?? `Season ${metadata.seasonNumber}`,
           episodeCount: null,
+          posterUrl: metadata.posterUrl ?? null,
         }
       : null,
   );
   const [status, setStatus] = useState<"idle" | "loading" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const movieSelectionStep = selectedSeries
+    ? selectedSeason
+      ? "episodes"
+      : "seasons"
+    : "search";
+
+  useEffect(() => {
+    if (!selectedSeries?.tmdbId || seasons.length > 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setStatus("loading");
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `/api/admin/updates/media-search?kind=tv-seasons&tmdbId=${encodeURIComponent(selectedSeries.tmdbId)}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+        const payload = (await response.json()) as {
+          items?: TvSeasonCandidate[];
+          error?: string;
+        };
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setStatus("error");
+            setError(payload.error ?? "季列表加载失败。");
+          }
+          return;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        const nextSeasons = payload.items ?? [];
+        setSeasons(nextSeasons);
+        setSelectedSeason((currentSeason) => {
+          if (!currentSeason) {
+            return currentSeason;
+          }
+
+          return (
+            nextSeasons.find((season) => season.seasonNumber === currentSeason.seasonNumber) ??
+            currentSeason
+          );
+        });
+        setStatus("idle");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+          setError("季列表加载失败。");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSeries?.tmdbId, seasons.length]);
+
+  useEffect(() => {
+    if (!selectedSeries?.tmdbId || !selectedSeason?.seasonNumber || episodes.length > 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setStatus("loading");
+      setError(null);
+
+      try {
+        const response = await fetch(
+          `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
+            selectedSeries.tmdbId,
+          )}&seasonNumber=${encodeURIComponent(selectedSeason.seasonNumber)}`,
+          {
+            method: "GET",
+            cache: "no-store",
+          },
+        );
+        const payload = (await response.json()) as {
+          items?: TvEpisodeCandidate[];
+          error?: string;
+        };
+
+        if (!response.ok) {
+          if (!cancelled) {
+            setStatus("error");
+            setError(payload.error ?? "集列表加载失败。");
+          }
+          return;
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setEpisodes(payload.items ?? []);
+        setStatus("idle");
+      } catch {
+        if (!cancelled) {
+          setStatus("error");
+          setError("集列表加载失败。");
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedSeries?.tmdbId, selectedSeason?.seasonNumber, episodes.length]);
 
   return (
     <div className="grid gap-4">
-      <SearchPanel
-        label="搜索电影 / 剧集"
-        query={query}
-        setQuery={setQuery}
-        status={status}
-        error={error}
-        actionLabel={searchActionLabel}
-        onSearch={async () => {
-          setStatus("loading");
-          setError(null);
-          setSelectedSeries(null);
-          setSelectedSeason(null);
-          setSeasons([]);
-          setEpisodes([]);
+      {movieSelectionStep !== "search" ? (
+        <div className="flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              {movieSelectionStep === "seasons" ? "选择季度" : "选择剧集"}
+            </p>
+            <p className="mt-1 truncate text-sm text-zinc-700 dark:text-zinc-200">
+              {selectedSeries?.title}
+              {selectedSeason ? ` · ${seasonLabel(selectedSeason.seasonNumber)}` : ""}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              if (movieSelectionStep === "episodes") {
+                setSelectedSeason(null);
+                setEpisodes([]);
+                setError(null);
+                setStatus("idle");
+                return;
+              }
 
-          try {
-            const response = await fetch(`/api/admin/updates/media-search?kind=movie&q=${encodeURIComponent(query)}`, {
-              method: "GET",
-              cache: "no-store",
-            });
-            const payload = (await response.json()) as { items?: UpdateMovieMetadata[]; error?: string };
+              setSelectedSeries(null);
+              setSelectedSeason(null);
+              setSeasons([]);
+              setEpisodes([]);
+              setError(null);
+              setStatus("idle");
+            }}
+            className="shrink-0 text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+          >
+            {movieSelectionStep === "episodes" ? "其他季度" : "其他影视作品"}
+          </button>
+        </div>
+      ) : (
+        <SearchPanel
+          label="搜索电影 / 剧集"
+          query={query}
+          setQuery={setQuery}
+          status={status}
+          error={error}
+          actionLabel={searchActionLabel}
+          onSearch={async () => {
+            setStatus("loading");
+            setError(null);
+            setSelectedSeries(null);
+            setSelectedSeason(null);
+            setSeasons([]);
+            setEpisodes([]);
 
-            if (!response.ok) {
+            try {
+              const response = await fetch(`/api/admin/updates/media-search?kind=movie&q=${encodeURIComponent(query)}`, {
+                method: "GET",
+                cache: "no-store",
+              });
+              const payload = (await response.json()) as { items?: UpdateMovieMetadata[]; error?: string };
+
+              if (!response.ok) {
+                setStatus("error");
+                setError(payload.error ?? "搜索失败。");
+                return;
+              }
+
+              setResults(payload.items ?? []);
+              setStatus("idle");
+            } catch {
               setStatus("error");
-              setError(payload.error ?? "搜索失败。");
-              return;
+              setError("搜索时出错了。");
             }
+          }}
+        />
+      )}
 
-            setResults(payload.items ?? []);
-            setStatus("idle");
-          } catch {
-            setStatus("error");
-            setError("搜索时出错了。");
-          }
-        }}
-      />
-
-      {results.length > 0 ? (
+      {movieSelectionStep === "search" && results.length > 0 ? (
         <div className="grid max-h-[22rem] gap-3 overflow-y-auto pr-1">
           {results.map((item) => (
             <button
@@ -282,108 +441,97 @@ function MovieSearchFields({
         </div>
       ) : null}
 
-      {selectedSeries && seasons.length > 0 ? (
+      {movieSelectionStep === "seasons" && selectedSeries && seasons.length > 0 ? (
         <div className="grid gap-3">
-          <div className="flex items-center justify-between gap-4">
-            <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-              选择季度
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                if (onSelectResult) {
-                  onSelectResult(selectedSeries);
-                  return;
-                }
-
-                onMetadataChange(selectedSeries);
-                setQuery(selectedSeries.title);
-                setResults([]);
-                setSeasons([]);
-                setEpisodes([]);
-                onDirty();
-              }}
-              className="text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              使用整部剧
-            </button>
-          </div>
-          <div className="grid max-h-[16rem] gap-3 overflow-y-auto pr-1">
-            {seasons.map((season) => (
+          <div className="overflow-hidden rounded-[1rem] border border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950">
+            <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800/80">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                选择季度
+              </p>
               <button
-                key={season.seasonNumber}
                 type="button"
-                onClick={async () => {
-                  setStatus("loading");
-                  setError(null);
-
-                  try {
-                    const response = await fetch(
-                      `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
-                        selectedSeries.tmdbId ?? "",
-                      )}&seasonNumber=${encodeURIComponent(season.seasonNumber)}`,
-                      {
-                        method: "GET",
-                        cache: "no-store",
-                      },
-                    );
-                    const payload = (await response.json()) as {
-                      items?: TvEpisodeCandidate[];
-                      error?: string;
-                    };
-
-                    if (!response.ok) {
-                      setStatus("error");
-                      setError(payload.error ?? "集列表加载失败。");
-                      return;
-                    }
-
-                    setSelectedSeason(season);
-                    setEpisodes(payload.items ?? []);
-                    setStatus("idle");
-                  } catch {
-                    setStatus("error");
-                    setError("集列表加载失败。");
+                onClick={() => {
+                  if (onSelectResult) {
+                    onSelectResult(selectedSeries);
+                    return;
                   }
+
+                  onMetadataChange(selectedSeries);
+                  setQuery(selectedSeries.title);
+                  setResults([]);
+                  setSeasons([]);
+                  setEpisodes([]);
+                  onDirty();
                 }}
-                className="rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-4 text-left transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+                className="text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
               >
-                <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                  {seasonLabel(season.seasonNumber)} · {season.seasonName}
-                </p>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  {season.episodeCount ? `${season.episodeCount} 集` : "查看本季剧集"}
-                </p>
+                选择整部剧
               </button>
-            ))}
+            </div>
+            <div className="max-h-[16rem] overflow-y-auto">
+              {seasons.map((season) => (
+                <button
+                  key={season.seasonNumber}
+                  type="button"
+                  onClick={async () => {
+                    setStatus("loading");
+                    setError(null);
+
+                    try {
+                      const response = await fetch(
+                        `/api/admin/updates/media-search?kind=tv-episodes&tmdbId=${encodeURIComponent(
+                          selectedSeries.tmdbId ?? "",
+                        )}&seasonNumber=${encodeURIComponent(season.seasonNumber)}`,
+                        {
+                          method: "GET",
+                          cache: "no-store",
+                        },
+                      );
+                      const payload = (await response.json()) as {
+                        items?: TvEpisodeCandidate[];
+                        error?: string;
+                      };
+
+                      if (!response.ok) {
+                        setStatus("error");
+                        setError(payload.error ?? "集列表加载失败。");
+                        return;
+                      }
+
+                      setSelectedSeason(season);
+                      setEpisodes(payload.items ?? []);
+                      setStatus("idle");
+                    } catch {
+                      setStatus("error");
+                      setError("集列表加载失败。");
+                    }
+                  }}
+                  className="block w-full border-b border-zinc-200/80 px-4 py-4 text-left transition last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+                >
+                  <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                    {seasonLabel(season.seasonNumber)} · {season.seasonName}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    {season.episodeCount ? `${season.episodeCount} 集` : "查看本季剧集"}
+                  </p>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}
 
-      {selectedSeries && selectedSeason && episodes.length > 0 ? (
+      {movieSelectionStep === "episodes" && selectedSeries && selectedSeason && episodes.length > 0 ? (
         <div className="grid gap-3">
-          <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
-            选择剧集
-          </p>
-          <div className="grid max-h-[18rem] gap-3 overflow-y-auto pr-1">
-            {episodes.map((episode) => (
+          <div className="overflow-hidden rounded-[1rem] border border-zinc-200/80 bg-white dark:border-zinc-800/80 dark:bg-zinc-950">
+            <div className="flex items-center justify-between gap-4 border-b border-zinc-200/80 px-4 py-3 dark:border-zinc-800/80">
+              <p className="text-[11px] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+                选择剧集
+              </p>
               <button
-                key={`${selectedSeason.seasonNumber}-${episode.episodeNumber}`}
                 type="button"
                 onClick={() => {
-                  const nextMetadata: UpdateMovieMetadata = {
-                    ...selectedSeries,
-                    year: episode.year ?? selectedSeries.year,
-                    seasonNumber: selectedSeason.seasonNumber,
-                    seasonName: selectedSeason.seasonName,
-                    episodeNumber: episode.episodeNumber,
-                    episodeTitle: episode.episodeTitle,
-                    overview: episode.overview ?? selectedSeries.overview,
-                    rating: episode.rating ?? selectedSeries.rating,
-                    sourceUrl: selectedSeries.tmdbId
-                      ? `https://www.themoviedb.org/tv/${selectedSeries.tmdbId}/season/${selectedSeason.seasonNumber}/episode/${episode.episodeNumber}`
-                      : selectedSeries.sourceUrl,
-                  };
+                  const nextMetadata = buildSeasonMovieMetadata(selectedSeries, selectedSeason);
 
                   if (onSelectResult) {
                     onSelectResult(nextMetadata);
@@ -397,21 +545,63 @@ function MovieSearchFields({
                   setEpisodes([]);
                   onDirty();
                 }}
-                className="rounded-2xl border border-zinc-200/80 bg-white/80 px-4 py-4 text-left transition hover:border-zinc-300 hover:bg-zinc-50 dark:border-zinc-800/80 dark:bg-zinc-950/80 dark:hover:border-zinc-700 dark:hover:bg-zinc-900"
+                className="text-sm text-zinc-500 transition hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
               >
-                <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
-                  {episodeLabel(selectedSeason.seasonNumber, episode.episodeNumber)} · {episode.episodeTitle}
-                </p>
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                  {[selectedSeries.title, episode.year].filter(Boolean).join(" · ")}
-                </p>
-                {episode.overview ? (
-                  <p className="mt-2 line-clamp-2 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
-                    {episode.overview}
-                  </p>
-                ) : null}
+                选择整个季度
               </button>
-            ))}
+            </div>
+            <div className="max-h-[18rem] overflow-y-auto">
+              {episodes.map((episode) => (
+                <button
+                  key={`${selectedSeason.seasonNumber}-${episode.episodeNumber}`}
+                  type="button"
+                  onClick={() => {
+                    const nextMetadata: UpdateMovieMetadata = {
+                      ...selectedSeries,
+                      year: episode.year ?? selectedSeries.year,
+                      seasonNumber: selectedSeason.seasonNumber,
+                      seasonName: selectedSeason.seasonName,
+                      episodeNumber: episode.episodeNumber,
+                      episodeTitle: episode.episodeTitle,
+                      posterUrl:
+                        episode.stillUrl ??
+                        selectedSeason.posterUrl ??
+                        selectedSeries.posterUrl,
+                      overview: episode.overview ?? selectedSeries.overview,
+                      rating: episode.rating ?? selectedSeries.rating,
+                      sourceUrl: selectedSeries.tmdbId
+                        ? `https://www.themoviedb.org/tv/${selectedSeries.tmdbId}/season/${selectedSeason.seasonNumber}/episode/${episode.episodeNumber}`
+                        : selectedSeries.sourceUrl,
+                    };
+
+                    if (onSelectResult) {
+                      onSelectResult(nextMetadata);
+                      return;
+                    }
+
+                    onMetadataChange(nextMetadata);
+                    setQuery(selectedSeries.title);
+                    setResults([]);
+                    setSeasons([]);
+                    setEpisodes([]);
+                    onDirty();
+                  }}
+                  className="block w-full border-b border-zinc-200/80 px-4 py-4 text-left transition last:border-b-0 hover:bg-zinc-50 dark:border-zinc-800/80 dark:hover:bg-zinc-900"
+                >
+                  <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+                    {episodeLabel(selectedSeason.seasonNumber, episode.episodeNumber)} · {episode.episodeTitle}
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                    {[selectedSeries.title, episode.year].filter(Boolean).join(" · ")}
+                  </p>
+                  {episode.overview ? (
+                    <p className="mt-2 line-clamp-2 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                      {episode.overview}
+                    </p>
+                  ) : null}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       ) : null}
@@ -626,6 +816,23 @@ function emptyMovieMetadata(): UpdateMovieMetadata {
     rating: null,
     sourceName: null,
     sourceUrl: null,
+  };
+}
+
+function buildSeasonMovieMetadata(
+  series: UpdateMovieMetadata,
+  season: TvSeasonCandidate,
+): UpdateMovieMetadata {
+  return {
+    ...series,
+    seasonNumber: season.seasonNumber,
+    seasonName: season.seasonName,
+    episodeNumber: null,
+    episodeTitle: null,
+    posterUrl: season.posterUrl ?? series.posterUrl,
+    sourceUrl: series.tmdbId
+      ? `https://www.themoviedb.org/tv/${series.tmdbId}/season/${season.seasonNumber}`
+      : series.sourceUrl,
   };
 }
 

@@ -24,6 +24,8 @@ export function UpdateKindPreviewCard({
     const subtitle =
       selectionMode === "episode"
         ? ["单集", episodeCode, metadata.data.episodeTitle].filter(Boolean).join(" · ")
+        : selectionMode === "season"
+          ? ["季度", resolveSeasonCode(metadata.data), metadata.data.seasonName].filter(Boolean).join(" · ")
         : metadata.data.originalTitle ?? metadata.data.director ?? "";
     const kicker = `${format} · ${metadata.data.year ?? "Unknown"}`;
     const inner = (
@@ -65,7 +67,8 @@ export function UpdateKindPreviewCard({
               </span>
             ) : null}
             {selectionMode === "episode" ? <span>单集</span> : null}
-            {metadata.data.seasonName && selectionMode !== "episode" ? <span>{metadata.data.seasonName}</span> : null}
+            {selectionMode === "season" ? <span>季度</span> : null}
+            {metadata.data.seasonName && selectionMode === "season" ? <span>{metadata.data.seasonName}</span> : null}
             {metadata.data.genres.length > 0 ? <span>{metadata.data.genres.join(" · ")}</span> : null}
             {sourceLabel ? <span>{sourceLabel}</span> : null}
           </div>
@@ -201,6 +204,14 @@ function resolveEpisodeCode(metadata: UpdateMovieMetadata) {
   return `S${metadata.seasonNumber.padStart(2, "0")}E${metadata.episodeNumber.padStart(2, "0")}`;
 }
 
+function resolveSeasonCode(metadata: UpdateMovieMetadata) {
+  if (!metadata.seasonNumber) {
+    return null;
+  }
+
+  return `S${metadata.seasonNumber.padStart(2, "0")}`;
+}
+
 function resolveMovieSourceLabel(metadata: UpdateMovieMetadata) {
   if (metadata.sourceName === "TMDB" || metadata.sourceName === "TMDB TV") {
     return "TMDB";
@@ -212,6 +223,10 @@ function resolveMovieSourceLabel(metadata: UpdateMovieMetadata) {
 function resolveMovieSelectionMode(metadata: UpdateMovieMetadata) {
   if (metadata.seasonNumber && metadata.episodeNumber) {
     return "episode";
+  }
+
+  if (metadata.seasonNumber) {
+    return "season";
   }
 
   return "work";

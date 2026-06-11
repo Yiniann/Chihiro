@@ -8,6 +8,7 @@ export default async function AdminGeneralSettingsPage() {
     siteName: siteSettings?.siteName ?? siteConfig.name,
     siteSubtitle: siteSettings?.siteSubtitle ?? siteConfig.subtitle,
     siteUrl: resolveCanonicalSiteUrl(siteSettings),
+    timeZone: siteSettings?.timeZone ?? siteConfig.timeZone,
     heroIntro: siteSettings?.heroIntro ?? siteConfig.heroIntro,
     summary: siteSettings?.summary ?? siteConfig.summary,
     motto: siteSettings?.motto ?? siteConfig.motto,

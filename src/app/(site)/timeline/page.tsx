@@ -12,6 +12,7 @@ import { TimelinePageContentSkeleton } from "@/components/site-route-skeletons";
 import { StaggerRevealItem } from "@/components/stagger-reveal";
 import { TimelinePublishingOverview } from "@/components/timeline-publishing-overview";
 import { siteConfig } from "@/lib/site";
+import { formatInSiteTimeZone, getYearInSiteTimeZone } from "@/lib/site-time";
 import {
   getPublicSiteSettings,
   isPublicSiteUnavailableError,
@@ -85,7 +86,8 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
   }
 
   const items = getTimelineItems(archiveType, posts, updates);
-  const groups = groupTimelineItemsByYearAndMonth(items);
+  const siteTimeZone = siteSettings.timeZone ?? siteConfig.timeZone;
+  const groups = groupTimelineItemsByYearAndMonth(items, siteTimeZone);
   const siteName = siteSettings.siteName ?? siteConfig.name;
 
   return (
@@ -140,11 +142,12 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
               preview: item.summary,
               searchText: item.searchText,
             }))}
+            timeZone={siteTimeZone}
           />
         </div>
       </StaggerRevealItem>
 
-      <ArchiveTimeline groups={groups} />
+      <ArchiveTimeline groups={groups} timeZone={siteTimeZone} />
 
       <StaggerRevealItem className="mt-10 flex flex-col items-center gap-5" offset={22}>
         <div className="h-px w-20 bg-gradient-to-r from-transparent via-primary/45 to-transparent" />
@@ -166,12 +169,12 @@ function normalizeArchiveType(value?: string): ArchiveType {
   return "all";
 }
 
-function groupTimelineItemsByYearAndMonth(items: TimelineItem[]): ArchiveYearGroup[] {
+function groupTimelineItemsByYearAndMonth(items: TimelineItem[], timeZone: string): ArchiveYearGroup[] {
   const yearGroups = new Map<string, Map<string, TimelineItem[]>>();
 
   for (const item of items) {
-    const year = item.publishedAt ? String(new Date(item.publishedAt).getFullYear()) : "Unknown";
-    const month = item.publishedAt ? formatTimelineMonth(item.publishedAt) : "未知";
+    const year = item.publishedAt ? getYearInSiteTimeZone(item.publishedAt, timeZone) : "Unknown";
+    const month = item.publishedAt ? formatTimelineMonth(item.publishedAt, timeZone) : "未知";
     const currentYear = yearGroups.get(year) ?? new Map<string, TimelineItem[]>();
     const currentMonthItems = currentYear.get(month) ?? [];
 
@@ -189,7 +192,7 @@ function groupTimelineItemsByYearAndMonth(items: TimelineItem[]): ArchiveYearGro
   }));
 }
 
-function formatTimelineMonth(value: string | null) {
+function formatTimelineMonth(value: string | null, timeZone: string) {
   if (!value) {
     return "Unknown";
   }
@@ -200,7 +203,7 @@ function formatTimelineMonth(value: string | null) {
     return "Unknown";
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     month: "short",
-  }).format(date);
+  }, timeZone);
 }

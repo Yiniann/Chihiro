@@ -171,6 +171,7 @@ type SiteHeaderProps = {
     github: boolean;
     google: boolean;
   };
+  siteTimeZone?: string;
   postCategories: SiteHeaderPostCategory[];
   recentArchiveItems: SiteHeaderRecentArchiveItem[];
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
@@ -186,6 +187,7 @@ export function SiteHeader({
   publicUser,
   siteUrl,
   publicAuthProviders,
+  siteTimeZone,
   postCategories,
   recentArchiveItems,
   recentUpdateItems,
@@ -495,6 +497,7 @@ export function SiteHeader({
                       postCategories,
                       recentArchiveItems,
                       recentUpdateItems,
+                      siteTimeZone,
                       homeStandalonePages,
                       moreStandalonePages,
                       hoveredPostCategorySlug,
@@ -816,6 +819,7 @@ function renderMegaNavContent(
     postCategories: SiteHeaderPostCategory[];
     recentArchiveItems: SiteHeaderRecentArchiveItem[];
     recentUpdateItems: SiteHeaderRecentArchiveItem[];
+    siteTimeZone?: string;
     homeStandalonePages: StandaloneNavItem[];
     moreStandalonePages: StandaloneNavItem[];
     hoveredPostCategorySlug: string | null;
@@ -854,7 +858,11 @@ function renderMegaNavContent(
     case "/updates":
       return (
         <MegaNavSection eyebrow="Updates">
-          <UpdateMegaNavContent recentUpdateItems={options.recentUpdateItems} onNavigate={options.onNavigate} />
+          <UpdateMegaNavContent
+            recentUpdateItems={options.recentUpdateItems}
+            siteTimeZone={options.siteTimeZone}
+            onNavigate={options.onNavigate}
+          />
         </MegaNavSection>
       );
     case "/timeline":
@@ -875,6 +883,7 @@ function renderMegaNavContent(
                   categoryLabel={item.categoryLabel}
                   kind={item.kind}
                   dateValue={item.publishedAt}
+                  timeZone={options.siteTimeZone}
                   onNavigate={options.onNavigate}
                 />
               ))}
@@ -1149,9 +1158,11 @@ function PostMegaNavContent({
 
 function UpdateMegaNavContent({
   recentUpdateItems,
+  siteTimeZone,
   onNavigate,
 }: {
   recentUpdateItems: SiteHeaderRecentArchiveItem[];
+  siteTimeZone?: string;
   onNavigate: () => void;
 }) {
   return (
@@ -1164,6 +1175,7 @@ function UpdateMegaNavContent({
               href={item.href}
               title={item.title}
               dateValue={item.publishedAt}
+              timeZone={siteTimeZone}
               compact
               onNavigate={onNavigate}
             />
@@ -1237,6 +1249,7 @@ function MegaNavRecentEntry({
   categoryLabel,
   kind,
   dateValue,
+  timeZone,
   compact = false,
   onNavigate,
 }: {
@@ -1245,6 +1258,7 @@ function MegaNavRecentEntry({
   categoryLabel?: string;
   kind?: "篇章" | "足迹";
   dateValue: string | null;
+  timeZone?: string;
   compact?: boolean;
   onNavigate: () => void;
 }) {
@@ -1266,7 +1280,7 @@ function MegaNavRecentEntry({
           </p>
         </div>
         <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">
-          <RelativeDate value={dateValue} />
+          <RelativeDate value={dateValue} timeZone={timeZone} />
         </span>
       </div>
       {!compact && categoryLabel && kind !== "足迹" ? (

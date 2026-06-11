@@ -27,6 +27,7 @@ type TmdbTvDetailsResponse = {
     season_number?: number;
     name?: string;
     episode_count?: number;
+    poster_path?: string | null;
   }>;
 };
 
@@ -257,6 +258,7 @@ export async function searchTvSeasonCandidates(tmdbId: string) {
           typeof season.episode_count === "number" && season.episode_count > 0
             ? String(season.episode_count)
             : null,
+        posterUrl: season.poster_path ? `${TMDB_IMAGE_BASE}${season.poster_path}` : null,
       }))
       .sort((left, right) => Number(left.seasonNumber) - Number(right.seasonNumber));
   } catch {
@@ -304,6 +306,7 @@ export async function searchTvEpisodeCandidates(tmdbId: string, seasonNumber: st
           typeof episode.vote_average === "number" && episode.vote_average > 0
             ? episode.vote_average.toFixed(1)
             : null,
+        stillUrl: episode.still_path ? `${TMDB_IMAGE_BASE}${episode.still_path}` : null,
       }))
       .sort((left, right) => Number(left.episodeNumber) - Number(right.episodeNumber));
   } catch {

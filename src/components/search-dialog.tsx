@@ -26,6 +26,7 @@ type SearchDialogProps = {
   idleState: string;
   items: SearchDialogItem[];
   showResultTitle?: boolean;
+  timeZone?: string;
 };
 
 export function SearchDialog({
@@ -35,6 +36,7 @@ export function SearchDialog({
   idleState,
   items,
   showResultTitle = true,
+  timeZone,
 }: SearchDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const { shakeControls, triggerShake } = useDialogShake();
@@ -141,7 +143,7 @@ export function SearchDialog({
                                 <span>{item.overline}</span>
                                 {item.publishedAt ? (
                                   <span className="shrink-0 normal-case tracking-normal">
-                                    <RelativeDate value={item.publishedAt} />
+                                    <RelativeDate value={item.publishedAt} timeZone={timeZone} />
                                   </span>
                                 ) : null}
                               </div>

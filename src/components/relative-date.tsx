@@ -1,17 +1,20 @@
 "use client";
 
+import { formatInSiteTimeZone } from "@/lib/site-time";
+
 type RelativeDateProps = {
   value: string | null;
+  timeZone?: string;
 };
 
-export function RelativeDate({ value }: RelativeDateProps) {
+export function RelativeDate({ value, timeZone }: RelativeDateProps) {
   if (!value) {
     return null;
   }
 
-  const absoluteLabel = formatAbsoluteDate(value);
+  const absoluteLabel = formatAbsoluteDate(value, timeZone);
   const displayLabel =
-    typeof window === "undefined" ? absoluteLabel : formatRelativeDate(value);
+    typeof window === "undefined" ? absoluteLabel : formatRelativeDate(value, timeZone);
 
   return (
     <time dateTime={value} title={absoluteLabel} suppressHydrationWarning>
@@ -20,11 +23,11 @@ export function RelativeDate({ value }: RelativeDateProps) {
   );
 }
 
-function formatRelativeDate(value: string) {
+function formatRelativeDate(value: string, timeZone?: string) {
   const time = new Date(value).getTime();
 
   if (Number.isNaN(time)) {
-    return formatAbsoluteDate(value);
+    return formatAbsoluteDate(value, timeZone);
   }
 
   const diffInDays = Math.floor((Date.now() - time) / 86_400_000);
@@ -45,19 +48,19 @@ function formatRelativeDate(value: string) {
     return `${diffInDays} days ago`;
   }
 
-  return formatAbsoluteDate(value);
+  return formatAbsoluteDate(value, timeZone);
 }
 
-function formatAbsoluteDate(value: string) {
+function formatAbsoluteDate(value: string, timeZone?: string) {
   const date = new Date(value);
 
   if (Number.isNaN(date.getTime())) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en", {
+  return formatInSiteTimeZone(date, "en", {
     year: "numeric",
     month: "short",
     day: "numeric",
-  }).format(date);
+  }, timeZone);
 }
