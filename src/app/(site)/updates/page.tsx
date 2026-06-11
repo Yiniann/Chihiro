@@ -322,7 +322,11 @@ async function UpdatesPageContent({
   );
 }
 
-function getDateGroupKey(value: string, timeZone: string) {
+function getDateGroupKey(value: string | null | undefined, timeZone: string) {
+  if (!value) {
+    return "unknown";
+  }
+
   return formatInSiteTimeZone(value, "en-CA", {
     year: "numeric",
     month: "2-digit",
