@@ -275,6 +275,16 @@ export function SiteCanvasBackground() {
         }
       }
 
+      if (isMobile && theme === "dark") {
+        const bottomShieldHeight = height * 0.22;
+        const bottomShield = context.createLinearGradient(0, height - bottomShieldHeight, 0, height);
+        bottomShield.addColorStop(0, rgba(backgroundTint, 0));
+        bottomShield.addColorStop(0.42, rgba(backgroundTint, 0.18));
+        bottomShield.addColorStop(1, rgba(backgroundTint, 0.42));
+        context.fillStyle = bottomShield;
+        context.fillRect(0, height - bottomShieldHeight, width, bottomShieldHeight);
+      }
+
       if (!noisePattern || lastTheme !== theme) {
         noisePattern = buildNoisePattern(theme);
         lastTheme = theme;

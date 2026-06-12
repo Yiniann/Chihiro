@@ -16,6 +16,26 @@ type ThemeTransitionOptions = {
 
 let themeTransitionTimers: number[] = [];
 
+function shouldAnimateThemeTransition() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    return false;
+  }
+
+  if (window.matchMedia("(max-width: 767px)").matches) {
+    return false;
+  }
+
+  if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+    return false;
+  }
+
+  return true;
+}
+
 export function getThemeMode(value?: string | null): ThemeMode {
   return value === "dark" ? "dark" : "light";
 }
@@ -107,7 +127,7 @@ export function setThemeModePreferenceWithTransition(
     return setThemeModePreference(nextPreference);
   }
 
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (!shouldAnimateThemeTransition()) {
     return setThemeModePreference(nextPreference);
   }
 

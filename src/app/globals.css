@@ -60,7 +60,7 @@ html[data-theme="dark"] {
   --background-rgb: 9 9 11;
   --background-tint-rgb: 12 14 20;
   --background: rgb(var(--background-rgb));
-  --safari-root-background-rgb: 12 14 20;
+  --safari-root-background-rgb: 15 18 26;
   --safari-root-background: rgb(var(--safari-root-background-rgb));
   --foreground: #ededed;
   --primary-rgb: 56 189 248;
@@ -83,8 +83,8 @@ html[data-theme="dark"] {
     ),
     linear-gradient(
       0deg,
-      rgb(var(--background-tint-rgb) / 0.98),
-      rgb(var(--background-tint-rgb) / 0.98)
+      rgb(var(--safari-root-background-rgb) / 1),
+      rgb(var(--safari-root-background-rgb) / 1)
     );
   --site-scrollbar-thumb: rgb(113 113 122 / 0.58);
   --footer-bg: color-mix(
@@ -1657,7 +1657,8 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
 }
 
 .site-shell-surface {
-  background: var(--site-shell-background);
+  background-color: var(--safari-root-background);
+  background-image: var(--site-shell-background);
 }
 
 .image-viewer {
