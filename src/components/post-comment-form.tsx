@@ -464,7 +464,7 @@ export function PostCommentForm({
       {showGuestFields ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-2">
-            <span className="text-[0.7rem] font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
               邮箱
             </span>
             <input
@@ -477,7 +477,7 @@ export function PostCommentForm({
             />
           </label>
           <label className="grid gap-2">
-            <span className="text-[0.7rem] font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
               昵称
             </span>
             <input
@@ -493,7 +493,7 @@ export function PostCommentForm({
         {user ? <UserAvatar user={user} /> : null}
         <label className="grid gap-2">
           {!user ? (
-            <span className="text-[0.7rem] font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
               留言
             </span>
           ) : null}
@@ -505,7 +505,7 @@ export function PostCommentForm({
               maxLength={commentMaxLength}
               required
               onChange={(event) => setBodyLength(event.currentTarget.value.length)}
-              className={`block w-full resize-none border-0 bg-transparent px-3 py-2 text-sm leading-7 text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-600 ${
+              className={`site-body block w-full resize-none border-0 bg-transparent px-3 py-2 text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-600 ${
                 compact ? "min-h-20" : "min-h-28"
               }`}
               placeholder={placeholder}
@@ -515,7 +515,7 @@ export function PostCommentForm({
                 isMobile ? "grid-cols-[1fr_auto]" : "grid-cols-[1fr_auto_1fr]"
               }`}
             >
-              <div className="flex items-center gap-3 text-xs text-primary/80 dark:text-primary/75">
+              <div className="site-eyebrow flex items-center gap-3 text-primary/80 dark:text-primary/75">
                 <EmojiInsertPopover onSelect={insertText} />
                 <CommentInsertPopover
                   label={stableKaomojiTriggerLabel}
@@ -526,12 +526,12 @@ export function PostCommentForm({
                 />
               </div>
               {isMobile ? null : (
-                <span className="justify-self-center text-xs text-primary/80 dark:text-primary/75">
+                <span className="site-eyebrow justify-self-center text-primary/80 dark:text-primary/75">
                   支持 Markdown / GFM
                 </span>
               )}
               <div className="flex items-center justify-end gap-3 justify-self-end">
-                <span className="text-xs text-zinc-400 dark:text-zinc-500">
+                <span className="site-eyebrow text-zinc-400 dark:text-zinc-500">
                   {bodyLength}/{commentMaxLength}
                 </span>
                 <SubmitButton label={submitLabel} />
@@ -564,7 +564,7 @@ function EmojiInsertPopover({ onSelect }: { onSelect: (value: string) => void })
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/95 p-0 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.9)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.44)]"
+        className="w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 p-0 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
       >
         <EmojiPicker
           onEmojiClick={(emojiData: EmojiClickData) => onSelect(emojiData.emoji)}
@@ -608,7 +608,7 @@ function CommentInsertPopover({
       <PopoverContent
         align="start"
         sideOffset={8}
-        className={`${widthClassName} rounded-2xl border border-zinc-200/80 bg-white/95 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-zinc-800/70 dark:bg-[rgba(10,10,14,0.9)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.44)]`}
+        className={`${widthClassName} rounded-2xl border border-zinc-200/80 bg-white/80 p-2 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]`}
       >
         <div className="grid h-[24rem] grid-cols-4 gap-1 overflow-y-auto">
           {items.map((item) => (
@@ -616,7 +616,7 @@ function CommentInsertPopover({
               key={item}
               type="button"
               onClick={() => onSelect(item)}
-              className={`flex min-h-10 min-w-0 items-center justify-center whitespace-nowrap rounded-xl px-3 py-2 text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800/80 ${itemClassName}`}
+              className={`flex min-h-10 min-w-0 items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800/80 ${itemClassName}`}
             >
               {item}
             </button>

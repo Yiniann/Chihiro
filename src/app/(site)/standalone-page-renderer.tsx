@@ -100,14 +100,14 @@ export async function StandalonePageRenderer({ slug }: { slug: string }) {
       {highlightedContentHtml ? (
         <div
           data-reading-progress-root
-          className="reading-copy space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+          className="reading-copy site-body space-y-6 text-zinc-800 dark:text-zinc-200"
           suppressHydrationWarning
           dangerouslySetInnerHTML={{ __html: pageContentHtml }}
         />
       ) : (
         <div
           data-reading-progress-root
-          className="reading-copy space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+          className="reading-copy site-body space-y-6 text-zinc-800 dark:text-zinc-200"
         >
           <p>暂无内容。</p>
         </div>

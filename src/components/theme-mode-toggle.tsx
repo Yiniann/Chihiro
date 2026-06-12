@@ -118,7 +118,7 @@ export function ThemeModeToggle({
             setPreference(nextState.preference);
             setMode(nextState.mode);
           }}
-          className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
+          className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "light"
               ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
@@ -136,7 +136,7 @@ export function ThemeModeToggle({
             setPreference(nextState.preference);
             setMode(nextState.mode);
           }}
-          className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
+          className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "dark"
               ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
@@ -148,7 +148,7 @@ export function ThemeModeToggle({
         <button
           type="button"
           onClick={(event) => handleFollowSystem(event.currentTarget)}
-          className={`flex min-h-14 items-center justify-center gap-2 rounded-[1.1rem] border px-3 py-3 text-xs font-medium transition ${
+          className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "system"
               ? "border-primary/20 bg-primary/10 text-primary"
               : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
@@ -205,7 +205,7 @@ export function ThemeModeToggle({
             }`}
           />
           <div
-            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-[1rem] border border-zinc-200/80 bg-white/95 p-3 shadow-[0_14px_40px_rgba(24,24,27,0.12)] backdrop-blur-xl dark:border-white/18 dark:bg-[rgba(255,255,255,0.14)] dark:shadow-[0_18px_50px_rgba(2,6,23,0.08)] ${
+            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-md border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] ${
               hintPlacement === "top" ? "bottom-[calc(100%+0.7rem)]" : "top-[calc(100%+0.7rem)]"
             }`}
           >

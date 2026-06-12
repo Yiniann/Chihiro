@@ -60,7 +60,7 @@ html[data-theme="dark"] {
   --background-rgb: 9 9 11;
   --background-tint-rgb: 12 14 20;
   --background: rgb(var(--background-rgb));
-  --safari-root-background-rgb: 15 18 26;
+  --safari-root-background-rgb: 9 9 11;
   --safari-root-background: rgb(var(--safari-root-background-rgb));
   --foreground: #ededed;
   --primary-rgb: 56 189 248;
@@ -260,14 +260,69 @@ html[data-theme-transition-ready="true"] body * {
 .updates-copy {
   font-family: var(--font-sans);
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 400;
   letter-spacing: 0;
+  line-height: 1.55;
+}
+
+.site-eyebrow {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.site-meta {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.site-body {
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.site-lead {
+  font-size: 1.125rem;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.site-title-hero {
+  font-size: 2.25rem;
+  line-height: 1.1;
+  font-weight: 500;
+}
+
+.site-title-page {
+  font-size: 1.875rem;
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+.site-title-h1 {
+  font-size: 1.875rem;
+  line-height: 1.15;
+  font-weight: 500;
+}
+
+.site-title-h2 {
+  font-size: 1.5rem;
+  line-height: 1.2;
+  font-weight: 500;
+}
+
+.site-title-h3 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 500;
 }
 
 .home-feed-eyebrow {
-  font-size: 0.875rem !important;
-  line-height: 1.5 !important;
-  font-weight: 500 !important;
+  font-size: 0.75rem !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
   letter-spacing: 0.14em !important;
 }
 
@@ -276,21 +331,21 @@ html[data-theme-transition-ready="true"] body * {
 .home-feed-date {
   font-size: 0.875rem !important;
   line-height: 1.5 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
 }
 
 .home-feed-item-title {
-  font-size: 0.875rem !important;
+  font-size: 1rem !important;
   line-height: 1.5 !important;
-  font-weight: 500 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
 }
 
 .home-feed-update-content {
-  font-size: 0.875rem !important;
-  line-height: 1.8 !important;
-  font-weight: 500 !important;
+  font-size: 1rem !important;
+  line-height: 1.55 !important;
+  font-weight: 400 !important;
   letter-spacing: 0 !important;
 }
 
@@ -343,8 +398,8 @@ html[data-theme-transition-ready="true"] body * {
   scroll-margin-top: 7rem;
   margin-top: 2.5rem;
   font-size: 1.875rem;
-  line-height: 1.2;
-  font-weight: 600;
+  line-height: 1.15;
+  font-weight: 500;
   letter-spacing: -0.025em;
 }
 
@@ -353,8 +408,8 @@ html[data-theme-transition-ready="true"] body * {
   scroll-margin-top: 7rem;
   margin-top: 2rem;
   font-size: 1.5rem;
-  line-height: 1.3;
-  font-weight: 600;
+  line-height: 1.2;
+  font-weight: 500;
   letter-spacing: -0.025em;
 }
 
@@ -363,8 +418,8 @@ html[data-theme-transition-ready="true"] body * {
   scroll-margin-top: 7rem;
   margin-top: 1.5rem;
   font-size: 1.25rem;
-  line-height: 1.4;
-  font-weight: 600;
+  line-height: 1.3;
+  font-weight: 500;
   letter-spacing: -0.02em;
 }
 
@@ -1275,7 +1330,7 @@ html[data-theme="dark"] .content-gallery__nav-button:hover {
   margin-bottom: 1rem;
   overflow: hidden;
   border: 1px solid rgb(208 215 222);
-  border-radius: 0.9rem;
+  border-radius: 0.375rem;
   background: rgb(246 248 250);
 }
 
@@ -1283,7 +1338,7 @@ html[data-theme="dark"] .content-gallery__nav-button:hover {
 .tiptap-editor .code-block-shell pre {
   margin: 0 1rem 1rem;
   border: 0;
-  border-radius: 0.55rem;
+  border-radius: 0.375rem;
   background: rgb(255 255 255 / 0.46);
   padding: 0;
 }
@@ -1315,7 +1370,7 @@ html[data-theme="dark"] .content-gallery__nav-button:hover {
   flex-shrink: 0;
   gap: 0.35rem;
   border: 0;
-  border-radius: 0.35rem;
+  border-radius: 0.375rem;
   background: transparent;
   padding: 0.2rem 0.55rem;
   color: rgb(31 35 40);

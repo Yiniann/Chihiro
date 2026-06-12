@@ -36,15 +36,15 @@ export default async function FriendsPage() {
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <section className="pb-8">
         <div>
-          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+          <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
             {section.eyebrow}
           </p>
-          <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
             <span>{section.title}</span>
-            <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+            <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
               ·
             </span>
-            <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+            <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
               朋友们
             </span>
           </h1>
@@ -54,9 +54,9 @@ export default async function FriendsPage() {
       {links.length > 0 ? (
         <FriendLinkPool links={links} />
       ) : (
-        <section className="mt-10 rounded-[2rem] border border-dashed border-zinc-300/80 px-8 py-14 text-center dark:border-zinc-700/80">
-          <p className="text-lg font-medium text-zinc-950 dark:text-zinc-50">暂时还没有朋友来访</p>
-          <p className="mt-3 text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+        <section className="mt-10 rounded-2xl border border-zinc-200/80 bg-white/80 px-8 py-14 text-center shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+          <p className="site-title-h3 text-zinc-950 dark:text-zinc-50">暂时还没有朋友来访</p>
+          <p className="site-body mt-3 text-zinc-500 dark:text-zinc-400">
             不过没关系，风会带来消息，路也会通向新的名字。
           </p>
         </section>
@@ -65,10 +65,10 @@ export default async function FriendsPage() {
       <section className="mt-12 grid gap-5 px-0 py-0">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="grid gap-2">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-primary/75">
+            <p className="site-eyebrow uppercase tracking-[0.24em] text-primary/75">
               Link Request
             </p>
-            <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            <h2 className="site-title-h2 tracking-tight text-zinc-950 dark:text-zinc-50">
               友链申请说明
             </h2>
           </div>
@@ -76,7 +76,7 @@ export default async function FriendsPage() {
           <FriendLinkApplicationDialog />
         </div>
 
-        <div className="grid gap-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+        <div className="site-body grid gap-3 text-zinc-600 dark:text-zinc-300">
           <p>
             如果你也想把名字留在这里，欢迎带着你的网站来交换友链。
           </p>
@@ -92,8 +92,8 @@ export default async function FriendsPage() {
         </div>
 
         <div className="grid gap-4">
-          <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">本站信息</p>
-          <div className="grid gap-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+          <p className="site-meta font-medium text-zinc-950 dark:text-zinc-50">本站信息</p>
+          <div className="site-body grid gap-3 text-zinc-600 dark:text-zinc-300">
             <p>
               <span className="text-zinc-400 dark:text-zinc-500">名称：</span>
               {resolvedSiteSettings.siteName}

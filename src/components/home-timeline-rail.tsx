@@ -252,7 +252,7 @@ export function HomeTimelineRail({
               onMouseEnter={clearCloseTimeout}
               onMouseLeave={scheduleClose}
             >
-              <div className="w-max max-w-[24rem] rounded-xl border border-zinc-200/80 bg-white/95 px-3 py-2.5 text-left shadow-[0_18px_60px_rgba(24,24,27,0.12)] backdrop-blur-sm dark:border-zinc-800/80 dark:bg-zinc-950/95 dark:shadow-[0_20px_70px_rgba(0,0,0,0.42)]">
+              <div className="w-max max-w-[24rem] rounded-md border border-zinc-200/80 bg-white/80 px-3 py-2.5 text-left shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
                 <div className="grid gap-1">
                   {clusters[activeIndex].items.map((item) => (
                     <h3

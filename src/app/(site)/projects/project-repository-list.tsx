@@ -37,7 +37,7 @@ export function ProjectRepositoryList({
   return (
     <section className="grid gap-7">
       {showHeading ? (
-        <h2 className="text-3xl font-semibold text-zinc-950 dark:text-zinc-50">Projects</h2>
+        <h2 className="site-title-h1 text-zinc-950 dark:text-zinc-50">Projects</h2>
       ) : null}
 
       <div className="relative">
@@ -81,7 +81,7 @@ function RepositoryCard({ project }: { project: GitHubProject }) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-3">
-              <h3 className="text-xl font-semibold text-primary transition group-hover:opacity-80">
+              <h3 className="site-title-h3 text-primary transition group-hover:opacity-80">
                 {project.title}
               </h3>
               {project.isArchived ? (

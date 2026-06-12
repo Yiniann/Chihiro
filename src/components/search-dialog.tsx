@@ -137,7 +137,7 @@ export function SearchDialog({
                               key={`${item.id}-${item.href}-${index}`}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="rounded-[1.1rem] px-3 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                              className="rounded-md px-3 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
                             >
                               <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
                                 <span>{item.overline}</span>
@@ -162,12 +162,12 @@ export function SearchDialog({
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-[1.1rem] px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className="rounded-md px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
                           {emptyState}
                         </div>
                       )
                     ) : (
-                      <div className="rounded-[1.1rem] px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className="rounded-md px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
                         {idleState}
                       </div>
                     )}

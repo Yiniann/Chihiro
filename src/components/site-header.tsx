@@ -492,7 +492,7 @@ export function SiteHeader({
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="absolute left-1/2 top-[calc(100%+0.75rem)] z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2"
                 >
-                  <div className="rounded-[1.5rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+                  <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
                     {renderMegaNavContent(featuredItem.href, {
                       postCategories,
                       recentArchiveItems,
@@ -555,8 +555,8 @@ export function SiteHeader({
                       aria-hidden="true"
                       className="absolute right-0 top-0 h-2.5 w-64 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                     />
-                    <div className="rounded-[1.2rem] border border-zinc-200/80 bg-white/92 p-2 shadow-[0_18px_50px_rgba(24,24,27,0.14)] backdrop-blur-xl dark:border-white/18 dark:bg-[rgba(255,255,255,0.12)] dark:shadow-[0_20px_50px_rgba(2,6,23,0.08)]">
-                      <div className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5">
+                    <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-2 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+                      <div className="flex items-center gap-3 rounded-md px-3 py-2.5">
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
                           <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
                         </div>
@@ -576,7 +576,7 @@ export function SiteHeader({
                           href="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+                          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
                         >
                           <LayoutDashboard className="h-4 w-4 shrink-0" />
                           <span>控制面板</span>
@@ -587,7 +587,7 @@ export function SiteHeader({
                           type="submit"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex w-full items-center gap-3 rounded-[0.95rem] px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+                          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
                         >
                           <LogOut className="h-4 w-4 shrink-0" />
                           <span>退出登录</span>
@@ -635,7 +635,7 @@ export function SiteHeader({
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="pointer-events-auto mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
           >
-            <div className="rounded-[1.6rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+            <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
               <nav className="grid gap-2">
                 {displayNavItems.map((item) => {
                   const active = isActivePath(
@@ -651,7 +651,7 @@ export function SiteHeader({
                   return (
                     <div
                       key={item.href}
-                        className={`rounded-[1.1rem] transition ${
+                        className={`rounded-md transition ${
                           active
                             ? "bg-primary/8 dark:bg-white/10"
                             : "bg-transparent"
@@ -670,7 +670,7 @@ export function SiteHeader({
                             setIsMobileNavOpen(false);
                             setExpandedMobileHref(null);
                           }}
-                          className="flex min-w-0 flex-1 items-center gap-3 rounded-[0.95rem] px-1.5 py-1 transition hover:bg-transparent dark:hover:bg-transparent"
+                          className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1.5 py-1 transition hover:bg-transparent dark:hover:bg-transparent"
                           >
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/70 text-zinc-600 dark:bg-white/8 dark:text-zinc-200">
                             <Icon className="h-4 w-4" />
@@ -732,9 +732,6 @@ export function SiteHeader({
                   );
                 })}
               </nav>
-              <div className="mt-3">
-                <ThemeModeToggle inline />
-              </div>
             </div>
           </motion.div>
         ) : null}
@@ -867,44 +864,41 @@ function renderMegaNavContent(
       );
     case "/timeline":
       return (
-        <div className="grid gap-5 px-1 py-1">
-          <div className="min-w-0">
-            <div className="mb-2.5 flex items-center justify-between gap-3">
-              <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                timeline
-              </p>
+        <MegaNavSection eyebrow="Timeline">
+          <div className="grid gap-5">
+            <div className="min-w-0">
+              <div className="grid gap-1">
+                {options.recentArchiveItems.map((item) => (
+                  <MegaNavRecentEntry
+                    key={`${item.kind}-${item.id}`}
+                    href={item.href}
+                    title={item.title}
+                    categoryLabel={item.categoryLabel}
+                    kind={item.kind}
+                    dateValue={item.publishedAt}
+                    timeZone={options.siteTimeZone}
+                    onNavigate={options.onNavigate}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="grid gap-1">
-              {options.recentArchiveItems.map((item) => (
-                <MegaNavRecentEntry
-                  key={`${item.kind}-${item.id}`}
-                  href={item.href}
-                  title={item.title}
-                  categoryLabel={item.categoryLabel}
-                  kind={item.kind}
-                  dateValue={item.publishedAt}
-                  timeZone={options.siteTimeZone}
-                  onNavigate={options.onNavigate}
-                />
-              ))}
-            </div>
-          </div>
 
-          <div className="grid gap-2 border-t border-zinc-200/70 pt-3 sm:grid-cols-2 dark:border-zinc-800/80">
-            <MegaNavLinkCard
-              href="/timeline?type=posts"
-              title="篇章"
-              eyebrow="Posts"
-              onNavigate={options.onNavigate}
-            />
-            <MegaNavLinkCard
-              href="/timeline?type=updates"
-              title="足迹"
-              eyebrow="Updates"
-              onNavigate={options.onNavigate}
-            />
+            <div className="grid gap-2 border-t border-zinc-200/70 pt-3 sm:grid-cols-2 dark:border-zinc-800/80">
+              <MegaNavLinkCard
+                href="/timeline?type=posts"
+                title="篇章"
+                eyebrow="Posts"
+                onNavigate={options.onNavigate}
+              />
+              <MegaNavLinkCard
+                href="/timeline?type=updates"
+                title="足迹"
+                eyebrow="Updates"
+                onNavigate={options.onNavigate}
+              />
+            </div>
           </div>
-        </div>
+        </MegaNavSection>
       );
     case "/more":
       return (
@@ -1039,14 +1033,14 @@ function MegaNavLinkCard({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group rounded-[1rem] px-2 py-2.5 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
+      className="group rounded-md px-2 py-2.5 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[0.68rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+          <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             {eyebrow}
           </p>
-          <span className="mt-2 block text-sm font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="site-meta mt-2 block font-medium text-zinc-900 dark:text-zinc-100">
             {title}
           </span>
         </div>
@@ -1091,7 +1085,7 @@ function PostMegaNavContent({
               onMouseDown={(event) => event.preventDefault()}
               onMouseEnter={() => onHoverPostCategory(category.slug)}
               onFocus={() => onHoverPostCategory(category.slug)}
-              className={`flex items-center justify-between rounded-[0.8rem] px-2 py-1.5 text-left text-[0.78rem] transition-colors ${
+              className={`site-eyebrow flex items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors ${
                 active
                   ? "text-primary"
                   : "text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-transparent dark:hover:text-zinc-50"
@@ -1112,13 +1106,13 @@ function PostMegaNavContent({
 
       <motion.div layout className="min-w-0 self-start border-l border-zinc-200/60 pl-4 dark:border-white/10">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+          <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
             {activeCategory.label}
           </p>
           <Link
             href={activeCategory.href}
             onClick={onNavigate}
-            className="text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+            className="site-eyebrow text-zinc-500 transition hover:text-primary dark:text-zinc-400"
           >
             View all
           </Link>
@@ -1193,7 +1187,7 @@ function MegaNavSection({
 }) {
   return (
     <section className="px-1 py-1">
-      <p className="mb-2.5 text-[0.68rem] uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+      <p className="site-eyebrow mb-2.5 uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
         {eyebrow}
       </p>
       {children}
@@ -1214,9 +1208,9 @@ function MegaNavArticleLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group block rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
+      className="group block rounded-md px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
-      <p className="text-sm font-medium text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100">
+      <p className="site-meta font-medium text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100">
         {title}
       </p>
     </Link>
@@ -1225,7 +1219,7 @@ function MegaNavArticleLink({
 
 function MegaNavEmptyState({ text }: { text: string }) {
   return (
-    <div className="px-1 py-1 text-sm text-zinc-400 dark:text-zinc-500">
+    <div className="site-meta px-1 py-1 text-zinc-400 dark:text-zinc-500">
       {text}
     </div>
   );
@@ -1233,7 +1227,7 @@ function MegaNavEmptyState({ text }: { text: string }) {
 
 function MobileNavEmptyState({ text }: { text: string }) {
   return (
-    <div className="px-1 py-1 text-sm text-zinc-400 dark:text-zinc-500">
+    <div className="site-meta px-1 py-1 text-zinc-400 dark:text-zinc-500">
       {text}
     </div>
   );
@@ -1262,25 +1256,25 @@ function MegaNavRecentEntry({
     <Link
       href={href}
       onClick={onNavigate}
-      className="group rounded-[0.95rem] px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
+      className="group rounded-md px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {!compact && kind ? (
-            <span className="text-[0.68rem] font-medium tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
               {kind}
             </span>
           ) : null}
-          <p className={`${compact ? "text-sm" : "mt-1 text-sm"} font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100`}>
+          <p className={`${compact ? "site-meta" : "site-meta mt-1"} font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100`}>
             {title}
           </p>
         </div>
-        <span className="shrink-0 text-xs text-zinc-400 dark:text-zinc-500">
+        <span className="site-eyebrow shrink-0 text-zinc-400 dark:text-zinc-500">
           <RelativeDate value={dateValue} timeZone={timeZone} />
         </span>
       </div>
       {!compact && categoryLabel && kind !== "足迹" ? (
-        <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">{categoryLabel}</p>
+        <p className="site-eyebrow mt-1 text-zinc-500 dark:text-zinc-400">{categoryLabel}</p>
       ) : null}
     </Link>
   );

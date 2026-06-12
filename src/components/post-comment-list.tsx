@@ -42,7 +42,7 @@ export function PostCommentList({
 
   if (comments.length === 0) {
     return (
-      <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+      <p className="site-body text-zinc-500 dark:text-zinc-400">
         还没有公开评论。
       </p>
     );
@@ -51,10 +51,10 @@ export function PostCommentList({
   return (
     <div className="grid gap-4">
       <div className="flex items-center justify-between gap-4">
-        <p className="text-sm font-medium text-zinc-950 dark:text-zinc-50">
+        <p className="site-meta font-medium text-zinc-950 dark:text-zinc-50">
           共 {totalComments} 条评论
         </p>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="site-meta flex items-center gap-3">
           <button
             type="button"
             onClick={() => setSortOrder("latest")}
@@ -200,7 +200,7 @@ function CommentItem({
 
 function CommentBody({ body }: { body: string }) {
   return (
-    <div className="mt-2 overflow-x-auto text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+    <div className="site-body mt-2 overflow-x-auto text-zinc-600 dark:text-zinc-300">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         skipHtml

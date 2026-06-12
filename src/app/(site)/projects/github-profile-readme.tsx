@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 
 export function GitHubProfileReadme({ markdown }: { markdown: string }) {
   return (
-    <div className="mt-6 overflow-x-auto text-sm leading-7 text-zinc-700 dark:text-zinc-300 sm:text-base">
+    <div className="reading-copy site-body mt-6 overflow-x-auto text-zinc-700 dark:text-zinc-300">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         skipHtml
@@ -47,7 +47,7 @@ export function GitHubProfileReadme({ markdown }: { markdown: string }) {
 
             if (isBlock) {
               return (
-                <code className="block whitespace-pre overflow-x-auto font-mono text-[13px] leading-6 text-zinc-800 dark:text-zinc-100 sm:text-sm">
+                <code className="block whitespace-pre overflow-x-auto font-mono text-sm leading-6 text-zinc-800 dark:text-zinc-100">
                   {children}
                 </code>
               );
@@ -60,7 +60,7 @@ export function GitHubProfileReadme({ markdown }: { markdown: string }) {
             );
           },
           pre: ({ children }) => (
-            <pre className="my-3 overflow-x-auto rounded-xl bg-zinc-100 px-4 py-3 dark:bg-zinc-950">
+            <pre className="my-3 overflow-x-auto rounded-md bg-zinc-100 px-4 py-3 dark:bg-zinc-950">
               {children}
             </pre>
           ),
@@ -72,7 +72,7 @@ export function GitHubProfileReadme({ markdown }: { markdown: string }) {
           ul: ({ children }) => <ul className="my-3 list-disc space-y-1 pl-5">{children}</ul>,
           ol: ({ children }) => <ol className="my-3 list-decimal space-y-1 pl-5">{children}</ol>,
           table: ({ children }) => (
-            <table className="my-3 min-w-full border-collapse text-left text-sm">{children}</table>
+            <table className="site-meta my-3 min-w-full border-collapse text-left">{children}</table>
           ),
           th: ({ children }) => (
             <th className="border border-zinc-200 px-3 py-2 font-semibold dark:border-zinc-800">

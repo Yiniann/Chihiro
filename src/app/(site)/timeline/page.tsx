@@ -44,15 +44,15 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
-      <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+      <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
         Timeline
       </p>
-      <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+      <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
         <span>拾光</span>
-        <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+        <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
           ·
         </span>
-        <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+        <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
           时光机
         </span>
       </h1>
@@ -97,7 +97,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
           <span className="text-7xl font-light leading-none tracking-[-0.06em] sm:text-8xl">
             {items.length}
           </span>
-          <span className="pb-2 text-2xl font-medium tracking-tight sm:text-3xl">
+          <span className="site-title-h2 pb-2 tracking-tight">
             pieces, and the journey goes on
           </span>
         </div>
@@ -120,7 +120,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
                 <Link
                   key={item.value}
                   href={getTimelinePath({ type: item.value })}
-                  className={`px-1 py-1 text-sm font-medium transition ${
+                  className={`site-meta px-1 py-1 font-medium transition ${
                     active
                       ? "text-primary"
                       : "text-zinc-500 hover:text-primary dark:text-zinc-400"

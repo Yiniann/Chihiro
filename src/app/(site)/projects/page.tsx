@@ -62,10 +62,10 @@ function UnboundProjectsPage() {
         </div>
 
         <div className="grid gap-3">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
+          <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
             GitHub source
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-4xl">
+          <h1 className="site-title-page tracking-tight text-zinc-950 dark:text-zinc-50">
             项目页还没有绑定
           </h1>
         </div>
@@ -99,10 +99,10 @@ function GitHubProfileCard({
           ?
         </div>
         <div className="grid gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-h2 tracking-tight text-zinc-950 dark:text-zinc-50">
             GitHub 资料不可用
           </h1>
-          <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+          <p className="site-body text-zinc-500 dark:text-zinc-400">
             暂时没有读取到这个用户的公开资料。
           </p>
         </div>
@@ -123,17 +123,17 @@ function GitHubProfileCard({
       />
 
       <div>
-        <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-h1 tracking-tight text-zinc-950 dark:text-zinc-50">
           {displayName}
         </h1>
-        <p className="mt-1 text-xl text-zinc-500 dark:text-zinc-400">{login}</p>
+        <p className="site-lead mt-1 text-zinc-500 dark:text-zinc-400">{login}</p>
       </div>
 
       {profile?.bio ? (
-        <p className="text-sm leading-7 text-zinc-700 dark:text-zinc-300">{profile.bio}</p>
+        <p className="site-body text-zinc-700 dark:text-zinc-300">{profile.bio}</p>
       ) : null}
 
-      <div className="grid gap-3 text-sm text-zinc-600 dark:text-zinc-300">
+      <div className="site-meta grid gap-3 text-zinc-600 dark:text-zinc-300">
         <p className="inline-flex items-center gap-2">
           <Users className="h-4 w-4 text-zinc-400" />
           <span className="font-semibold text-zinc-950 dark:text-zinc-50">{profile.followers}</span>

@@ -41,9 +41,9 @@ export function GitHubProfileTabs({
 
       <div className="pt-6">
         {activeTab === "overview" ? (
-          <section className="rounded-md border border-zinc-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] sm:p-6">
+          <section className="rounded-2xl border border-zinc-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] sm:p-6">
             <div className="flex items-center justify-between gap-4">
-              <h1 className="truncate font-mono text-base font-semibold text-zinc-950 dark:text-zinc-50 sm:text-lg">
+              <h1 className="truncate font-mono text-base font-medium text-zinc-950 dark:text-zinc-50 sm:text-lg">
                 {readmeTitle}
               </h1>
               <Pencil className="h-5 w-5 shrink-0 text-zinc-400 dark:text-zinc-500" />
@@ -53,7 +53,7 @@ export function GitHubProfileTabs({
               <GitHubProfileReadme markdown={readmeMarkdown} />
             ) : (
               <div className="mt-6 border-t border-dashed border-zinc-200 pt-6 dark:border-zinc-800">
-                <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                <p className="site-body text-zinc-500 dark:text-zinc-400">
                   这个 GitHub 用户还没有公开的 Profile README。
                 </p>
               </div>
@@ -85,7 +85,7 @@ function TabButton({
       type="button"
       onClick={onClick}
       className={[
-        "inline-flex h-12 items-center gap-2 border-b-2 px-1 text-sm font-medium transition",
+        "site-meta inline-flex h-12 items-center gap-2 border-b-2 px-1 font-medium transition",
         active
           ? "border-primary text-zinc-950 dark:text-zinc-50"
           : "border-transparent text-zinc-500 hover:border-zinc-300 hover:text-zinc-950 dark:text-zinc-400 dark:hover:border-zinc-700 dark:hover:text-zinc-100",
@@ -95,7 +95,7 @@ function TabButton({
       <Icon className="h-4 w-4" />
       <span>{label}</span>
       {typeof count === "number" ? (
-        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
+        <span className="site-eyebrow rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">
           {count}
         </span>
       ) : null}

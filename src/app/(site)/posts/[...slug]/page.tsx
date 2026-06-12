@@ -192,7 +192,7 @@ export default async function PostPage({ params }: PostPageProps) {
             ) : null}
 
             <StaggerRevealItem offset={20}>
-              <h1 className="text-center text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+              <h1 className="site-title-page text-center tracking-tight text-zinc-950 dark:text-zinc-50">
                 {post.title}
               </h1>
             </StaggerRevealItem>
@@ -237,7 +237,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
             {post.summary ? (
               <StaggerRevealItem offset={18}>
-                <p className="reading-copy mt-6 text-lg leading-8 text-zinc-600 dark:text-zinc-300">
+                <p className="reading-copy site-lead mt-6 text-zinc-600 dark:text-zinc-300">
                   {post.summary}
                 </p>
               </StaggerRevealItem>
@@ -247,14 +247,14 @@ export default async function PostPage({ params }: PostPageProps) {
               {renderedContentHtml ? (
                 <div
                   data-reading-progress-root
-                  className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                  className="reading-copy site-body mt-10 space-y-6 text-zinc-800 dark:text-zinc-200"
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{ __html: postContentHtml }}
                 />
               ) : (
                 <div
                   data-reading-progress-root
-                  className="reading-copy mt-10 space-y-6 text-base leading-8 text-zinc-800 dark:text-zinc-200"
+                  className="reading-copy site-body mt-10 space-y-6 text-zinc-800 dark:text-zinc-200"
                 >
                   <p>暂无内容。</p>
                 </div>

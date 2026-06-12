@@ -38,15 +38,15 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <header>
-        <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+        <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
           posts
         </p>
-        <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
           <span>篇章</span>
-          <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+          <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
             ·
           </span>
-          <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+          <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
             所有文章
           </span>
         </h1>
@@ -223,17 +223,17 @@ async function PostsPageContent({
           {publishedPosts.length > 0 ? (
             paginatedPosts.map((post) => (
               <StaggerRevealItem key={post.id}>
-                <article className="group relative -mx-3 rounded-lg border-b border-zinc-200/80 px-3 pb-6 pt-3 last:border-b-0 dark:border-zinc-800/80">
+                <article className="group relative -mx-3 rounded-md border-b border-zinc-200/80 px-3 pb-6 pt-3 last:border-b-0 dark:border-zinc-800/80">
                   <Link
                     href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}
                     aria-label={`Open ${post.title}`}
-                    className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="absolute inset-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   />
                   <div className="pointer-events-none relative">
-                    <h2 className="text-2xl font-semibold tracking-tight text-zinc-950 transition group-hover:text-primary dark:text-zinc-50">
+                    <h2 className="site-title-h2 tracking-tight text-zinc-950 transition group-hover:text-primary dark:text-zinc-50">
                       {post.title}
                     </h2>
-                    <p className="reading-copy mt-3 text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+                    <p className="reading-copy site-meta mt-3 text-zinc-600 dark:text-zinc-300">
                       {post.summary ?? "No summary yet."}
                     </p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">

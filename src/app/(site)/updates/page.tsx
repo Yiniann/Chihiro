@@ -39,15 +39,15 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
       <header>
         <div>
-          <p className="text-sm uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+          <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
             Updates
           </p>
-          <h1 className="mt-4 flex flex-wrap items-baseline gap-3 text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
             <span>足迹</span>
-            <span className="text-base font-medium tracking-normal text-zinc-400 dark:text-zinc-500">
+            <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
               ·
             </span>
-            <span className="text-base font-medium tracking-normal text-zinc-500 dark:text-zinc-400">
+            <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
               最近动态
             </span>
           </h1>
@@ -154,7 +154,7 @@ async function UpdatesPageContent({
         </div>
       </StaggerRevealItem>
 
-      <StaggerRevealItem className="mt-8 flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="site-meta mt-8 flex flex-wrap items-center justify-between gap-3 text-zinc-500 dark:text-zinc-400">
         <p>{updatesCountLabel}</p>
         <div className="flex flex-wrap items-center gap-3">
           {SORT_OPTIONS.map((option) => {
@@ -182,7 +182,7 @@ async function UpdatesPageContent({
           groups.map((group) => (
             <StaggerRevealItem key={group.year} className="space-y-6" offset={20}>
               <div className="flex items-center gap-4">
-                <h2 className="text-xl font-semibold tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+                <h2 className="site-title-h3 tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
                   {group.year}
                 </h2>
                 <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800/80" />
@@ -215,10 +215,10 @@ async function UpdatesPageContent({
                         <div className="min-w-[4.5rem]">
                           {showDateMarker ? (
                             <>
-                              <p className="text-[0.68rem] uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                              <p className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
                                 {formatFeedMonth(item.publishedAt, siteTimeZone)}
                               </p>
-                              <p className="mt-1 text-3xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                              <p className="site-title-h1 mt-1 tracking-tight text-zinc-900 dark:text-zinc-100">
                                 {formatFeedDay(item.publishedAt, siteTimeZone)}
                               </p>
                             </>
@@ -234,7 +234,7 @@ async function UpdatesPageContent({
                           ) : null}
                           {hasBodyContent && renderedContentHtml ? (
                             <div
-                              className="reading-copy updates-copy mt-3 max-w-3xl text-base leading-8 text-zinc-600 dark:text-zinc-300"
+                              className="reading-copy updates-copy site-body mt-3 max-w-3xl text-zinc-600 dark:text-zinc-300"
                               dangerouslySetInnerHTML={{ __html: updateContentHtml }}
                             />
                           ) : null}
@@ -246,7 +246,7 @@ async function UpdatesPageContent({
                             />
                           ) : null}
                           <div
-                            className={`flex items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400 ${
+                            className={`site-meta flex items-center justify-between gap-4 text-zinc-500 dark:text-zinc-400 ${
                               hasBodyContent || item.kind === "NOTE" ? "mt-3" : "mt-2"
                             }`}
                           >
@@ -262,13 +262,13 @@ async function UpdatesPageContent({
             </StaggerRevealItem>
           ))
         ) : (
-          <StaggerRevealItem className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+          <StaggerRevealItem className="site-meta border-b border-dashed border-zinc-200/80 pb-8 text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
             No updates matched this filter yet.
           </StaggerRevealItem>
         )}
       </StaggerReveal>
 
-      <StaggerRevealItem className="mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="site-meta mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-zinc-500 dark:text-zinc-400">
         <Link
           href={buildUpdatesHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
           aria-disabled={safeCurrentPage === 1}

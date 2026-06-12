@@ -40,14 +40,14 @@ export function UpdateKindPreviewCard({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
                 {kicker}
               </p>
-              <p className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-[1.35rem]">
+              <p className="site-title-h3 mt-1.5 tracking-tight text-zinc-950 dark:text-zinc-50">
                 {title}
               </p>
               {subtitle ? (
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+                <p className="site-meta mt-1 text-zinc-500 dark:text-zinc-400">
                   {subtitle}
                 </p>
               ) : null}
@@ -57,11 +57,11 @@ export function UpdateKindPreviewCard({
             ) : null}
           </div>
           {metadata.data.overview ? (
-            <p className="mt-2.5 text-sm leading-6 text-zinc-600 dark:text-zinc-300">{metadata.data.overview}</p>
+            <p className="site-meta mt-2.5 text-zinc-600 dark:text-zinc-300">{metadata.data.overview}</p>
           ) : null}
-          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="site-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 text-zinc-500 dark:text-zinc-400">
             {metadata.data.rating ? (
-              <span className="inline-flex items-center gap-2 text-base font-semibold text-zinc-800 dark:text-zinc-100">
+              <span className="inline-flex items-center gap-2 text-base font-medium text-zinc-800 dark:text-zinc-100">
                 <Film className="h-4 w-4" />
                 <span className="text-primary">{metadata.data.rating}</span>
               </span>
@@ -98,21 +98,21 @@ export function UpdateKindPreviewCard({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[0.72rem] uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
                 {metadata.data.format ?? "Music"} · {metadata.data.releaseYear ?? "Unknown"}
               </p>
-              <p className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-[1.35rem]">
+              <p className="site-title-h3 mt-1.5 tracking-tight text-zinc-950 dark:text-zinc-50">
                 {metadata.data.title || "未命名曲目"}
               </p>
               {metadata.data.artist ? (
-                <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">{metadata.data.artist}</p>
+                <p className="site-meta mt-1 text-zinc-500 dark:text-zinc-400">{metadata.data.artist}</p>
               ) : null}
             </div>
             {interactive ? (
               <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
             ) : null}
           </div>
-          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <div className="site-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-zinc-500 dark:text-zinc-400">
             {metadata.data.genres.length > 0 ? (
               <span className="inline-flex items-center gap-2">
                 <Disc3 className="h-4 w-4" />
@@ -148,22 +148,22 @@ export function UpdateKindPreviewCard({
         />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-lg font-semibold tracking-tight text-zinc-950 dark:text-zinc-50 sm:text-[1.35rem]">
+            <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
               {metadata.data.title || "未命名物品"}
             </p>
             {metadata.data.summary ? (
-              <p className="mt-2.5 max-w-3xl text-sm leading-6 text-zinc-600 dark:text-zinc-300">
+              <p className="site-meta mt-2.5 max-w-3xl text-zinc-600 dark:text-zinc-300">
                 {metadata.data.summary}
               </p>
             ) : null}
           </div>
           {href ? (
-            <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm text-zinc-600 transition group-hover:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-300 dark:group-hover:text-zinc-50">
+            <span className="site-meta inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-zinc-600 transition group-hover:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-300 dark:group-hover:text-zinc-50">
               查看全文
               <ArrowUpRight className="h-4 w-4" />
             </span>
           ) : (
-            <span className="inline-flex items-center gap-2 text-sm text-zinc-400 dark:text-zinc-500">
+            <span className="site-meta inline-flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
               <Package2 className="h-4 w-4" />
               详情页待接入
             </span>
@@ -246,7 +246,7 @@ function renderCardShell({
   children: React.ReactNode;
 }) {
   const classes = [
-    "group grid gap-3 rounded-[1.4rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
+    "group grid gap-3 rounded-2xl border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
     interactive ? "transition hover:border-zinc-300 hover:bg-white/90 dark:hover:border-white/20 dark:hover:bg-[rgba(255,255,255,0.08)]" : "",
     layoutClassName,
     className,
@@ -288,20 +288,20 @@ function PosterBlock({
 }) {
   if (imageUrl) {
     return (
-      <div className="relative min-h-[11rem] overflow-hidden rounded-[1.1rem] border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative min-h-[11rem] overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
         <img src={imageUrl} alt={title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );
   }
 
   return (
-    <div className={`relative min-h-[11rem] overflow-hidden rounded-[1.1rem] border ${getToneClasses(tone)}`}>
+    <div className={`relative min-h-[11rem] overflow-hidden rounded-md border ${getToneClasses(tone)}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_44%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.18))]" />
       <div className="relative flex h-full flex-col justify-between p-3.5">
-        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{kicker}</p>
+        <p className="site-eyebrow uppercase tracking-[0.22em] text-white/72">{kicker}</p>
         <div>
-          <p className="text-base font-semibold tracking-tight text-white">{title}</p>
-          <p className="mt-1 text-sm text-white/75">{subtitle}</p>
+          <p className="site-body font-medium tracking-tight text-white">{title}</p>
+          <p className="site-meta mt-1 text-white/75">{subtitle}</p>
         </div>
       </div>
     </div>
@@ -317,20 +317,20 @@ function SquareBlock(props: {
 }) {
   if (props.imageUrl) {
     return (
-      <div className="relative aspect-square overflow-hidden rounded-[1.1rem] border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative aspect-square overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
         <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );
   }
 
   return (
-    <div className={`relative aspect-square overflow-hidden rounded-[1.1rem] border ${getToneClasses(props.tone)}`}>
+    <div className={`relative aspect-square overflow-hidden rounded-md border ${getToneClasses(props.tone)}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_40%),linear-gradient(180deg,rgba(255,255,255,0.06),rgba(0,0,0,0.18))]" />
       <div className="relative flex h-full flex-col justify-between p-3.5">
-        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
+        <p className="site-eyebrow uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
         <div>
-          <p className="text-base font-semibold tracking-tight text-white">{props.title}</p>
-          <p className="mt-1 text-sm text-white/75">{props.subtitle}</p>
+          <p className="site-body font-medium tracking-tight text-white">{props.title}</p>
+          <p className="site-meta mt-1 text-white/75">{props.subtitle}</p>
         </div>
       </div>
     </div>
@@ -346,20 +346,20 @@ function BannerBlock(props: {
 }) {
   if (props.imageUrl) {
     return (
-      <div className="relative min-h-[9.5rem] overflow-hidden rounded-[1.15rem] border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative min-h-[9.5rem] overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
         <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );
   }
 
   return (
-    <div className={`relative min-h-[9.5rem] overflow-hidden rounded-[1.15rem] border ${getToneClasses(props.tone)}`}>
+    <div className={`relative min-h-[9.5rem] overflow-hidden rounded-md border ${getToneClasses(props.tone)}`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.46),transparent_40%),linear-gradient(135deg,rgba(255,255,255,0.08),rgba(0,0,0,0.18))]" />
       <div className="relative flex h-full flex-col justify-between p-4">
-        <p className="text-[0.68rem] uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
+        <p className="site-eyebrow uppercase tracking-[0.22em] text-white/72">{props.kicker}</p>
         <div>
-          <p className="text-xl font-semibold tracking-tight text-white">{props.title}</p>
-          <p className="mt-2 text-sm text-white/75">{props.subtitle}</p>
+          <p className="site-title-h3 tracking-tight text-white">{props.title}</p>
+          <p className="site-meta mt-2 text-white/75">{props.subtitle}</p>
         </div>
       </div>
     </div>

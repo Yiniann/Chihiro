@@ -28,7 +28,7 @@ export function HeroIntro({ intro, authorName }: HeroIntroProps) {
         return (
           <p
             key={index}
-            className={`hero-copy-body reading-copy ${marginClass} text-lg leading-9 text-zinc-600 dark:text-zinc-300 sm:text-xl`}
+            className={`hero-copy-body reading-copy site-lead ${marginClass} text-zinc-600 dark:text-zinc-300`}
           >
             {tokens.map((token, tokenIndex) => (
               <HeroIntroTokenNode key={tokenIndex} token={token} authorName={authorName} />
@@ -91,11 +91,14 @@ function HeroTypewriter({ text }: { text: string }) {
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      setVisibleCount(displayText.length);
-      return;
-    }
+      const frame = window.requestAnimationFrame(() => {
+        setVisibleCount(displayText.length);
+      });
 
-    setVisibleCount(0);
+      return () => {
+        window.cancelAnimationFrame(frame);
+      };
+    }
 
     const startDelayMs = 950;
     const totalDurationMs = 1350;
@@ -103,6 +106,9 @@ function HeroTypewriter({ text }: { text: string }) {
       Math.floor(totalDurationMs / Math.max(displayText.length, 1)),
       28,
     );
+    const resetFrame = window.requestAnimationFrame(() => {
+      setVisibleCount(0);
+    });
     let interval: number | null = null;
 
     const startTimer = window.setTimeout(() => {
@@ -127,6 +133,7 @@ function HeroTypewriter({ text }: { text: string }) {
     }, startDelayMs);
 
     return () => {
+      window.cancelAnimationFrame(resetFrame);
       window.clearTimeout(startTimer);
       if (interval !== null) {
         window.clearInterval(interval);

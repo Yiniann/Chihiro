@@ -99,11 +99,11 @@ export default async function HomePage() {
           </StaggerRevealItem>
 
           <StaggerRevealItem className="hero-copy max-w-3xl" offset={20}>
-            <h1 className="hero-copy-title text-4xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-100 sm:text-5xl lg:text-6xl">
+            <h1 className="hero-copy-title site-title-hero tracking-tight text-zinc-950 dark:text-zinc-100">
               {authorName}
             </h1>
             <HeroIntro intro={heroIntro} authorName={authorName} />
-            <p className="hero-copy-summary reading-copy mt-5 max-w-2xl text-base leading-8 text-zinc-500 dark:text-zinc-400">
+            <p className="hero-copy-summary reading-copy site-body mt-5 max-w-2xl text-zinc-500 dark:text-zinc-400">
               {summary}
             </p>
             {heroSocialLinks.length > 0 ? (
@@ -138,11 +138,11 @@ export default async function HomePage() {
                 <StaggerReveal className="grid gap-1" staggerChildren={0.06}>
                   {recentPosts.map((post) => (
                     <StaggerRevealItem key={post.id} offset={12}>
-                      <article className="group relative -mx-3 rounded-lg border-b border-zinc-200/80 px-3 py-4 last:border-b-0 dark:border-zinc-800/80">
+                      <article className="group relative -mx-3 rounded-md border-b border-zinc-200/80 px-3 py-4 last:border-b-0 dark:border-zinc-800/80">
                         <Link
                           href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}
                           aria-label={`Open ${post.title}`}
-                          className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                          className="absolute inset-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         />
                         <div className="pointer-events-none relative flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
                           <p className="home-feed-item-title min-w-0 flex-1 truncate whitespace-nowrap text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
@@ -172,7 +172,7 @@ export default async function HomePage() {
                   <Link
                     href={getUpdateAnchorPath({ updateId: latestUpdate.id, page: 1 })}
                     aria-label={`Open latest update ${latestUpdate.title}`}
-                    className="absolute inset-0 rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="absolute inset-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   />
                   {latestUpdateHasBodyContent && latestUpdateDisplayHtml ? (
                     <div className="grid gap-3">
@@ -200,7 +200,7 @@ export default async function HomePage() {
                         {latestUpdate.title}
                       </p>
                       {latestUpdateSummary ? (
-                        <p className="text-sm leading-7 text-zinc-500 dark:text-zinc-400">
+                        <p className="site-body text-zinc-500 dark:text-zinc-400">
                           {latestUpdateSummary}
                         </p>
                       ) : null}

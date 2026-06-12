@@ -29,16 +29,16 @@ export default async function ConfirmSubscriptionPage({
     <main className="mx-auto flex min-h-[calc(100dvh-12rem)] max-w-2xl items-center px-6 py-16 sm:px-10">
       <section className="grid gap-5">
         <div className="grid gap-2">
-          <p className="text-xs uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+          <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
             Subscription
           </p>
-          <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-page tracking-tight text-zinc-950 dark:text-zinc-50">
             {title}
           </h1>
-          <p className="text-base leading-8 text-zinc-600 dark:text-zinc-300">{description}</p>
+          <p className="site-body text-zinc-600 dark:text-zinc-300">{description}</p>
         </div>
 
-        <div className="flex justify-center text-sm">
+        <div className="site-meta flex justify-center">
           <Link
             href="/"
             className="inline-flex items-center justify-center text-base font-medium text-zinc-700 transition hover:text-zinc-950 dark:text-zinc-200 dark:hover:text-zinc-50"

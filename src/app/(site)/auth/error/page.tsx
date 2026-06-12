@@ -51,18 +51,18 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
   return (
     <main className="mx-auto flex min-h-[calc(100vh-14rem)] w-full max-w-2xl items-center px-6 py-16">
       <ClearLinkIntent />
-      <section className="w-full rounded-[2rem] border border-zinc-200/80 bg-white/80 p-8 shadow-[0_20px_70px_rgba(24,24,27,0.08)] backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <p className="text-[0.72rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+      <section className="w-full rounded-2xl border border-zinc-200/80 bg-white/80 p-8 shadow-[0_20px_70px_rgba(24,24,27,0.08)] backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
           Auth
         </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-page mt-3 tracking-tight text-zinc-950 dark:text-zinc-50">
           {copy.title}
         </h1>
-        <p className="mt-4 max-w-xl text-sm leading-7 text-zinc-600 dark:text-zinc-300">
+        <p className="site-body mt-4 max-w-xl text-zinc-600 dark:text-zinc-300">
           {copy.description}
         </p>
         {errorCode ? (
-          <p className="mt-3 text-xs text-zinc-400 dark:text-zinc-500">错误代码: {errorCode}</p>
+          <p className="site-meta mt-3 text-zinc-400 dark:text-zinc-500">错误代码: {errorCode}</p>
         ) : null}
         <div className="mt-8 flex flex-wrap gap-3">
           <Link

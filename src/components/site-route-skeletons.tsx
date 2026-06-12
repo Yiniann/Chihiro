@@ -251,7 +251,7 @@ export function TimelinePageContentSkeleton() {
   return (
     <div className="mt-6">
       <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-zinc-400 dark:text-zinc-500">
-        <SkeletonBlock className="h-18 w-28 rounded-[2rem]" />
+        <SkeletonBlock className="h-18 w-28 rounded-[1.75rem]" />
         <SkeletonBlock className="h-8 w-64 rounded-2xl" />
       </div>
 

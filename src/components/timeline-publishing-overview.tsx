@@ -147,10 +147,10 @@ export function TimelinePublishingOverview({
 
           <div className="grid min-w-0 flex-1 gap-5">
             <div className="grid gap-1">
-              <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
                 Annual Publishing
               </p>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta text-zinc-500 dark:text-zinc-400">
                 {selectedYear} 年 {trend.totalDays} 天内共发布 {formatAdminNumber(totalPublished)} 条
               </p>
             </div>
@@ -307,15 +307,15 @@ function TimelinePublishingDistribution({
     <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
       <div className="grid gap-3 md:min-w-[15rem]">
         <div className="grid gap-1">
-          <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
             发布结构
           </p>
-          <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+          <p className="site-title-h2 tracking-tight text-zinc-950 dark:text-zinc-50">
             {selectedYear} 年发布概况
           </p>
         </div>
 
-        <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-300">
+        <div className="site-meta grid gap-2 text-zinc-600 dark:text-zinc-300">
           {items.map((item) => {
             const copy =
               item.label === "鉴赏"
@@ -324,7 +324,7 @@ function TimelinePublishingDistribution({
 
             return <p key={item.label}>{copy}</p>;
           })}
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="site-meta text-zinc-500 dark:text-zinc-400">
             鉴赏统计包含影视、音乐与物品类动态。
           </p>
         </div>
@@ -334,11 +334,11 @@ function TimelinePublishingDistribution({
         <div className="relative h-[20rem] w-full max-w-[24rem]">
           <div className="absolute inset-x-0 top-0 flex justify-center text-center">
             <div className="flex flex-col items-center gap-1">
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
                 {topItem?.label}
               </p>
               {shouldShowCrossValue(topItem, totalValue) ? (
-                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
                   {renderCrossValue(topItem, totalValue)}
                 </p>
               ) : null}
@@ -347,11 +347,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-y-0 left-0 flex items-center text-right">
             <div className="flex flex-col items-end gap-1">
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
                 {leftItem?.label}
               </p>
               {shouldShowCrossValue(leftItem, totalValue) ? (
-                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
                   {renderCrossValue(leftItem, totalValue)}
                 </p>
               ) : null}
@@ -360,11 +360,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-y-0 right-0 flex items-center text-left">
             <div className="flex flex-col items-start gap-1">
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
                 {rightItem?.label}
               </p>
               {shouldShowCrossValue(rightItem, totalValue) ? (
-                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
                   {renderCrossValue(rightItem, totalValue)}
                 </p>
               ) : null}
@@ -373,11 +373,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-x-0 bottom-0 flex justify-center text-center">
             <div className="flex flex-col items-center gap-1">
-              <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
                 {bottomItem?.label}
               </p>
               {shouldShowCrossValue(bottomItem, totalValue) ? (
-                <p className="text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
                   {renderCrossValue(bottomItem, totalValue)}
                 </p>
               ) : null}
