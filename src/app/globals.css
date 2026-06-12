@@ -22,6 +22,11 @@
       rgb(var(--background-rgb) / 0.96),
       rgb(var(--background-tint-rgb) / 0.92)
     );
+  --site-shell-background: linear-gradient(
+    180deg,
+    rgb(var(--background-rgb) / 0.96),
+    rgb(var(--background-tint-rgb) / 0.92)
+  );
   --site-scrollbar-thumb: rgb(161 161 170 / 0.46);
   --footer-bg: color-mix(
     in srgb,
@@ -60,6 +65,11 @@ html[data-theme="dark"] {
       rgb(var(--background-rgb) / 0.98),
       rgb(var(--background-tint-rgb) / 0.96)
     );
+  --site-shell-background: linear-gradient(
+    180deg,
+    rgb(var(--background-rgb) / 0.98),
+    rgb(var(--background-tint-rgb) / 0.96)
+  );
   --site-scrollbar-thumb: rgb(113 113 122 / 0.58);
   --footer-bg: color-mix(
     in srgb,
@@ -1627,6 +1637,10 @@ html[data-theme="dark"] .content-gallery:not(.content-gallery--editor) .content-
 
 .site-footer-fade {
   background: linear-gradient(180deg, transparent, var(--footer-bg));
+}
+
+.site-shell-surface {
+  background: var(--site-shell-background);
 }
 
 .image-viewer {

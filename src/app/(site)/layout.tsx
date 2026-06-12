@@ -73,7 +73,7 @@ export default async function SiteLayout({
   } catch (error) {
     if (isPublicSiteUnavailableError(error)) {
       return (
-        <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+        <div className="site-shell-surface relative flex min-h-full flex-col text-zinc-950 dark:text-zinc-50">
           <SiteCanvasBackground />
           <div className="relative z-10 flex-1">
             <PublicSiteUnavailableScreen />
@@ -105,7 +105,7 @@ export default async function SiteLayout({
     (interactionSettings.hasGoogleClientSecret || Boolean(process.env.AUTH_GOOGLE_SECRET?.trim()));
 
   return (
-    <div className="relative flex min-h-full flex-col bg-zinc-50 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
+    <div className="site-shell-surface relative flex min-h-full flex-col text-zinc-950 dark:text-zinc-50">
       {siteLiveVisitorsEnabled ? <SitePresenceTracker /> : null}
       <SiteCanvasBackground />
       <DevBreakpointIndicator />
