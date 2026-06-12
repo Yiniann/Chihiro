@@ -73,6 +73,7 @@ export function SiteCanvasBackground() {
       const width = window.innerWidth;
       const height = window.innerHeight;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const shouldRenderGlow = width >= 640;
 
       canvas.width = Math.round(width * dpr);
       canvas.height = Math.round(height * dpr);
@@ -101,31 +102,33 @@ export function SiteCanvasBackground() {
       context.fillStyle = linearGradient;
       context.fillRect(0, 0, width, height);
 
-      const topGlow = context.createRadialGradient(
-        width / 2,
-        0,
-        0,
-        width / 2,
-        0,
-        width * 0.42,
-      );
-      topGlow.addColorStop(0, rgba(primary, theme === "dark" ? 0.16 : 0.14));
-      topGlow.addColorStop(1, rgba(primary, 0));
-      context.fillStyle = topGlow;
-      context.fillRect(0, 0, width, height);
+      if (shouldRenderGlow) {
+        const topGlow = context.createRadialGradient(
+          width / 2,
+          0,
+          0,
+          width / 2,
+          0,
+          width * 0.42,
+        );
+        topGlow.addColorStop(0, rgba(primary, theme === "dark" ? 0.16 : 0.14));
+        topGlow.addColorStop(1, rgba(primary, 0));
+        context.fillStyle = topGlow;
+        context.fillRect(0, 0, width, height);
 
-      const bottomGlow = context.createRadialGradient(
-        width / 2,
-        height,
-        0,
-        width / 2,
-        height,
-        width * 0.5,
-      );
-      bottomGlow.addColorStop(0, rgba(primary, theme === "dark" ? 0.1 : 0.12));
-      bottomGlow.addColorStop(1, rgba(primary, 0));
-      context.fillStyle = bottomGlow;
-      context.fillRect(0, 0, width, height);
+        const bottomGlow = context.createRadialGradient(
+          width / 2,
+          height,
+          0,
+          width / 2,
+          height,
+          width * 0.5,
+        );
+        bottomGlow.addColorStop(0, rgba(primary, theme === "dark" ? 0.1 : 0.12));
+        bottomGlow.addColorStop(1, rgba(primary, 0));
+        context.fillStyle = bottomGlow;
+        context.fillRect(0, 0, width, height);
+      }
 
       if (!noisePattern || lastTheme !== theme) {
         noisePattern = buildNoisePattern(theme);

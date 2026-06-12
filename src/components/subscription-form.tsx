@@ -1,11 +1,10 @@
 "use client";
 
-import { Check, Mail, X } from "lucide-react";
+import { Check, Mail } from "lucide-react";
 import type { ReactNode } from "react";
-import { motion } from "framer-motion";
 import { useActionState, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
 import { subscribeAction, type SubscribeState } from "@/app/(site)/subscribe/actions";
+import { DialogShell } from "@/components/dialog-shell";
 import { useToast } from "@/components/toast-provider";
 import { useDialogShake } from "@/components/use-dialog-shake";
 
@@ -86,89 +85,28 @@ export function SubscriptionDialog({
 }) {
   const { shakeControls, triggerShake } = useDialogShake();
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen || typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <motion.div
-      className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
-      onClick={triggerShake}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.18, ease: "easeOut" }}
+  return (
+    <DialogShell
+      open={isOpen}
+      onOpenChange={onClose}
+      title="订阅"
+      eyebrow="Newsletter"
+      description={`欢迎订阅 ${siteName}，信笺初成，纸鹤已随风穿过隧道，抵达君前。`}
+      maxWidthClassName="max-w-md"
+      panelClassName="bg-white/80 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm"
+      overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
+      closeOnOverlayClick={false}
+      onOverlayClick={triggerShake}
+      panelAnimationControls={shakeControls}
+      lockBodyScroll={false}
+      bodyClassName="px-6 pb-6 pt-2"
     >
-      <div className="flex min-h-full items-start justify-center px-4 py-20">
-        <motion.div animate={shakeControls} className="flex w-full justify-center">
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="subscription-dialog-title"
-            className="relative w-full max-w-md overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
-            onClick={(event) => event.stopPropagation()}
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-          >
-            <div className="px-6 py-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                  Newsletter
-                </p>
-                <h2
-                  id="subscription-dialog-title"
-                  className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
-                >
-                  订阅
-                </h2>
-              </div>
-
-              <button
-                type="button"
-                aria-label="关闭"
-                onClick={onClose}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <p className="mt-3 text-sm leading-7 text-zinc-700 dark:text-zinc-200">
-              欢迎订阅 {siteName}，信笺初成，纸鹤已随风穿过隧道，抵达君前。
-            </p>
-          </div>
-
-            <div className="px-6 pb-6 pt-2">
-              <SubscriptionFormInner
-                buttonLabel="订阅"
-                onSuccess={onClose}
-                showLabel={false}
-              />
-            </div>
-          </motion.div>
-        </motion.div>
-      </div>
-    </motion.div>,
-    document.body,
+      <SubscriptionFormInner
+        buttonLabel="订阅"
+        onSuccess={onClose}
+        showLabel={false}
+      />
+    </DialogShell>
   );
 }
 

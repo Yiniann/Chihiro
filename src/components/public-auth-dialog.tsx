@@ -1,11 +1,11 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { UserRound, X } from "lucide-react";
+import { LoaderCircle, UserRound } from "lucide-react";
 import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
-import { useCallback, useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
+import type { FormEvent } from "react";
+import { DialogShell } from "@/components/dialog-shell";
 import { useToast } from "@/components/toast-provider";
 import { useDialogShake } from "@/components/use-dialog-shake";
 
@@ -29,32 +29,10 @@ export function PublicAuthDialog({
   const [passwordLoginOpen, setPasswordLoginOpen] = useState(false);
   const { showToast } = useToast();
   const { shakeControls, triggerShake } = useDialogShake();
-  const handleClose = useCallback(() => {
+  const handleClose = () => {
     setPasswordLoginOpen(false);
     onClose();
-  }, [onClose]);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleClose, isOpen]);
-
-  if (!isOpen || typeof document === "undefined") {
-    return null;
-  }
+  };
 
   async function handleProviderSignIn(provider: "github" | "google") {
     try {
@@ -66,89 +44,68 @@ export function PublicAuthDialog({
     }
   }
 
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[90] overflow-y-auto bg-transparent"
-      onClick={triggerShake}
+  return (
+    <DialogShell
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          handleClose();
+        }
+      }}
+      title="选择登录方式"
+      eyebrow="Sign in"
+      maxWidthClassName="max-w-sm"
+      panelClassName="bg-white/80 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm"
+      overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
+      closeOnOverlayClick={false}
+      onOverlayClick={triggerShake}
+      panelAnimationControls={shakeControls}
+      lockBodyScroll={false}
     >
-      <div className="flex min-h-full items-center justify-center px-4 py-10 sm:px-6">
-        <motion.div animate={shakeControls} className="flex w-full justify-center">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="public-auth-dialog-title"
-            className="relative w-full max-w-sm overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/80 p-5 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
-            onClick={(event) => event.stopPropagation()}
-          >
+      {passwordLoginOpen ? (
+        <PasswordLoginForm
+          siteUrl={siteUrl}
+          callbackPath={callbackPath}
+          onBack={() => setPasswordLoginOpen(false)}
+        />
+      ) : (
+        <>
+          <div className="mt-1 grid gap-2">
+            <ProviderButton
+              label="Google"
+              enabled={googleEnabled}
+              disabledText="Google 登录尚未配置"
+              icon={<GoogleMark className="size-5" />}
+              onClick={() => handleProviderSignIn("google")}
+            />
+            <ProviderButton
+              label="GitHub"
+              enabled={githubEnabled}
+              disabledText="GitHub 登录尚未配置"
+              icon={<GithubMark className="size-5" />}
+              onClick={() => handleProviderSignIn("github")}
+            />
+            {process.env.NODE_ENV !== "production" ? (
+              <a
+                href={`/api/dev/public-login?next=${encodeURIComponent(callbackPath)}`}
+                className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+              >
+                <UserRound className="size-5" aria-hidden="true" />
+                <span>开发登录</span>
+              </a>
+            ) : null}
+          </div>
+
           <button
             type="button"
-            aria-label="关闭"
-            onClick={handleClose}
-            className="absolute right-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+            onClick={() => setPasswordLoginOpen(true)}
+            className="mt-4 w-full text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
           >
-            <X className="h-4 w-4" />
+            使用帐号密码登录
           </button>
-
-          <div className="pr-8">
-            <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-              Sign in
-            </p>
-            <h2
-              id="public-auth-dialog-title"
-              className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
-            >
-              选择登录方式
-            </h2>
-          </div>
-
-          {passwordLoginOpen ? (
-            <PasswordLoginForm
-              siteUrl={siteUrl}
-              callbackPath={callbackPath}
-              onBack={() => setPasswordLoginOpen(false)}
-            />
-          ) : (
-            <>
-              <div className="mt-5 grid gap-2">
-                <ProviderButton
-                  label="Google"
-                  enabled={googleEnabled}
-                  disabledText="Google 登录尚未配置"
-                  icon={<GoogleMark className="size-5" />}
-                  onClick={() => handleProviderSignIn("google")}
-                />
-                <ProviderButton
-                  label="GitHub"
-                  enabled={githubEnabled}
-                  disabledText="GitHub 登录尚未配置"
-                  icon={<GithubMark className="size-5" />}
-                  onClick={() => handleProviderSignIn("github")}
-                />
-                {process.env.NODE_ENV !== "production" ? (
-                  <a
-                    href={`/api/dev/public-login?next=${encodeURIComponent(callbackPath)}`}
-                  className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
-                  >
-                    <UserRound className="size-5" aria-hidden="true" />
-                    <span>开发登录</span>
-                  </a>
-                ) : null}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setPasswordLoginOpen(true)}
-                className="mt-4 w-full text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
-              >
-                使用帐号密码登录
-              </button>
-            </>
-          )}
-          </div>
-        </motion.div>
-      </div>
-    </div>,
-    document.body,
+        </>
+      )}
+    </DialogShell>
   );
 }
 
@@ -193,7 +150,10 @@ function PasswordLoginForm({
 
   return (
     <form
-      action={async (formData) => {
+      onSubmit={async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.currentTarget);
         await handleSubmit(formData);
       }}
       className="mt-5 grid gap-3"
@@ -204,6 +164,7 @@ function PasswordLoginForm({
           type="text"
           name="username"
           autoComplete="username"
+          disabled={pending}
           className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
         />
       </label>
@@ -213,6 +174,7 @@ function PasswordLoginForm({
           type="password"
           name="password"
           autoComplete="current-password"
+          disabled={pending}
           className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
         />
       </label>
@@ -220,6 +182,7 @@ function PasswordLoginForm({
       <button
         type="button"
         onClick={onBack}
+        disabled={pending}
         className="text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
       >
         返回一键登录
@@ -233,8 +196,9 @@ function PasswordSubmitButton({ pending }: { pending: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-10 items-center justify-center rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
     >
+      {pending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
       {pending ? "登录中..." : "密码登录"}
     </button>
   );

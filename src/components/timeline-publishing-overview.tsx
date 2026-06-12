@@ -1,10 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { ChartColumnBig, X } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { ChartColumnBig } from "lucide-react";
+import { type ReactNode, useMemo, useState } from "react";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
+import { DialogShell } from "@/components/dialog-shell";
 import { useDialogShake } from "@/components/use-dialog-shake";
 
 type PublishingOverviewProps = {
@@ -96,27 +96,6 @@ export function TimelinePublishingOverview({
       ),
     0,
   );
-  const handleClose = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        handleClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleClose, isOpen]);
-
   return (
     <section>
       <button
@@ -137,7 +116,7 @@ export function TimelinePublishingOverview({
 
       <TimelinePublishingOverviewDialog
         isOpen={isOpen}
-        onClose={handleClose}
+        onClose={() => setIsOpen(false)}
       >
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row md:items-start md:gap-6">
           <nav
@@ -267,54 +246,24 @@ function TimelinePublishingOverviewDialog({
 }) {
   const { shakeControls, triggerShake } = useDialogShake();
 
-  if (!isOpen || typeof document === "undefined") {
-    return null;
-  }
-
-  return createPortal(
-    <div
-      className="fixed inset-0 z-[90] overflow-hidden bg-transparent"
-      onClick={triggerShake}
+  return (
+    <DialogShell
+      open={isOpen}
+      onOpenChange={onClose}
+      title="Annual publishing overview"
+      eyebrow="Timeline Capsule"
+      maxWidthClassName="max-w-6xl"
+      closeLabel="Close annual publishing overview"
+      panelClassName="bg-white/80 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm"
+      overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
+      closeOnOverlayClick={false}
+      onOverlayClick={triggerShake}
+      panelAnimationControls={shakeControls}
+      lockBodyScroll={false}
+      bodyClassName="max-h-[80vh] overflow-y-auto px-5 py-5"
     >
-      <div className="flex h-full items-start justify-center px-4 py-20">
-        <motion.div animate={shakeControls} className="flex w-full justify-center">
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="timeline-publishing-overview-title"
-            className="w-full max-w-6xl overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-              <div className="min-w-0">
-                <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
-                  Timeline Capsule
-                </p>
-                <h2
-                  id="timeline-publishing-overview-title"
-                  className="mt-1 text-base font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
-                >
-                  Annual publishing overview
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close annual publishing overview"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <div className="max-h-[80vh] overflow-y-auto px-5 py-5">
-              {children}
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    </div>,
-    document.body,
+      {children}
+    </DialogShell>
   );
 }
 
