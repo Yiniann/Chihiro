@@ -104,7 +104,10 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
         <div className="mt-4 flex justify-end">
           <TimelinePublishingOverview
             posts={posts.map((item) => item.publishedAt)}
-            updates={updates.map((item) => item.publishedAt)}
+            updates={updates.map((item) => ({
+              publishedAt: item.publishedAt,
+              kind: item.kind,
+            }))}
             standalonePages={standalonePages.map((item) => item.publishedAt)}
           />
         </div>

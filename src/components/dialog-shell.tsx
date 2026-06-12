@@ -25,6 +25,7 @@ type DialogShellProps = {
   onOverlayClick?: () => void;
   panelAnimationControls?: MotionProps["animate"];
   lockBodyScroll?: boolean;
+  overlayScrollable?: boolean;
 };
 
 export function DialogShell({
@@ -46,6 +47,7 @@ export function DialogShell({
   onOverlayClick,
   panelAnimationControls,
   lockBodyScroll = true,
+  overlayScrollable = true,
 }: DialogShellProps) {
   const titleId = useId();
   const descriptionId = useId();
@@ -96,7 +98,7 @@ export function DialogShell({
       {open ? (
         <motion.div
           className={[
-            "fixed inset-0 z-[90] overflow-y-auto bg-zinc-950/35 backdrop-blur-md dark:bg-black/60",
+            `fixed inset-0 z-[90] ${overlayScrollable ? "overflow-y-auto" : "overflow-hidden"} bg-zinc-950/35 backdrop-blur-md dark:bg-black/60`,
             overlayClassName ?? "",
           ].join(" ")}
           onClick={() => {
@@ -127,7 +129,7 @@ export function DialogShell({
                 aria-labelledby={titleId}
                 aria-describedby={description ? descriptionId : undefined}
                 className={[
-                  "relative overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/95 shadow-[0_24px_90px_rgba(15,23,42,0.2)] backdrop-blur-xl dark:border-zinc-800/80 dark:bg-zinc-950/95 dark:shadow-[0_24px_90px_rgba(0,0,0,0.55)]",
+                  "relative overflow-hidden rounded-[1.5rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
                   panelClassName ?? "",
                 ].join(" ")}
                 onClick={(event) => event.stopPropagation()}

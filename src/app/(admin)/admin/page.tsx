@@ -24,12 +24,12 @@ import { listFriendLinksForAdmin } from "@/server/repositories/friend-links";
 import { listStandalonePagesForAdmin } from "@/server/repositories/standalone-pages";
 import { listPostsForAdmin } from "@/server/repositories/posts";
 import { getSiteLikeCount } from "@/server/repositories/site-likes";
-import { getSiteSettings } from "@/server/repositories/site";
 import { listUpdatesForAdmin } from "@/server/repositories/updates";
 import { getOwnerDisplayName, getOwnerDisplayProfile } from "@/server/repositories/users";
 import { RealtimeOverviewPanel } from "@/app/(admin)/admin/realtime-overview-panel";
 import { CreateUpdateDialog } from "@/app/(admin)/admin/updates/new/new-update-entry";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
+import type { UpdateItem } from "@/server/repositories/updates";
 
 type AdminOverviewPageProps = {
   searchParams?: Promise<{
@@ -43,7 +43,6 @@ export default async function AdminOverviewPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const [
     session,
-    siteSettings,
     ownerProfile,
     presenceSummary,
     posts,
@@ -56,7 +55,6 @@ export default async function AdminOverviewPage({
     siteLikeCount,
   ] = await Promise.all([
     auth(),
-    getSiteSettings(),
     getOwnerDisplayProfile(),
     getSitePresenceSummary().catch(() => null),
     listPostsForAdmin(),
@@ -73,7 +71,6 @@ export default async function AdminOverviewPage({
     session?.user?.name?.trim() ||
     session?.user?.email?.trim() ||
     getOwnerDisplayName(ownerProfile, "管理员");
-  const siteName = siteSettings?.siteName?.trim() || "博客";
   const totalWordCount = getTotalWordCount(posts, updates, standalonePages);
   const totalReadCount = posts.reduce((sum, post) => sum + post.viewCount, 0);
   const totalContentLikeCount = posts.reduce((sum, post) => sum + post.likeCount, 0);
@@ -109,10 +106,9 @@ export default async function AdminOverviewPage({
     },
     {
       label: "鉴赏",
-      value: 0,
+      value: countPublishedReviewUpdatesInYear(updates, selectedTrendYear),
       direction: "right" as const,
       unit: "项",
-      empty: true,
     },
   ];
 
@@ -258,6 +254,22 @@ function countPublishedInYear<
 
     const date = new Date(item.publishedAt);
     return !Number.isNaN(date.getTime()) && date.getFullYear() === year;
+  }).length;
+}
+
+function countPublishedReviewUpdatesInYear(items: UpdateItem[], year: number) {
+  return items.filter((item) => {
+    if (!item.publishedAt) {
+      return false;
+    }
+
+    const date = new Date(item.publishedAt);
+
+    if (Number.isNaN(date.getTime()) || date.getFullYear() !== year) {
+      return false;
+    }
+
+    return item.kind === "MOVIE" || item.kind === "MUSIC" || item.kind === "OBJECT";
   }).length;
 }
 
@@ -567,7 +579,7 @@ function ContentCrossOverviewPanel({
       <div className="grid gap-3 md:min-w-[15rem]">
         <div className="grid gap-1">
           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            内容分布
+            发布结构
           </p>
           <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             {selectedYear} 年发布概况
@@ -575,12 +587,17 @@ function ContentCrossOverviewPanel({
         </div>
 
         <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-          {items.map((item) => (
-            <p key={item.label}>
-              {selectedYear} 年发布了 {formatAdminNumber(item.value)} {item.unit}
-              {item.label}
-            </p>
-          ))}
+          {items.map((item) => {
+            const copy =
+              item.label === "鉴赏"
+                ? `鉴赏型动态 ${formatAdminNumber(item.value)} ${item.unit}`
+                : `${item.label} ${formatAdminNumber(item.value)} ${item.unit}`;
+
+            return <p key={item.label}>{copy}</p>;
+          })}
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            鉴赏统计包含影视、音乐与物品类动态。
+          </p>
         </div>
       </div>
 

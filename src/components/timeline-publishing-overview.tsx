@@ -1,15 +1,18 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ChartColumnBig } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 import { formatAdminNumber } from "@/app/(admin)/admin/utils";
 import { DialogShell } from "@/components/dialog-shell";
 import { useDialogShake } from "@/components/use-dialog-shake";
+import type { UpdateKindValue } from "@/lib/update-kind";
 
 type PublishingOverviewProps = {
   posts: Array<string | null>;
-  updates: Array<string | null>;
+  updates: Array<{
+    publishedAt: string | null;
+    kind: UpdateKindValue;
+  }>;
   standalonePages: Array<string | null>;
 };
 
@@ -66,7 +69,7 @@ export function TimelinePublishingOverview({
       },
       {
         label: "动态",
-        value: countPublishedInYear(updates, selectedYear),
+        value: countPublishedInYear(updates.map((item) => item.publishedAt), selectedYear),
         direction: "left",
         unit: "条",
       },
@@ -78,10 +81,9 @@ export function TimelinePublishingOverview({
       },
       {
         label: "鉴赏",
-        value: 0,
+        value: countPublishedReviewUpdatesInYear(updates, selectedYear),
         direction: "right",
         unit: "项",
-        empty: true,
       },
     ],
     [posts, selectedYear, standalonePages, updates],
@@ -254,12 +256,14 @@ function TimelinePublishingOverviewDialog({
       eyebrow="Timeline Capsule"
       maxWidthClassName="max-w-6xl"
       closeLabel="Close annual publishing overview"
-      panelClassName="bg-white/80 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm"
+      panelClassName="rounded-[1.75rem] border border-zinc-200/80 !bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:!bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
       overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
       closeOnOverlayClick={false}
       onOverlayClick={triggerShake}
       panelAnimationControls={shakeControls}
       lockBodyScroll={false}
+      overlayScrollable={false}
+      align="top"
       bodyClassName="max-h-[80vh] overflow-y-auto px-5 py-5"
     >
       {children}
@@ -304,7 +308,7 @@ function TimelinePublishingDistribution({
       <div className="grid gap-3 md:min-w-[15rem]">
         <div className="grid gap-1">
           <p className="text-sm font-medium text-zinc-500 dark:text-zinc-400">
-            内容分布
+            发布结构
           </p>
           <p className="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             {selectedYear} 年发布概况
@@ -312,12 +316,17 @@ function TimelinePublishingDistribution({
         </div>
 
         <div className="grid gap-2 text-sm text-zinc-600 dark:text-zinc-300">
-          {items.map((item) => (
-            <p key={item.label}>
-              {selectedYear} 年发布了 {formatAdminNumber(item.value)} {item.unit}
-              {item.label}
-            </p>
-          ))}
+          {items.map((item) => {
+            const copy =
+              item.label === "鉴赏"
+                ? `鉴赏型动态 ${formatAdminNumber(item.value)} ${item.unit}`
+                : `${item.label} ${formatAdminNumber(item.value)} ${item.unit}`;
+
+            return <p key={item.label}>{copy}</p>;
+          })}
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            鉴赏统计包含影视、音乐与物品类动态。
+          </p>
         </div>
       </div>
 
@@ -482,14 +491,37 @@ function countPublishedInYear(
   }).length;
 }
 
+function countPublishedReviewUpdatesInYear(
+  items: Array<{ publishedAt: string | null; kind: UpdateKindValue }>,
+  year: number,
+) {
+  return items.filter((item) => {
+    if (!item.publishedAt) {
+      return false;
+    }
+
+    const date = new Date(item.publishedAt);
+
+    if (Number.isNaN(date.getTime()) || date.getFullYear() !== year) {
+      return false;
+    }
+
+    return item.kind === "MOVIE" || item.kind === "MUSIC" || item.kind === "OBJECT";
+  }).length;
+}
+
 function getPublishingTrendYears(
   posts: Array<string | null>,
-  updates: Array<string | null>,
+  updates: Array<{ publishedAt: string | null }>,
   standalonePages: Array<string | null>,
 ) {
   const years = new Set<number>([new Date().getFullYear()]);
 
-  for (const value of [...posts, ...updates, ...standalonePages]) {
+  for (const value of [
+    ...posts,
+    ...updates.map((item) => item.publishedAt),
+    ...standalonePages,
+  ]) {
     if (!value) {
       continue;
     }
@@ -505,7 +537,7 @@ function getPublishingTrendYears(
 
 function buildPublishingTrend(
   posts: Array<string | null>,
-  updates: Array<string | null>,
+  updates: Array<{ publishedAt: string | null }>,
   standalonePages: Array<string | null>,
   selectedYear: number,
 ) {
@@ -517,7 +549,11 @@ function buildPublishingTrend(
 
   const countsByDay = new Map<string, number>();
 
-  for (const value of [...posts, ...updates, ...standalonePages]) {
+  for (const value of [
+    ...posts,
+    ...updates.map((item) => item.publishedAt),
+    ...standalonePages,
+  ]) {
     if (!value) {
       continue;
     }
