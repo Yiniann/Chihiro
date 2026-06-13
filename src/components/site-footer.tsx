@@ -82,12 +82,12 @@ export function SiteFooter({
         <div className="grid grid-cols-2 gap-10 lg:grid-cols-[minmax(0,0.86fr)_auto] lg:items-start lg:gap-16">
           <div className="col-span-2 lg:col-span-1">
             <div>
-              <p className="site-meta text-zinc-950 dark:text-zinc-100">
+              <p className="site-meta text-n-6">
                 {authorName}
               </p>
             </div>
 
-            <p className="site-meta mt-2 text-zinc-600 dark:text-zinc-300">
+            <p className="site-meta mt-2 text-n-5">
               {mottoLines.map((line, index) => (
                 <span key={`${line}-${index}`} className="block">
                   {line}
@@ -100,7 +100,7 @@ export function SiteFooter({
 
           <div className="col-span-2 grid grid-cols-2 gap-8 lg:col-span-1 lg:justify-self-end lg:gap-16">
             <div>
-              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-n-4">
                 Follow
               </p>
               <div className="mt-4 grid gap-3">
@@ -110,11 +110,11 @@ export function SiteFooter({
                   }
 
                   const className =
-                    "group inline-flex w-fit items-center gap-3 site-meta text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100";
+                    "group inline-flex w-fit items-center gap-3 site-meta text-n-5 transition hover:text-n-6 dark:text-n-5 dark:hover:text-n-6";
                   const content = (
                     <>
                       <span>{item.label}</span>
-                      <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-700 dark:group-hover:text-zinc-400">
+                      <span className="text-zinc-300 transition group-hover:text-n-5 dark:text-n-6 dark:group-hover:text-n-4">
                         /
                       </span>
                     </>
@@ -156,7 +156,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-n-4">
                 Contact
               </p>
               <div className="mt-4 grid gap-3">
@@ -166,10 +166,10 @@ export function SiteFooter({
                     href={item.href}
                     target={item.external ? "_blank" : undefined}
                     rel={item.external ? "noreferrer noopener" : undefined}
-                    className="group inline-flex w-fit items-center gap-3 site-meta text-zinc-600 transition hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100"
+                    className="group inline-flex w-fit items-center gap-3 site-meta text-n-5 transition hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
                   >
                     <span>{item.label}</span>
-                    <span className="text-zinc-300 transition group-hover:text-zinc-500 dark:text-zinc-700 dark:group-hover:text-zinc-400">
+                    <span className="text-zinc-300 transition group-hover:text-n-5 dark:text-n-6 dark:group-hover:text-n-4">
                       /
                     </span>
                   </a>
@@ -179,14 +179,14 @@ export function SiteFooter({
           </div>
         </div>
 
-        <div className="site-eyebrow mt-12 flex items-center justify-between gap-4 border-t border-zinc-200/70 pt-6 text-zinc-500 dark:border-zinc-800/70 dark:text-zinc-400">
+        <div className="site-eyebrow mt-12 flex items-center justify-between gap-4 border-t border-n-2 pt-6 text-n-5 dark:border-n-2 dark:text-n-5">
           <span className="whitespace-nowrap">© {currentYear} {authorName}</span>
           <div className="flex items-center gap-4">
             <a
               href="https://github.com/Yiniann/Chihiro"
               target="_blank"
               rel="noreferrer"
-              className="whitespace-nowrap transition hover:text-zinc-900 dark:hover:text-zinc-100"
+              className="whitespace-nowrap transition hover:text-n-6 dark:hover:text-n-6"
             >
               Powered by {siteName}
             </a>

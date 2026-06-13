@@ -86,10 +86,10 @@ export function HomeSiteActions({
         onClick={handleLikeClick}
         disabled={isPending || likeState.liked}
         aria-pressed={likeState.liked}
-        className="inline-flex min-w-[7.5rem] flex-col items-center gap-2 font-medium text-zinc-600 transition hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-zinc-300 dark:hover:text-primary"
+        className="inline-flex min-w-[7.5rem] flex-col items-center gap-2 font-medium text-n-5 transition hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-n-5 dark:hover:text-primary"
       >
         <span>Keep This</span>
-        <span className="inline-flex items-center gap-2 text-xs tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+        <span className="inline-flex items-center gap-2 text-xs tracking-[0.2em] text-n-4">
           <Heart
             className={likeState.liked ? "size-4 fill-primary text-primary" : "size-4"}
             aria-hidden="true"
@@ -103,12 +103,12 @@ export function HomeSiteActions({
         disabled={!subscriptionsEnabled}
         className={
           subscriptionsEnabled
-            ? "inline-flex min-w-[7.5rem] flex-col items-center gap-2 font-medium text-zinc-600 transition hover:text-primary dark:text-zinc-300 dark:hover:text-primary"
-            : "inline-flex min-w-[7.5rem] cursor-not-allowed flex-col items-center gap-2 font-medium text-zinc-400 dark:text-zinc-500"
+            ? "inline-flex min-w-[7.5rem] flex-col items-center gap-2 font-medium text-n-5 transition hover:text-primary dark:text-n-5 dark:hover:text-primary"
+            : "inline-flex min-w-[7.5rem] cursor-not-allowed flex-col items-center gap-2 font-medium text-n-4"
         }
       >
         <span>{subscriptionsEnabled ? "Stay Close" : "Unavailable"}</span>
-        <span className="inline-flex items-center gap-2 text-xs tracking-[0.2em] text-zinc-400 dark:text-zinc-500">
+        <span className="inline-flex items-center gap-2 text-xs tracking-[0.2em] text-n-4">
           <Bell className="size-4" aria-hidden="true" />
         </span>
       </SubscribeDialogTrigger>

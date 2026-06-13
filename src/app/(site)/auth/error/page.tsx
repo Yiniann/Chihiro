@@ -51,29 +51,29 @@ export default async function AuthErrorPage({ searchParams }: AuthErrorPageProps
   return (
     <main className="mx-auto flex min-h-[calc(100vh-14rem)] w-full max-w-2xl items-center px-6 py-16">
       <ClearLinkIntent />
-      <section className="w-full rounded-2xl border border-zinc-200/80 bg-white/80 p-8 shadow-[0_20px_70px_rgba(24,24,27,0.08)] backdrop-blur dark:border-zinc-800/80 dark:bg-zinc-950/75 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-        <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+      <section className="surface-shell w-full rounded-2xl p-8 shadow-[0_20px_70px_rgba(24,24,27,0.08)] dark:bg-n-1/75 dark:shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+        <p className="site-eyebrow uppercase tracking-[0.24em] text-n-4">
           Auth
         </p>
-        <h1 className="site-title-page mt-3 tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-page mt-3 tracking-tight text-n-6">
           {copy.title}
         </h1>
-        <p className="site-body mt-4 max-w-xl text-zinc-600 dark:text-zinc-300">
+        <p className="site-body mt-4 max-w-xl text-n-5">
           {copy.description}
         </p>
         {errorCode ? (
-          <p className="site-meta mt-3 text-zinc-400 dark:text-zinc-500">错误代码: {errorCode}</p>
+          <p className="site-meta mt-3 text-n-4">错误代码: {errorCode}</p>
         ) : null}
         <div className="mt-8 flex flex-wrap gap-3">
           <Link
             href="/"
-            className="inline-flex items-center justify-center rounded-2xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+            className="btn btn-primary py-2"
           >
             返回首页
           </Link>
           <Link
             href="/admin"
-            className="inline-flex items-center justify-center rounded-2xl border border-zinc-200/80 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+            className="btn btn-secondary py-2"
           >
             前往后台
           </Link>

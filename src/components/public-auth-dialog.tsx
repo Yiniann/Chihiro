@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, UserRound } from "lucide-react";
+import { KeyRound, LoaderCircle, UserRound } from "lucide-react";
 import { signIn } from "next-auth/react";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -55,7 +55,7 @@ export function PublicAuthDialog({
       title="选择登录方式"
       eyebrow="Sign in"
       maxWidthClassName="max-w-sm"
-      panelClassName="bg-white/80 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm"
+      panelClassName=""
       overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
       closeOnOverlayClick={false}
       onOverlayClick={triggerShake}
@@ -88,7 +88,7 @@ export function PublicAuthDialog({
             {process.env.NODE_ENV !== "production" ? (
               <a
                 href={`/api/dev/public-login?next=${encodeURIComponent(callbackPath)}`}
-                className="flex h-12 items-center gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-600 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+                className="btn btn-secondary h-12 justify-start gap-3"
               >
                 <UserRound className="size-5" aria-hidden="true" />
                 <span>开发登录</span>
@@ -99,7 +99,7 @@ export function PublicAuthDialog({
           <button
             type="button"
             onClick={() => setPasswordLoginOpen(true)}
-            className="mt-4 w-full text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+            className="btn btn-ghost mt-4 h-10 w-full"
           >
             使用帐号密码登录
           </button>
@@ -159,31 +159,39 @@ function PasswordLoginForm({
       className="mt-5 grid gap-3"
     >
       <label className="grid gap-1.5">
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">帐号</span>
-        <input
-          type="text"
-          name="username"
-          autoComplete="username"
-          disabled={pending}
-          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
-        />
+        <span className="text-xs font-medium text-n-5">帐号</span>
+        <div className="field-line">
+          <UserRound className="size-4 shrink-0" strokeWidth={1.9} aria-hidden="true" />
+          <input
+            type="text"
+            name="username"
+            autoComplete="username"
+            disabled={pending}
+            className="field-line-input disabled:cursor-not-allowed"
+            placeholder="输入帐号"
+          />
+        </div>
       </label>
       <label className="grid gap-1.5">
-        <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">密码</span>
-        <input
-          type="password"
-          name="password"
-          autoComplete="current-password"
-          disabled={pending}
-          className="h-10 rounded-2xl border border-zinc-200/80 bg-white px-3 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-primary/40 dark:border-white/14 dark:bg-white/8 dark:text-zinc-100"
-        />
+        <span className="text-xs font-medium text-n-5">密码</span>
+        <div className="field-line">
+          <KeyRound className="size-4 shrink-0" strokeWidth={1.9} aria-hidden="true" />
+          <input
+            type="password"
+            name="password"
+            autoComplete="current-password"
+            disabled={pending}
+            className="field-line-input disabled:cursor-not-allowed"
+            placeholder="输入密码"
+          />
+        </div>
       </label>
       <PasswordSubmitButton pending={pending} />
       <button
         type="button"
         onClick={onBack}
         disabled={pending}
-        className="text-center text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+        className="btn btn-ghost h-10"
       >
         返回一键登录
       </button>
@@ -196,7 +204,7 @@ function PasswordSubmitButton({ pending }: { pending: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
+      className="btn btn-primary h-10 gap-2"
     >
       {pending ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : null}
       {pending ? "登录中..." : "密码登录"}
@@ -222,13 +230,13 @@ function ProviderButton({
       type="button"
       disabled={!enabled}
       onClick={onClick}
-      className="flex h-12 items-center justify-between gap-3 rounded-2xl border border-zinc-200/80 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 disabled:cursor-not-allowed disabled:opacity-45 dark:border-white/14 dark:text-zinc-200 dark:hover:border-white/18 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+      className="btn btn-secondary h-12 justify-between gap-3 disabled:opacity-45"
     >
       <span className="flex items-center gap-3">
         {icon}
         <span>{label}</span>
       </span>
-      {!enabled ? <span className="text-xs font-normal text-zinc-400">{disabledText}</span> : null}
+      {!enabled ? <span className="text-xs font-normal text-n-4">{disabledText}</span> : null}
     </button>
   );
 }

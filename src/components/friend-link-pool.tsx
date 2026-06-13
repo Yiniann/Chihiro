@@ -556,7 +556,7 @@ export function FriendLinkPool({
                 event.preventDefault();
               }
             }}
-            className="absolute left-0 top-0 inline-flex w-auto max-w-[calc(100vw-4rem)] rounded-full border border-zinc-200/80 bg-white/80 pl-0 pr-4 py-0 opacity-0 shadow-sm backdrop-blur-sm transition-[border-color,box-shadow,transform] duration-300 hover:border-zinc-300 dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] dark:hover:border-white/18 sm:max-w-[24rem] lg:max-w-[28rem]"
+            className="surface-shell surface-shell-hover absolute left-0 top-0 inline-flex w-auto max-w-[calc(100vw-4rem)] rounded-full pl-0 pr-4 py-0 opacity-0 transition-[border-color,box-shadow,transform] duration-300 sm:max-w-[24rem] lg:max-w-[28rem]"
           >
             <div className="flex items-center gap-2.5">
               <PoolAvatar name={link.name} avatarUrl={link.avatarUrl} />
@@ -566,7 +566,7 @@ export function FriendLinkPool({
                   {link.name}
                 </h2>
                 {link.description?.trim() ? (
-                  <p className="mt-1 line-clamp-2 break-words text-xs leading-5 text-zinc-600 dark:text-zinc-300">
+                  <p className="mt-1 line-clamp-2 break-words text-xs leading-5 text-n-5">
                     {link.description.trim()}
                   </p>
                 ) : null}
@@ -592,13 +592,13 @@ function PoolAvatar({
       <img
         src={avatarUrl}
         alt={`${name} avatar`}
-        className="h-14 w-14 rounded-full object-cover ring-1 ring-zinc-200/80 dark:ring-white/14"
+        className="h-14 w-14 rounded-full object-cover ring-1 ring-n-2 dark:ring-white/14"
       />
     );
   }
 
   return (
-    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100/80 text-sm font-semibold text-zinc-600 ring-1 ring-zinc-200/80 dark:bg-white/8 dark:text-zinc-300 dark:ring-white/14">
+    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-n-1/80 text-sm font-semibold text-n-5 ring-1 ring-n-2 dark:bg-white/8 dark:text-n-5 dark:ring-white/14">
       {name.slice(0, 1).toUpperCase()}
     </div>
   );

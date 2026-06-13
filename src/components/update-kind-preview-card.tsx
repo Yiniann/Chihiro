@@ -40,28 +40,28 @@ export function UpdateKindPreviewCard({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-n-4">
                 {kicker}
               </p>
-              <p className="site-title-h3 mt-1.5 tracking-tight text-zinc-950 dark:text-zinc-50">
+              <p className="site-title-h3 mt-1.5 tracking-tight text-n-6">
                 {title}
               </p>
               {subtitle ? (
-                <p className="site-meta mt-1 text-zinc-500 dark:text-zinc-400">
+                <p className="site-meta mt-1 text-n-5">
                   {subtitle}
                 </p>
               ) : null}
             </div>
             {interactive ? (
-              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
+              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-n-4 transition group-hover:text-n-6 dark:text-n-5 dark:group-hover:text-n-6" />
             ) : null}
           </div>
           {metadata.data.overview ? (
-            <p className="site-meta mt-2.5 text-zinc-600 dark:text-zinc-300">{metadata.data.overview}</p>
+            <p className="site-meta mt-2.5 text-n-5">{metadata.data.overview}</p>
           ) : null}
-          <div className="site-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 text-zinc-500 dark:text-zinc-400">
+          <div className="site-meta mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 pt-2.5 text-n-5">
             {metadata.data.rating ? (
-              <span className="inline-flex items-center gap-2 text-base font-medium text-zinc-800 dark:text-zinc-100">
+              <span className="inline-flex items-center gap-2 text-base font-medium text-n-6">
                 <Film className="h-4 w-4" />
                 <span className="text-primary">{metadata.data.rating}</span>
               </span>
@@ -98,21 +98,21 @@ export function UpdateKindPreviewCard({
         <div className="flex min-w-0 flex-col">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="site-eyebrow uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.22em] text-n-4">
                 {metadata.data.format ?? "Music"} · {metadata.data.releaseYear ?? "Unknown"}
               </p>
-              <p className="site-title-h3 mt-1.5 tracking-tight text-zinc-950 dark:text-zinc-50">
+              <p className="site-title-h3 mt-1.5 tracking-tight text-n-6">
                 {metadata.data.title || "未命名曲目"}
               </p>
               {metadata.data.artist ? (
-                <p className="site-meta mt-1 text-zinc-500 dark:text-zinc-400">{metadata.data.artist}</p>
+                <p className="site-meta mt-1 text-n-5">{metadata.data.artist}</p>
               ) : null}
             </div>
             {interactive ? (
-              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-zinc-400 transition group-hover:text-zinc-700 dark:text-zinc-500 dark:group-hover:text-zinc-200" />
+              <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-n-4 transition group-hover:text-n-6 dark:text-n-5 dark:group-hover:text-n-6" />
             ) : null}
           </div>
-          <div className="site-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-zinc-500 dark:text-zinc-400">
+          <div className="site-meta mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-n-5">
             {metadata.data.genres.length > 0 ? (
               <span className="inline-flex items-center gap-2">
                 <Disc3 className="h-4 w-4" />
@@ -148,22 +148,22 @@ export function UpdateKindPreviewCard({
         />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
+            <p className="site-title-h3 tracking-tight text-n-6">
               {metadata.data.title || "未命名物品"}
             </p>
             {metadata.data.summary ? (
-              <p className="site-meta mt-2.5 max-w-3xl text-zinc-600 dark:text-zinc-300">
+              <p className="site-meta mt-2.5 max-w-3xl text-n-5">
                 {metadata.data.summary}
               </p>
             ) : null}
           </div>
           {href ? (
-            <span className="site-meta inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-zinc-600 transition group-hover:text-zinc-950 dark:bg-zinc-950 dark:text-zinc-300 dark:group-hover:text-zinc-50">
+            <span className="site-meta inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-n-5 transition group-hover:text-n-6 dark:bg-n-1 dark:text-n-5 dark:group-hover:text-n-6">
               查看全文
               <ArrowUpRight className="h-4 w-4" />
             </span>
           ) : (
-            <span className="site-meta inline-flex items-center gap-2 text-zinc-400 dark:text-zinc-500">
+            <span className="site-meta inline-flex items-center gap-2 text-n-4">
               <Package2 className="h-4 w-4" />
               详情页待接入
             </span>
@@ -246,8 +246,8 @@ function renderCardShell({
   children: React.ReactNode;
 }) {
   const classes = [
-    "group grid gap-3 rounded-2xl border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
-    interactive ? "transition hover:border-zinc-300 hover:bg-white/90 dark:hover:border-white/20 dark:hover:bg-[rgba(255,255,255,0.08)]" : "",
+    "surface-shell group grid gap-3 rounded-2xl p-3",
+    interactive ? "surface-shell-hover" : "",
     layoutClassName,
     className,
   ]
@@ -288,7 +288,7 @@ function PosterBlock({
 }) {
   if (imageUrl) {
     return (
-      <div className="relative min-h-[11rem] overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative min-h-[11rem] overflow-hidden rounded-md border border-n-2">
         <img src={imageUrl} alt={title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );
@@ -317,7 +317,7 @@ function SquareBlock(props: {
 }) {
   if (props.imageUrl) {
     return (
-      <div className="relative aspect-square overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative aspect-square overflow-hidden rounded-md border border-n-2">
         <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );
@@ -346,7 +346,7 @@ function BannerBlock(props: {
 }) {
   if (props.imageUrl) {
     return (
-      <div className="relative min-h-[9.5rem] overflow-hidden rounded-md border border-zinc-200/80 dark:border-zinc-800/80">
+      <div className="relative min-h-[9.5rem] overflow-hidden rounded-md border border-n-2">
         <img src={props.imageUrl} alt={props.title} className="absolute inset-0 h-full w-full object-cover" />
       </div>
     );

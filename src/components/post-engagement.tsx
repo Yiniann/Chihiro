@@ -121,7 +121,7 @@ export function PostEngagement({
         onClick={handleLikeClick}
         disabled={isPending || state.liked}
         aria-pressed={state.liked}
-        className="inline-flex items-center gap-1.5 text-zinc-500 transition-colors hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-zinc-400"
+        className="inline-flex items-center gap-1.5 text-n-5 transition-colors hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-n-5"
       >
         <Heart
           className={state.liked ? "size-4 fill-primary text-primary" : "size-4"}

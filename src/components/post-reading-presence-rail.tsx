@@ -393,17 +393,17 @@ export function PostReadingPresenceRail({
                         );
                       })}
                       {orderedReaders.length > 3 ? (
-                        <span className="-ml-2 inline-flex size-6 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-semibold text-white ring-2 ring-white dark:bg-zinc-100 dark:text-zinc-900 dark:ring-zinc-950">
+                        <span className="-ml-2 inline-flex size-6 items-center justify-center rounded-full bg-zinc-900 text-[10px] font-semibold text-white ring-2 ring-white dark:bg-n-1 dark:text-n-6 dark:ring-zinc-950">
                           +{orderedReaders.length - 3}
                         </span>
                       ) : null}
                     </div>
 
                     <div className="min-w-0">
-                      <p className="text-xs font-semibold leading-4 text-zinc-950 dark:text-zinc-50">
+                      <p className="text-xs font-semibold leading-4 text-n-6">
                         {groupLabel}
                       </p>
-                      <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                      <p className="text-[10px] uppercase tracking-[0.16em] text-n-4">
                         {groupProgress}% read
                       </p>
                     </div>

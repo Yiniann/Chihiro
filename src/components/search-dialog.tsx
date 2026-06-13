@@ -81,7 +81,7 @@ export function SearchDialog({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+        className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-n-5 transition hover:text-primary dark:text-n-5"
       >
         <Search className="h-4 w-4" />
         <span>{buttonLabel}</span>
@@ -96,24 +96,24 @@ export function SearchDialog({
               <div className="flex min-h-full items-start justify-center px-4 py-20">
                 <motion.div animate={shakeControls} className="flex w-full justify-center">
                   <div
-                    className="w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+                    className="surface-shell w-full max-w-2xl overflow-hidden rounded-[1.75rem]"
                     onClick={(event) => event.stopPropagation()}
                   >
-                  <div className="flex items-center gap-3 border-b border-zinc-200 px-5 py-4 dark:border-zinc-800">
-                    <Search className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
+                  <div className="flex items-center gap-3 border-b border-n-2 px-5 py-4 dark:border-n-2">
+                    <Search className="h-4 w-4 text-n-4" />
                     <input
                       ref={inputRef}
                       type="search"
                       value={query}
                       onChange={(event) => setQuery(event.target.value)}
                       placeholder={placeholder}
-                      className="search-dialog-input h-10 min-w-0 flex-1 bg-transparent text-sm text-zinc-950 outline-none placeholder:text-zinc-400 dark:text-zinc-100 dark:placeholder:text-zinc-500"
+                      className="search-dialog-input h-10 min-w-0 flex-1 bg-transparent text-sm text-n-6 outline-none placeholder:text-n-4 dark:text-n-6 dark:placeholder:text-n-5"
                     />
                     {query ? (
                       <button
                         type="button"
                         onClick={() => setQuery("")}
-                        className="inline-flex h-9 items-center justify-center px-2 text-xs font-medium text-zinc-400 transition hover:text-zinc-700 dark:text-zinc-500 dark:hover:text-zinc-200"
+                        className="inline-flex h-9 items-center justify-center px-2 text-xs font-medium text-n-4 transition hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
                       >
                         Clear
                       </button>
@@ -121,7 +121,7 @@ export function SearchDialog({
                     <button
                       type="button"
                       onClick={() => setIsOpen(false)}
-                      className="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-2xl text-n-4 transition hover:bg-n-1 hover:text-n-6 dark:text-n-5 dark:hover:bg-zinc-900 dark:hover:text-n-6"
                       aria-label="Close search dialog"
                     >
                       <X className="h-4 w-4" />
@@ -137,9 +137,9 @@ export function SearchDialog({
                               key={`${item.id}-${item.href}-${index}`}
                               href={item.href}
                               onClick={() => setIsOpen(false)}
-                              className="rounded-md px-3 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                              className="rounded-md px-3 py-3 transition hover:bg-n-1 dark:hover:bg-zinc-900"
                             >
-                              <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                              <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.18em] text-n-4">
                                 <span>{item.overline}</span>
                                 {item.publishedAt ? (
                                   <span className="shrink-0 normal-case tracking-normal">
@@ -148,11 +148,11 @@ export function SearchDialog({
                                 ) : null}
                               </div>
                               {showResultTitle ? (
-                                <p className="mt-2 text-sm font-medium text-zinc-950 dark:text-zinc-100">
+                                <p className="mt-2 text-sm font-medium text-n-6">
                                   {highlightText(item.title, searchTerms)}
                                 </p>
                               ) : null}
-                              <p className="mt-1 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                              <p className="mt-1 text-sm leading-6 text-n-5">
                                 {highlightText(
                                   getSearchPreview(item, normalizedQuery, searchTerms),
                                   searchTerms,
@@ -162,12 +162,12 @@ export function SearchDialog({
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-md px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+                        <div className="rounded-md px-4 py-8 text-sm text-n-5">
                           {emptyState}
                         </div>
                       )
                     ) : (
-                      <div className="rounded-md px-4 py-8 text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className="rounded-md px-4 py-8 text-sm text-n-5">
                         {idleState}
                       </div>
                     )}

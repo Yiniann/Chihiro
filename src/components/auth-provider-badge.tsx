@@ -15,7 +15,7 @@ export function AuthProviderBadge({
 
   return (
     <span
-      className={`absolute bottom-0 right-0 inline-flex size-4 items-center justify-center rounded-full border border-white bg-white text-zinc-900 shadow-sm dark:border-zinc-950 dark:bg-zinc-950 dark:text-zinc-50 ${className}`}
+      className={`absolute bottom-0 right-0 inline-flex size-4 items-center justify-center rounded-full border border-white bg-white text-n-6 shadow-sm dark:border-zinc-950 dark:bg-n-1 dark:text-n-6 ${className}`}
       title={provider === "google" ? "Google 登录" : "GitHub 登录"}
       aria-label={provider === "google" ? "Google 登录" : "GitHub 登录"}
     >

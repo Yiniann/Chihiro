@@ -361,7 +361,7 @@ function ReadingProgress({
 
   return (
     <div className="mt-4 shrink-0 pr-2">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-200">
+      <div className="flex items-center gap-1.5 text-xs font-medium text-n-6">
         <span
           className={`relative h-6 w-6 shrink-0 transition-opacity duration-500 ease-out ${
             hideCircle ? "opacity-0" : "opacity-100"
@@ -375,7 +375,7 @@ function ReadingProgress({
               fill="none"
               stroke="currentColor"
               strokeWidth="2.25"
-              className="text-zinc-200 dark:text-zinc-800"
+              className="text-n-2-contrast"
             />
             <circle
               cx="12"
@@ -416,7 +416,7 @@ function BackToTopButton() {
     <button
       type="button"
       onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-      className="toc-item-enter flex items-center gap-1.5 py-[5px] text-left text-xs font-medium uppercase leading-6 tracking-[0.16em] text-zinc-500 transition-colors hover:text-primary dark:text-zinc-400"
+      className="toc-item-enter flex items-center gap-1.5 py-[5px] text-left text-xs font-medium uppercase leading-6 tracking-[0.16em] text-n-5 transition-colors hover:text-primary dark:text-n-5"
     >
       <ArrowUpIcon aria-hidden="true" className="h-3.5 w-3.5" />
       Back To Top
@@ -441,7 +441,7 @@ function TOCLink({
         : "ml-8 text-[0.78rem]";
   const toneClassName = isActive
     ? "font-medium text-primary"
-    : "text-zinc-500 hover:text-primary dark:text-zinc-400";
+    : "text-n-5 hover:text-primary dark:text-n-5";
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     const target = document.getElementById(item.id);
 

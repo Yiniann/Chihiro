@@ -3,7 +3,7 @@ function SkeletonBlock({ className }: { className: string }) {
     <div
       aria-hidden="true"
       className={[
-        "rounded-full bg-zinc-200/80 animate-pulse dark:bg-zinc-800/80",
+        "rounded-full bg-zinc-200/80 animate-pulse dark:bg-n-1/80",
         className,
       ].join(" ")}
     />
@@ -46,7 +46,7 @@ export function PostsPageContentSkeleton() {
         {Array.from({ length: 4 }, (_, index) => (
           <article
             key={index}
-            className="border-b border-zinc-200/80 pb-6 last:border-b-0 dark:border-zinc-800/80"
+            className="border-b border-n-2 pb-6 last:border-b-0 dark:border-n-2"
           >
             <SkeletonBlock className="h-8 w-3/5 rounded-2xl" />
             <div className="mt-4">
@@ -87,7 +87,7 @@ export function PostsPageContentSkeleton() {
       </div>
 
       <aside className="order-1 lg:order-2 lg:sticky lg:top-28">
-        <div className="border-l border-zinc-200/80 pl-6 dark:border-zinc-800/80">
+        <div className="border-l border-n-2 pl-6 dark:border-n-2">
           <div>
             <SkeletonBlock className="mb-3 h-3 w-16" />
             <SkeletonBlock className="h-10 w-full rounded-2xl" />
@@ -163,7 +163,7 @@ export function PostDetailPageSkeleton() {
           <nav aria-label="文章目录加载中" className="relative flex flex-col gap-3">
             <span
               aria-hidden="true"
-              className="absolute -left-5 top-0 h-20 w-[3px] rounded-full bg-zinc-200/80 dark:bg-zinc-800/80"
+              className="absolute -left-5 top-0 h-20 w-[3px] rounded-full bg-zinc-200/80 dark:bg-n-1/80"
             />
             <SkeletonBlock className="h-3.5 w-24" />
             <SkeletonBlock className="h-3.5 w-32" />
@@ -198,14 +198,14 @@ export function UpdatesPageContentSkeleton() {
           <section key={groupIndex} className="space-y-6">
             <div className="flex items-center gap-4">
               <SkeletonBlock className="h-7 w-14 rounded-2xl" />
-              <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800/80" />
+              <div className="h-px flex-1 bg-zinc-200/80 dark:bg-n-1/80" />
             </div>
 
             <div className="grid gap-6">
               {Array.from({ length: 3 }, (_, index) => (
                 <article
                   key={index}
-                  className="grid gap-4 border-b border-zinc-200/80 py-6 dark:border-zinc-800/80 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6"
+                  className="grid gap-4 border-b border-n-2 py-6 dark:border-n-2 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6"
                 >
                   <div>
                     <SkeletonBlock className="h-3 w-10" />
@@ -250,7 +250,7 @@ export function UpdatesPageContentSkeleton() {
 export function TimelinePageContentSkeleton() {
   return (
     <div className="mt-6">
-      <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-zinc-400 dark:text-zinc-500">
+      <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-n-4">
         <SkeletonBlock className="h-18 w-28 rounded-[1.75rem]" />
         <SkeletonBlock className="h-8 w-64 rounded-2xl" />
       </div>

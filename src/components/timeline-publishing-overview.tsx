@@ -123,7 +123,7 @@ export function TimelinePublishingOverview({
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 md:flex-row md:items-start md:gap-6">
           <nav
             aria-label="Publishing years"
-            className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-zinc-200/80 pb-4 dark:border-zinc-800/80 md:grid md:shrink-0 md:gap-2 md:border-b-0 md:border-r md:pb-0 md:pr-6"
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-n-2 pb-4 dark:border-n-2 md:grid md:shrink-0 md:gap-2 md:border-b-0 md:border-r md:pb-0 md:pr-6"
           >
             {years.map((year) => {
               const active = year === selectedYear;
@@ -136,7 +136,7 @@ export function TimelinePublishingOverview({
                   className={`inline-flex h-7 items-center text-sm font-semibold tracking-tight transition sm:h-8 sm:text-base ${
                     active
                       ? "text-primary"
-                      : "text-zinc-500 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-50"
+                      : "text-n-5 hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
                   }`}
                 >
                   {year}
@@ -147,10 +147,10 @@ export function TimelinePublishingOverview({
 
           <div className="grid min-w-0 flex-1 gap-5">
             <div className="grid gap-1">
-              <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+              <p className="site-eyebrow uppercase tracking-[0.24em] text-n-4">
                 Annual Publishing
               </p>
-              <p className="site-meta text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta text-n-5">
                 {selectedYear} 年 {trend.totalDays} 天内共发布 {formatAdminNumber(totalPublished)} 条
               </p>
             </div>
@@ -169,7 +169,7 @@ export function TimelinePublishingOverview({
                       return (
                         <div key={`${week.key}-month`} className="relative h-3">
                           {monthLabel ? (
-                            <span className="absolute left-0 top-0 whitespace-nowrap text-[10px] leading-3 text-zinc-500 dark:text-zinc-400">
+                            <span className="absolute left-0 top-0 whitespace-nowrap text-[10px] leading-3 text-n-5">
                               {monthLabel.label}
                             </span>
                           ) : null}
@@ -177,7 +177,7 @@ export function TimelinePublishingOverview({
                       );
                     })}
 
-                    <div className="grid grid-rows-7 gap-0.5 pt-px text-[10px] text-zinc-500 dark:text-zinc-400">
+                    <div className="grid grid-rows-7 gap-0.5 pt-px text-[10px] text-n-5">
                       <span />
                       <span className="leading-3">一</span>
                       <span />
@@ -197,7 +197,7 @@ export function TimelinePublishingOverview({
                             />
                             {day.isInRange ? (
                               <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-max -translate-x-1/2 opacity-0 transition duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                                <div className="rounded-md bg-zinc-950 px-2.5 py-1.5 text-[11px] text-white shadow-lg shadow-zinc-950/15 dark:bg-zinc-100 dark:text-zinc-950 dark:shadow-black/20">
+                                <div className="rounded-md bg-zinc-950 px-2.5 py-1.5 text-[11px] text-white shadow-lg shadow-zinc-950/15 dark:bg-n-1 dark:text-n-6 dark:shadow-black/20">
                                   {day.label}
                                 </div>
                               </div>
@@ -210,7 +210,7 @@ export function TimelinePublishingOverview({
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-1.5 pr-1 text-[10px] text-zinc-500 dark:text-zinc-400">
+              <div className="flex items-center justify-end gap-1.5 pr-1 text-[10px] text-n-5">
                 <span>Less</span>
                 <div className="flex items-center gap-0.5">
                   {[0, 1, 2, 3, 4].map((level) => (
@@ -256,7 +256,7 @@ function TimelinePublishingOverviewDialog({
       eyebrow="Timeline Capsule"
       maxWidthClassName="max-w-6xl"
       closeLabel="Close annual publishing overview"
-      panelClassName="rounded-[1.75rem] border border-zinc-200/80 !bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:!bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+      panelClassName=""
       overlayClassName="!bg-transparent !backdrop-blur-none dark:!bg-transparent"
       closeOnOverlayClick={false}
       onOverlayClick={triggerShake}
@@ -307,15 +307,15 @@ function TimelinePublishingDistribution({
     <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
       <div className="grid gap-3 md:min-w-[15rem]">
         <div className="grid gap-1">
-          <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
+          <p className="site-meta font-medium text-n-5">
             发布结构
           </p>
-          <p className="site-title-h2 tracking-tight text-zinc-950 dark:text-zinc-50">
+          <p className="site-title-h2 tracking-tight text-n-6">
             {selectedYear} 年发布概况
           </p>
         </div>
 
-        <div className="site-meta grid gap-2 text-zinc-600 dark:text-zinc-300">
+        <div className="site-meta grid gap-2 text-n-5">
           {items.map((item) => {
             const copy =
               item.label === "鉴赏"
@@ -324,7 +324,7 @@ function TimelinePublishingDistribution({
 
             return <p key={item.label}>{copy}</p>;
           })}
-          <p className="site-meta text-zinc-500 dark:text-zinc-400">
+          <p className="site-meta text-n-5">
             鉴赏统计包含影视、音乐与物品类动态。
           </p>
         </div>
@@ -334,11 +334,11 @@ function TimelinePublishingDistribution({
         <div className="relative h-[20rem] w-full max-w-[24rem]">
           <div className="absolute inset-x-0 top-0 flex justify-center text-center">
             <div className="flex flex-col items-center gap-1">
-              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-n-5">
                 {topItem?.label}
               </p>
               {shouldShowCrossValue(topItem, totalValue) ? (
-                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-n-6">
                   {renderCrossValue(topItem, totalValue)}
                 </p>
               ) : null}
@@ -347,11 +347,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-y-0 left-0 flex items-center text-right">
             <div className="flex flex-col items-end gap-1">
-              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-n-5">
                 {leftItem?.label}
               </p>
               {shouldShowCrossValue(leftItem, totalValue) ? (
-                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-n-6">
                   {renderCrossValue(leftItem, totalValue)}
                 </p>
               ) : null}
@@ -360,11 +360,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-y-0 right-0 flex items-center text-left">
             <div className="flex flex-col items-start gap-1">
-              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-n-5">
                 {rightItem?.label}
               </p>
               {shouldShowCrossValue(rightItem, totalValue) ? (
-                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-n-6">
                   {renderCrossValue(rightItem, totalValue)}
                 </p>
               ) : null}
@@ -373,11 +373,11 @@ function TimelinePublishingDistribution({
 
           <div className="absolute inset-x-0 bottom-0 flex justify-center text-center">
             <div className="flex flex-col items-center gap-1">
-              <p className="site-meta font-medium text-zinc-500 dark:text-zinc-400">
+              <p className="site-meta font-medium text-n-5">
                 {bottomItem?.label}
               </p>
               {shouldShowCrossValue(bottomItem, totalValue) ? (
-                <p className="site-title-h3 tracking-tight text-zinc-950 dark:text-zinc-50">
+                <p className="site-title-h3 tracking-tight text-n-6">
                   {renderCrossValue(bottomItem, totalValue)}
                 </p>
               ) : null}
@@ -399,7 +399,7 @@ function TimelinePublishingDistribution({
               <div className="absolute left-1/2 top-1/2 h-full w-px -translate-x-1/2 -translate-y-1/2 bg-primary/30 dark:bg-primary/40" />
               <div className="absolute left-1/2 top-1/2 h-px w-full -translate-x-1/2 -translate-y-1/2 bg-primary/30 dark:bg-primary/40" />
 
-              <div className="absolute left-1/2 top-1/2 z-10 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-white dark:bg-zinc-950" />
+              <div className="absolute left-1/2 top-1/2 z-10 size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-primary bg-white dark:bg-n-1" />
 
               {items.map((item) => {
                 const percent = getCrossPercent(item, maxValue);
@@ -408,7 +408,7 @@ function TimelinePublishingDistribution({
                   ? "bg-zinc-300/80 dark:bg-zinc-700/80"
                   : "bg-primary";
                 const nodeClassName = item.empty
-                  ? "border-zinc-300 dark:border-zinc-700"
+                  ? "border-n-3 dark:border-n-3"
                   : "border-primary";
 
                 if (item.direction === "top") {
@@ -419,7 +419,7 @@ function TimelinePublishingDistribution({
                         style={{ height: `${armLength}rem`, marginTop: `-${armLength}rem` }}
                       />
                       <div
-                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-n-1 ${nodeClassName}`}
                         style={{ top: `calc(50% - ${armLength}rem)` }}
                       />
                     </div>
@@ -434,7 +434,7 @@ function TimelinePublishingDistribution({
                         style={{ width: `${armLength}rem` }}
                       />
                       <div
-                        className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-n-1 ${nodeClassName}`}
                         style={{ left: `calc(50% + ${armLength}rem)` }}
                       />
                     </div>
@@ -449,7 +449,7 @@ function TimelinePublishingDistribution({
                         style={{ height: `${armLength}rem` }}
                       />
                       <div
-                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                        className={`absolute left-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-n-1 ${nodeClassName}`}
                         style={{ top: `calc(50% + ${armLength}rem)` }}
                       />
                     </div>
@@ -463,7 +463,7 @@ function TimelinePublishingDistribution({
                       style={{ width: `${armLength}rem` }}
                     />
                     <div
-                      className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-zinc-950 ${nodeClassName}`}
+                      className={`absolute top-1/2 z-[2] size-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 bg-white dark:bg-n-1 ${nodeClassName}`}
                       style={{ left: `calc(50% - ${armLength}rem)` }}
                     />
                   </div>
@@ -660,7 +660,7 @@ function getTrendCellClassName(level: 0 | 1 | 2 | 3 | 4, isInRange: boolean) {
 
   switch (level) {
     case 0:
-      return `${baseClassName} bg-zinc-200/80 dark:bg-zinc-800/80`;
+      return `${baseClassName} bg-zinc-200/80 dark:bg-n-1/80`;
     case 1:
       return `${baseClassName} bg-primary/42 dark:bg-primary/45`;
     case 2:

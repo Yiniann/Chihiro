@@ -121,7 +121,7 @@ export function ThemeModeToggle({
           className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "light"
               ? "border-primary/20 bg-primary/10 text-primary"
-              : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
+              : "border-n-2 bg-n-1/80 text-n-5 hover:border-n-3 hover:bg-white hover:text-n-6 dark:border-n-2 dark:bg-n-1/80 dark:text-n-5 dark:hover:border-n-3 dark:hover:bg-zinc-950/80 dark:hover:text-n-6"
           }`}
         >
           <Sun className="h-4 w-4" />
@@ -139,7 +139,7 @@ export function ThemeModeToggle({
           className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "dark"
               ? "border-primary/20 bg-primary/10 text-primary"
-              : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
+              : "border-n-2 bg-n-1/80 text-n-5 hover:border-n-3 hover:bg-white hover:text-n-6 dark:border-n-2 dark:bg-n-1/80 dark:text-n-5 dark:hover:border-n-3 dark:hover:bg-zinc-950/80 dark:hover:text-n-6"
           }`}
         >
           <Moon className="h-4 w-4" />
@@ -151,7 +151,7 @@ export function ThemeModeToggle({
           className={`flex min-h-14 items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs font-medium transition ${
             preference === "system"
               ? "border-primary/20 bg-primary/10 text-primary"
-              : "border-zinc-200/80 bg-zinc-50/80 text-zinc-600 hover:border-zinc-300 hover:bg-white hover:text-zinc-900 dark:border-zinc-800/80 dark:bg-zinc-900/80 dark:text-zinc-300 dark:hover:border-zinc-700 dark:hover:bg-zinc-950/80 dark:hover:text-zinc-100"
+              : "border-n-2 bg-n-1/80 text-n-5 hover:border-n-3 hover:bg-white hover:text-n-6 dark:border-n-2 dark:bg-n-1/80 dark:text-n-5 dark:hover:border-n-3 dark:hover:bg-zinc-950/80 dark:hover:text-n-6"
           }`}
         >
           <div className="flex h-4 w-4 items-center justify-center">
@@ -181,12 +181,12 @@ export function ThemeModeToggle({
         aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
         onClick={handleToggle}
         tabIndex={disableTabFocus ? -1 : undefined}
-        className={`group inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-zinc-800 transition ${
+        className={`group inline-flex items-center justify-center rounded-2xl px-3 py-1.5 text-n-6 transition ${
           minimal
-            ? "border border-transparent bg-transparent hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/[0.05] dark:hover:text-white"
+            ? "border border-transparent bg-transparent hover:bg-n-1 hover:text-n-6 dark:text-n-5 dark:hover:bg-white/[0.05] dark:hover:text-white"
             : isScrolled
-            ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_16px_40px_rgba(2,6,23,0.06)] dark:hover:shadow-[0_18px_36px_rgba(2,6,23,0.18)]"
-            : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
+            ? "surface-shell hover:border-primary/30 hover:text-primary hover:shadow-[0_12px_30px_rgba(15,23,42,0.08)] dark:text-n-6 dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_16px_40px_rgba(2,6,23,0.06)] dark:hover:shadow-[0_18px_36px_rgba(2,6,23,0.18)]"
+            : "border border-transparent bg-transparent hover:text-primary dark:text-n-6"
         }`}
       >
         <span
@@ -205,11 +205,11 @@ export function ThemeModeToggle({
             }`}
           />
           <div
-            className={`absolute left-1/2 w-48 -translate-x-1/2 rounded-md border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] ${
+            className={`surface-shell absolute left-1/2 w-48 -translate-x-1/2 rounded-md p-3 ${
               hintPlacement === "top" ? "bottom-[calc(100%+0.7rem)]" : "top-[calc(100%+0.7rem)]"
             }`}
           >
-            <p className="text-xs leading-5 text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs leading-5 text-n-5">
               Click the icon to switch mode, or{" "}
               <button
                 type="button"

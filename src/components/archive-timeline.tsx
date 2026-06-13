@@ -84,11 +84,11 @@ export function ArchiveTimeline({ groups, timeZone }: ArchiveTimelineProps) {
       delayChildren={0.08}
     >
       <StaggerRevealItem className="hidden md:sticky md:top-28 md:block md:self-start" offset={14}>
-        <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+        <p className="site-eyebrow uppercase tracking-[0.24em] text-n-4">
           Time
         </p>
         <div className="mt-2 flex items-baseline gap-3">
-          <h2 className="site-title-page tracking-tight text-zinc-950 dark:text-zinc-100">
+          <h2 className="site-title-page tracking-tight text-n-6">
             {activePeriod.year}
           </h2>
           <span className="site-meta text-primary">
@@ -104,7 +104,7 @@ export function ArchiveTimeline({ groups, timeZone }: ArchiveTimelineProps) {
           {groups.map((group) => (
             <StaggerRevealItem key={group.year} className="space-y-8" offset={22}>
               <section>
-                <p className="site-title-h3 text-right tracking-[0.16em] text-zinc-400 dark:text-zinc-500">
+                <p className="site-title-h3 text-right tracking-[0.16em] text-n-4">
                   {group.year}
                 </p>
 
@@ -124,7 +124,7 @@ export function ArchiveTimeline({ groups, timeZone }: ArchiveTimelineProps) {
                             <span className="absolute h-4 w-4 rounded-full bg-primary/18 blur-[3px] dark:bg-primary/24" />
                             <span className="relative h-2.5 w-2.5 rounded-full bg-primary shadow-[0_0_10px_rgba(var(--primary-rgb),0.2)]" />
                           </span>
-                          <p className="site-meta tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
+                          <p className="site-meta tracking-[0.08em] text-n-5">
                             {monthGroup.month}
                           </p>
                         </div>
@@ -171,19 +171,19 @@ function ArchiveCardContent({ item, timeZone }: { item: ArchiveItem; timeZone?: 
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="site-eyebrow flex flex-wrap items-center gap-2 tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+        <div className="site-eyebrow flex flex-wrap items-center gap-2 tracking-[0.14em] text-n-4">
           <span>{formatTimelineDate(item.publishedAt, timeZone)}</span>
           <span>/</span>
           <span>{item.categoryLabel}</span>
         </div>
-        <span className="site-eyebrow rounded-full bg-primary/8 px-2.5 py-1 text-primary">
+        <span className="site-eyebrow tag tag-accent">
           {item.kindLabel}
         </span>
       </div>
 
       <h3
         className={[
-          "site-title-h3 mt-2 text-zinc-950 dark:text-zinc-50",
+          "site-title-h3 mt-2 text-n-6",
           item.href
             ? "transition group-hover:text-primary"
             : "",
@@ -192,7 +192,7 @@ function ArchiveCardContent({ item, timeZone }: { item: ArchiveItem; timeZone?: 
         {item.title}
       </h3>
 
-      {item.meta ? <div className="site-meta mt-2 text-zinc-500 dark:text-zinc-400">{item.meta}</div> : null}
+      {item.meta ? <div className="site-meta mt-2 text-n-5">{item.meta}</div> : null}
     </>
   );
 }

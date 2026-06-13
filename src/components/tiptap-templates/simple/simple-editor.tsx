@@ -273,9 +273,9 @@ const ImageAltEditor = ({ editor }: { editor: Editor }) => {
   }
 
   return (
-    <div className="border-b border-zinc-200/80 bg-white/70 px-4 py-3 dark:border-zinc-800/80 dark:bg-zinc-950/70">
+    <div className="border-b border-n-2 bg-white/70 px-4 py-3 dark:border-n-2 dark:bg-n-1/70">
       <label className="flex flex-col gap-2">
-        <span className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-zinc-500 dark:text-zinc-400">
+        <span className="text-[0.72rem] font-medium uppercase tracking-[0.22em] text-n-5">
           图片描述
         </span>
         <input
@@ -326,7 +326,7 @@ const ImageAltEditor = ({ editor }: { editor: Editor }) => {
               .run()
           }}
           placeholder="描述这张图片的内容"
-          className="h-11 rounded-2xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 dark:border-zinc-800/80 dark:bg-zinc-950 dark:text-zinc-100 dark:focus:border-zinc-600"
+          className="h-11 rounded-2xl border border-n-2 bg-white px-4 text-sm text-n-6 outline-none transition focus:border-n-4 dark:border-n-2 dark:bg-n-1 dark:text-n-6 dark:focus:border-n-4"
         />
       </label>
     </div>

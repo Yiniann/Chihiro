@@ -58,14 +58,14 @@ function UnboundProjectsPage() {
       <section className="relative mx-auto grid w-full max-w-2xl justify-items-center gap-6 py-16 text-center">
         <div className="absolute inset-x-0 top-1/2 -z-10 h-px bg-gradient-to-r from-transparent via-zinc-200 to-transparent dark:via-zinc-800" />
         <div className="grid h-24 w-24 place-items-center">
-          <GitHubMark className="h-10 w-10 text-zinc-700 dark:text-zinc-200" />
+          <GitHubMark className="h-10 w-10 text-n-6" />
         </div>
 
         <div className="grid gap-3">
-          <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-400 dark:text-zinc-500">
+          <p className="site-eyebrow uppercase tracking-[0.28em] text-n-4">
             GitHub source
           </p>
-          <h1 className="site-title-page tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-page tracking-tight text-n-6">
             项目页还没有绑定
           </h1>
         </div>
@@ -95,14 +95,14 @@ function GitHubProfileCard({
   if (!profile) {
     return (
       <aside className="grid gap-5">
-        <div className="flex h-40 w-40 items-center justify-center rounded-full border border-dashed border-zinc-300 text-4xl text-zinc-300 dark:border-zinc-700 dark:text-zinc-700 sm:h-52 sm:w-52 lg:h-64 lg:w-64">
+        <div className="flex h-40 w-40 items-center justify-center rounded-full border border-dashed border-n-3 text-4xl text-n-3 dark:border-n-3 dark:text-n-6 sm:h-52 sm:w-52 lg:h-64 lg:w-64">
           ?
         </div>
         <div className="grid gap-2">
-          <h1 className="site-title-h2 tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-h2 tracking-tight text-n-6">
             GitHub 资料不可用
           </h1>
-          <p className="site-body text-zinc-500 dark:text-zinc-400">
+          <p className="site-body text-n-5">
             暂时没有读取到这个用户的公开资料。
           </p>
         </div>
@@ -119,36 +119,36 @@ function GitHubProfileCard({
       <img
         src={profile.avatarUrl}
         alt={`${displayName} avatar`}
-        className="h-40 w-40 rounded-full border border-zinc-200 object-cover dark:border-zinc-800 sm:h-52 sm:w-52 lg:h-64 lg:w-64"
+        className="h-40 w-40 rounded-full border border-n-2 object-cover dark:border-n-2 sm:h-52 sm:w-52 lg:h-64 lg:w-64"
       />
 
       <div>
-        <h1 className="site-title-h1 tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-h1 tracking-tight text-n-6">
           {displayName}
         </h1>
-        <p className="site-lead mt-1 text-zinc-500 dark:text-zinc-400">{login}</p>
+        <p className="site-lead mt-1 text-n-5">{login}</p>
       </div>
 
       {profile?.bio ? (
-        <p className="site-body text-zinc-700 dark:text-zinc-300">{profile.bio}</p>
+        <p className="site-body text-n-5">{profile.bio}</p>
       ) : null}
 
-      <div className="site-meta grid gap-3 text-zinc-600 dark:text-zinc-300">
+      <div className="site-meta grid gap-3 text-n-5">
         <p className="inline-flex items-center gap-2">
-          <Users className="h-4 w-4 text-zinc-400" />
-          <span className="font-semibold text-zinc-950 dark:text-zinc-50">{profile.followers}</span>
+          <Users className="h-4 w-4 text-n-4" />
+          <span className="font-semibold text-n-6">{profile.followers}</span>
           followers ·
-          <span className="font-semibold text-zinc-950 dark:text-zinc-50">{profile.following}</span>
+          <span className="font-semibold text-n-6">{profile.following}</span>
           following
         </p>
         {profile.location ? (
           <p className="inline-flex items-center gap-2">
-            <MapPin className="h-4 w-4 text-zinc-400" />
+            <MapPin className="h-4 w-4 text-n-4" />
             {profile.location}
           </p>
         ) : null}
         <p className="inline-flex items-center gap-2">
-          <Clock className="h-4 w-4 text-zinc-400" />
+          <Clock className="h-4 w-4 text-n-4" />
           {getLocalTimeLabel()}
         </p>
         {profile.blog ? (
@@ -158,7 +158,7 @@ function GitHubProfileCard({
             rel="noreferrer noopener"
             className="inline-flex items-center gap-2 transition hover:text-primary"
           >
-            <Link2 className="h-4 w-4 text-zinc-400" />
+            <Link2 className="h-4 w-4 text-n-4" />
             {formatUrlLabel(profile.blog)}
           </Link>
         ) : null}

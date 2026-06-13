@@ -5,7 +5,7 @@ import remarkGfm from "remark-gfm";
 
 export function GitHubProfileReadme({ markdown }: { markdown: string }) {
   return (
-    <div className="reading-copy site-body mt-6 overflow-x-auto text-zinc-700 dark:text-zinc-300">
+    <div className="reading-copy site-body mt-6 overflow-x-auto text-n-5">
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         skipHtml
@@ -47,25 +47,25 @@ export function GitHubProfileReadme({ markdown }: { markdown: string }) {
 
             if (isBlock) {
               return (
-                <code className="block whitespace-pre overflow-x-auto font-mono text-sm leading-6 text-zinc-800 dark:text-zinc-100">
+                <code className="block whitespace-pre overflow-x-auto font-mono text-sm leading-6 text-n-6">
                   {children}
                 </code>
               );
             }
 
             return (
-              <code className="rounded bg-zinc-200/70 px-1.5 py-0.5 font-mono text-[0.9em] text-zinc-800 dark:bg-zinc-800 dark:text-zinc-100">
+              <code className="inline-code">
                 {children}
               </code>
             );
           },
           pre: ({ children }) => (
-            <pre className="my-3 overflow-x-auto rounded-md bg-zinc-100 px-4 py-3 dark:bg-zinc-950">
+            <pre className="my-3 overflow-x-auto rounded-md bg-n-1 px-4 py-3 dark:bg-n-1">
               {children}
             </pre>
           ),
           blockquote: ({ children }) => (
-            <blockquote className="my-3 border-l-2 border-zinc-300 pl-3 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400">
+            <blockquote className="quote my-3">
               {children}
             </blockquote>
           ),
@@ -75,12 +75,12 @@ export function GitHubProfileReadme({ markdown }: { markdown: string }) {
             <table className="site-meta my-3 min-w-full border-collapse text-left">{children}</table>
           ),
           th: ({ children }) => (
-            <th className="border border-zinc-200 px-3 py-2 font-semibold dark:border-zinc-800">
+            <th className="border border-n-2 px-3 py-2 font-semibold dark:border-n-2">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="border border-zinc-200 px-3 py-2 dark:border-zinc-800">
+            <td className="border border-n-2 px-3 py-2 dark:border-n-2">
               {children}
             </td>
           ),

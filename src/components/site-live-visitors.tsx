@@ -60,7 +60,7 @@ export function SiteLiveVisitors() {
   const isOffline = connectionState !== "connected";
 
   return (
-    <p className="mt-4 flex min-w-0 items-center gap-3 text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+    <p className="mt-4 flex min-w-0 items-center gap-3 text-sm leading-6 text-n-5">
       <span className="relative inline-flex size-2 shrink-0">
         <span
           className={
@@ -82,7 +82,7 @@ export function SiteLiveVisitors() {
       ) : (
         <>
           当前站点有{" "}
-          <span className="font-semibold text-zinc-950 dark:text-zinc-50">{onlineVisitors}</span>{" "}
+          <span className="font-semibold text-n-6">{onlineVisitors}</span>{" "}
           人正在访问
         </>
       )}

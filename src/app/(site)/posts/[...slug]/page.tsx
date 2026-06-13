@@ -192,13 +192,13 @@ export default async function PostPage({ params }: PostPageProps) {
             ) : null}
 
             <StaggerRevealItem offset={20}>
-              <h1 className="site-title-page text-center tracking-tight text-zinc-950 dark:text-zinc-50">
+              <h1 className="site-title-page text-center tracking-tight text-n-6">
                 {post.title}
               </h1>
             </StaggerRevealItem>
 
             <StaggerRevealItem offset={16}>
-              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+              <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-n-5">
                 <RelativeDate value={post.publishedAt} timeZone={siteSettings.timeZone ?? siteConfig.timeZone} />
                 {post.updatedAt ? (
                   <span>
@@ -227,7 +227,7 @@ export default async function PostPage({ params }: PostPageProps) {
                   <Link
                     key={tag.id}
                     href={`/posts?tag=${encodeURIComponent(tag.slug)}`}
-                    className="text-xs font-medium text-zinc-500 transition-colors hover:text-primary dark:text-zinc-400"
+                    className="tag-inline"
                   >
                     #{tag.name}
                   </Link>
@@ -237,7 +237,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
             {post.summary ? (
               <StaggerRevealItem offset={18}>
-                <p className="reading-copy site-lead mt-6 text-zinc-600 dark:text-zinc-300">
+                <p className="reading-copy site-lead mt-6 text-n-5">
                   {post.summary}
                 </p>
               </StaggerRevealItem>
@@ -247,14 +247,14 @@ export default async function PostPage({ params }: PostPageProps) {
               {renderedContentHtml ? (
                 <div
                   data-reading-progress-root
-                  className="reading-copy site-body mt-10 space-y-6 text-zinc-800 dark:text-zinc-200"
+                  className="reading-copy site-body mt-10 space-y-6 text-n-6"
                   suppressHydrationWarning
                   dangerouslySetInnerHTML={{ __html: postContentHtml }}
                 />
               ) : (
                 <div
                   data-reading-progress-root
-                  className="reading-copy site-body mt-10 space-y-6 text-zinc-800 dark:text-zinc-200"
+                  className="reading-copy site-body mt-10 space-y-6 text-n-6"
                 >
                   <p>暂无内容。</p>
                 </div>

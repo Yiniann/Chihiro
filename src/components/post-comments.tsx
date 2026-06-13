@@ -52,10 +52,10 @@ export async function PostComments({ targetType, targetId, pathname, commentsEna
         ) : (
           <div
             id="post-comment-form"
-            className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent dark:border-zinc-800/80"
+            className="overflow-hidden rounded-md border border-n-2 bg-transparent dark:border-n-2"
           >
             <div className="flex min-h-28 flex-col items-center justify-center gap-2 px-3 py-6 text-center">
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">登录后可评论</p>
+              <p className="text-sm text-n-5">登录后可评论</p>
               <PublicAuthStatus
                 siteUrl={siteUrl}
                 githubEnabled={githubAuthAvailable}

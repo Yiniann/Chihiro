@@ -125,7 +125,7 @@ export function PostSidebarActions({
   }
 
   return (
-    <section className="mt-3 border-t border-zinc-200/70 pt-3 dark:border-zinc-800/70">
+    <section className="mt-3 border-t border-n-2 pt-3 dark:border-n-2">
       <div className="flex flex-row gap-2 [@media(min-height:680px)]:flex-col">
         <div className="group relative flex w-fit items-center">
           <button
@@ -134,7 +134,7 @@ export function PostSidebarActions({
             disabled={isPending || likeState.liked}
             aria-pressed={likeState.liked}
             title={`点赞 · ${likeState.likeCount}`}
-            className="inline-flex h-9 w-fit items-center justify-center gap-2 rounded-md px-2 text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-zinc-400"
+            className="inline-flex h-9 w-fit items-center justify-center gap-2 rounded-md px-2 text-n-5 transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-default disabled:opacity-80 dark:text-n-5"
           >
             <Heart
               className={likeState.liked ? "size-4 fill-primary text-primary" : "size-4"}
@@ -151,7 +151,7 @@ export function PostSidebarActions({
             onClick={handleShareClick}
             disabled={isPending}
             title={shareState === "copied" ? "已复制链接" : "分享"}
-            className="inline-flex size-9 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-400"
+            className="inline-flex size-9 items-center justify-center rounded-md text-n-5 transition-colors hover:bg-primary/10 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60 dark:text-n-5"
           >
             <Share2 className="size-4" aria-hidden="true" />
             <span className="sr-only">分享文章</span>
@@ -164,8 +164,8 @@ export function PostSidebarActions({
             disabled={!subscriptionsEnabled}
             className={
               subscriptionsEnabled
-                ? "inline-flex size-9 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-zinc-400"
-                : "inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-zinc-700"
+                ? "inline-flex size-9 items-center justify-center rounded-md text-n-5 transition-colors hover:bg-primary/10 hover:text-primary dark:text-n-5"
+                : "inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-n-6"
             }
           >
             <Bell className="size-4" aria-hidden="true" />
@@ -178,7 +178,7 @@ export function PostSidebarActions({
             type="button"
             onClick={handleCommentClick}
             title="评论"
-            className="inline-flex size-9 items-center justify-center rounded-md text-zinc-500 transition-colors hover:bg-primary/10 hover:text-primary dark:text-zinc-400"
+            className="inline-flex size-9 items-center justify-center rounded-md text-n-5 transition-colors hover:bg-primary/10 hover:text-primary dark:text-n-5"
           >
             <MessageCircle className="size-4" aria-hidden="true" />
             <span className="sr-only">评论</span>
@@ -190,7 +190,7 @@ export function PostSidebarActions({
             type="button"
             disabled
             title="捐赠即将开放"
-            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-zinc-700"
+            className="inline-flex size-9 cursor-not-allowed items-center justify-center rounded-md text-zinc-300 dark:text-n-6"
           >
             <Gift className="size-4" aria-hidden="true" />
             <span className="sr-only">向作者捐赠</span>
@@ -206,7 +206,7 @@ function ActionTooltip({ children }: { children: string }) {
   return (
     <span
       aria-hidden="true"
-      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-950 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg shadow-zinc-950/10 transition-opacity group-hover:opacity-100 dark:bg-zinc-100 dark:text-zinc-950 [@media(min-height:680px)]:bottom-auto [@media(min-height:680px)]:left-full [@media(min-height:680px)]:top-1/2 [@media(min-height:680px)]:mb-0 [@media(min-height:680px)]:ml-2 [@media(min-height:680px)]:-translate-x-0 [@media(min-height:680px)]:-translate-y-1/2"
+      className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-zinc-950 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg shadow-zinc-950/10 transition-opacity group-hover:opacity-100 dark:bg-n-1 dark:text-n-6 [@media(min-height:680px)]:bottom-auto [@media(min-height:680px)]:left-full [@media(min-height:680px)]:top-1/2 [@media(min-height:680px)]:mb-0 [@media(min-height:680px)]:ml-2 [@media(min-height:680px)]:-translate-x-0 [@media(min-height:680px)]:-translate-y-1/2"
     >
       {children}
     </span>

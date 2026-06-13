@@ -37,17 +37,17 @@ export function ProjectRepositoryList({
   return (
     <section className="grid gap-7">
       {showHeading ? (
-        <h2 className="site-title-h1 text-zinc-950 dark:text-zinc-50">Projects</h2>
+        <h2 className="site-title-h1 text-n-6">Projects</h2>
       ) : null}
 
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-zinc-400 dark:text-zinc-500" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-n-4" />
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           type="search"
           placeholder="Find a repository..."
-          className="h-14 w-full rounded-2xl border border-zinc-200/80 bg-white/80 px-12 text-base text-zinc-800 shadow-sm outline-none backdrop-blur-sm transition placeholder:text-zinc-400 focus:border-primary focus:ring-4 focus:ring-primary/10 dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:text-zinc-100 dark:placeholder:text-zinc-500 dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+          className="surface-shell h-14 w-full rounded-2xl px-12 text-base text-n-6 outline-none transition placeholder:text-n-4 focus:border-primary focus:ring-4 focus:ring-primary/10 dark:text-n-6 dark:placeholder:text-n-5"
         />
       </div>
 
@@ -58,7 +58,7 @@ export function ProjectRepositoryList({
       </div>
 
       {filteredProjects.length === 0 ? (
-        <p className="border-b border-dashed border-zinc-200/80 py-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+        <p className="border-b border-dashed border-n-2 py-8 text-sm text-n-5 dark:border-n-2 dark:text-n-5">
           没有找到匹配的项目。
         </p>
       ) : null}
@@ -68,7 +68,7 @@ export function ProjectRepositoryList({
 
 function RepositoryCard({ project }: { project: GitHubProject }) {
   return (
-    <article className="group relative rounded-2xl border border-zinc-200/80 bg-white/80 p-6 shadow-sm backdrop-blur-sm transition hover:border-zinc-300 hover:shadow-md dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)] dark:hover:border-white/20">
+    <article className="surface-shell surface-shell-hover group relative rounded-2xl p-6">
       <Link
         href={project.href}
         target={project.href.startsWith("/") ? undefined : "_blank"}
@@ -85,36 +85,36 @@ function RepositoryCard({ project }: { project: GitHubProject }) {
                 {project.title}
               </h3>
               {project.isArchived ? (
-                <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="tag tag-accent">
                   Archived
                 </span>
               ) : null}
               {project.isFork ? (
-                <span className="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+                <span className="tag tag-accent">
                   Fork
                 </span>
               ) : null}
             </div>
-            <p className="mt-4 max-w-4xl text-base leading-7 text-zinc-600 dark:text-zinc-300">
+            <p className="mt-4 max-w-4xl text-base leading-7 text-n-5">
               {project.description}
             </p>
           </div>
 
-          <ArrowUpRight className="h-5 w-5 shrink-0 text-zinc-400 transition group-hover:text-primary dark:text-zinc-500" />
+          <ArrowUpRight className="h-5 w-5 shrink-0 text-n-4 transition group-hover:text-primary dark:text-n-5" />
         </div>
 
         <div className="flex flex-wrap gap-2">
           {project.topics.map((topic) => (
             <span
               key={topic}
-              className="rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary"
+              className="tag tag-accent px-3 py-1 text-sm"
             >
               {topic}
             </span>
           ))}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-n-5">
           <div className="flex flex-wrap items-center gap-5">
             <span className="inline-flex items-center gap-2">
               <span className="h-3 w-3 rounded-full bg-blue-500" />

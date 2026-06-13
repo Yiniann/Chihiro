@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import {
   Copy,
+  Mail,
 } from "lucide-react";
+import { TagChipPreview } from "@/app/(site)/design-system/tag-chip-preview";
 
 export const metadata: Metadata = {
   title: "设计系统",
   description: "Chihiro 前台主题当前实际使用的色彩、字体、节奏与组件语言。",
 };
-
-const editorialSerif =
-  '"Iowan Old Style", "Palatino Linotype", "Noto Serif SC", "Source Han Serif SC", "Songti SC", serif';
 
 const principles = [
   "内容优先，氛围退后。页面首先要可读、可扫、可停留，视觉气质只负责托住内容。",
@@ -23,31 +22,36 @@ const principles = [
 ];
 
 const primarySwatches = [
-  { name: "浅色主色", usage: "light 主题强调色", hex: "#5E81AC", tone: "#5E81AC", accent: true },
-  { name: "深色主色", usage: "dark 主题强调色", hex: "#38BDF8", tone: "#38BDF8", accent: true },
+  {
+    name: "primary",
+    usage: "当前主题主色",
+    lightHex: "#5E81AC",
+    darkHex: "#38BDF8",
+    lightTone: "#5E81AC",
+    darkTone: "#38BDF8",
+    accent: true,
+  },
 ];
 
 const neutralSwatches = [
-  { name: "zinc-100", usage: "轻表面 / 图标底", hex: "#F4F4F5", tone: "#F4F4F5" },
-  { name: "zinc-200", usage: "描边 / 分隔", hex: "#E4E4E7", tone: "#E4E4E7" },
-  { name: "zinc-400", usage: "弱元信息", hex: "#A1A1AA", tone: "#A1A1AA" },
-  { name: "zinc-500", usage: "次要文本", hex: "#71717A", tone: "#71717A" },
-  { name: "zinc-600", usage: "导语 / 说明", hex: "#52525B", tone: "#52525B" },
-  { name: "zinc-900", usage: "正文", hex: "#18181B", tone: "#18181B" },
+  { name: "n-1", usage: "轻表面 / 图标底", lightHex: "#F4F4F5", darkHex: "#171717", lightTone: "#F4F4F5", darkTone: "#171717" },
+  { name: "n-2", usage: "描边 / 分隔", lightHex: "#E4E4E7", darkHex: "#27272A", lightTone: "#E4E4E7", darkTone: "#27272A" },
+  { name: "n-3", usage: "hover / 柔和填充", lightHex: "#D4D4D8", darkHex: "#3F3F46", lightTone: "#D4D4D8", darkTone: "#3F3F46" },
+  { name: "n-4", usage: "弱元信息", lightHex: "#A1A1AA", darkHex: "#71717A", lightTone: "#A1A1AA", darkTone: "#71717A" },
+  { name: "n-5", usage: "次要文本", lightHex: "#71717A", darkHex: "#A1A1AA", lightTone: "#71717A", darkTone: "#A1A1AA" },
+  { name: "n-6", usage: "正文", lightHex: "#171717", darkHex: "#EDEDED", lightTone: "#171717", darkTone: "#EDEDED" },
 ];
 
 const backgroundSwatches = [
-  { name: "light canvas", usage: "浅色页面底", hex: "#FAFAFA", tone: "#FAFAFA" },
-  { name: "light tint", usage: "浅色背景轻雾", hex: "#F8FAFC", tone: "#F8FAFC" },
-  { name: "dark canvas", usage: "深色页面底", hex: "#09090B", tone: "#09090B" },
-  { name: "dark tint", usage: "深色背景过渡", hex: "#0C0E14", tone: "#0C0E14" },
-  { name: "safari root", usage: "深色根背景", hex: "#09090B", tone: "#09090B" },
+  { name: "canvas", usage: "页面底", lightHex: "#FAFAFA", darkHex: "#09090B", lightTone: "#FAFAFA", darkTone: "#09090B" },
+  { name: "tint", usage: "背景过渡", lightHex: "#F8FAFC", darkHex: "#0C0E14", lightTone: "#F8FAFC", darkTone: "#0C0E14" },
+  { name: "safari root", usage: "根背景", lightHex: "#F8FAFC", darkHex: "#09090B", lightTone: "#F8FAFC", darkTone: "#09090B" },
 ];
 
 const semanticSwatches = [
-  { name: "rose pulse", usage: "like / presence 等活跃反馈", hex: "#FB7185", tone: "#FB7185", accent: true },
-  { name: "emerald", usage: "在线 / 成功状态", hex: "#34D399", tone: "#34D399", accent: true },
-  { name: "amber", usage: "提醒 / 弱警告", hex: "#F59E0B", tone: "#F59E0B", accent: true },
+  { name: "rose pulse", usage: "like / presence 等活跃反馈", lightHex: "#FB7185", darkHex: "#FB7185", lightTone: "#FB7185", darkTone: "#FB7185", accent: true },
+  { name: "emerald", usage: "在线 / 成功状态", lightHex: "#34D399", darkHex: "#34D399", lightTone: "#34D399", darkTone: "#34D399", accent: true },
+  { name: "amber", usage: "提醒 / 弱警告", lightHex: "#F59E0B", darkHex: "#F59E0B", lightTone: "#F59E0B", darkTone: "#F59E0B", accent: true },
 ];
 
 const scaleRows = [
@@ -62,97 +66,112 @@ const scaleRows = [
 ];
 
 const radii = [
-  { px: "9999px", token: "rounded-full", use: "胶囊按钮 / 小切换" },
+  { px: "9999px", token: "rounded-full", use: "头像 / pill / 状态点" },
   { px: "6px", token: "rounded-md", use: "代码块 / tooltip / 局部内容块" },
   { px: "16px", token: "rounded-2xl", use: "卡片 / 输入框 / 常规表面" },
-  { px: "1.75rem", token: "rounded-[1.75rem]", use: "Search / Dialog / Tag Panel / MegaNav" },
+  { px: "1.75rem", token: "rounded-[1.75rem]", use: "搜索 / 弹层 / 标签面板 / MegaNav" },
 ];
 
 const atoms = [
   {
     title: "按钮",
-    meta: "accent fill / quiet secondary / ghost",
+    meta: "主按钮 / 次按钮 / 幽灵按钮",
+    note: "btn · btn-primary · btn-secondary · btn-ghost · rounded-2xl",
     preview: (
       <div className="flex flex-wrap items-center gap-3">
-        <button className="rounded-full border border-[#adc6e3] bg-[#eef5fb] px-5 py-2.5 text-sm font-medium text-[#4f729c]">
+        <button className="btn btn-primary h-10">
           主按钮
         </button>
-        <button className="rounded-full border border-[#d8d0c6] bg-white/80 px-5 py-2.5 text-sm font-medium text-[#3d3832]">
+        <button className="btn btn-secondary h-10">
           次按钮
         </button>
-        <button className="rounded-full px-3 py-2 text-sm font-medium text-[#6f665e]">
-          幽灵
+        <button className="btn btn-ghost h-10">
+          幽灵按钮
         </button>
       </div>
     ),
   },
   {
     title: "标签",
-    meta: "neutral-2 / text-xs / rounded",
+    meta: "文本标签 / 内容标签",
+    note: "tag-inline · tag-chip · tag-accent",
+    preview: (
+      <div className="grid gap-3">
+        <div className="flex flex-wrap gap-3">
+          <span className="tag-inline">#writing</span>
+          <TagChipPreview />
+          <span className="tag tag-accent">Essay</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    title: "徽记",
+    meta: "数量 / 身份 / 小型状态标识",
+    note: "badge · badge-soft · badge-accent",
     preview: (
       <div className="flex flex-wrap gap-2">
-        {["design", "tokens", "reading"].map((tag) => (
-          <span
-            key={tag}
-            className="rounded-md border border-[#ddd4c8] bg-[#f4f0ea] px-3 py-1 text-xs text-[#73695f]"
-          >
-            {tag}
-          </span>
-        ))}
+        <span className="badge badge-soft">
+          12 条
+        </span>
+        <span className="badge badge-accent">
+          站主
+        </span>
       </div>
     ),
   },
   {
     title: "引文",
-    meta: "accent border / neutral-7",
+    meta: "quote · primary border · n-5 text",
+    framed: false,
     preview: (
-      <blockquote className="border-l-[3px] border-[#5e81ac] pl-4 text-lg leading-8 text-[#5c544c]">
-        一千次「不」，方有一次「是」。
+      <blockquote className="quote site-body">
+        让内容先被看见，再让界面退后。
       </blockquote>
     ),
   },
   {
-    title: "指标",
-    meta: "serif numerals / calm labels",
+    title: "输入框",
+    meta: "线性输入 / 表单字段",
+    note: "field-line · field-line-input",
     preview: (
-      <div className="flex gap-8">
-        {[
-          ["128", "文章"],
-          ["1", "主色"],
-          ["10", "戒律"],
-        ].map(([value, label]) => (
-          <div key={label}>
-            <p style={{ fontFamily: editorialSerif }} className="text-4xl text-[#1c1815]">
-              {value}
-            </p>
-            <p className="mt-1 text-sm text-[#81766a]">{label}</p>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    title: "虚列列表",
-    meta: "editorial bullets / roomy leading",
-    preview: (
-      <ul className="grid gap-3 text-lg leading-8 text-[#4e4640]">
-        <li>一 色不溢于五分</li>
-        <li>一 硬阴影禁用</li>
-        <li>一 中文不施合成 bold</li>
-      </ul>
+      <label className="grid gap-2">
+        <span className="site-eyebrow text-n-4">
+          Email
+        </span>
+        <div className="field-line">
+          <Mail className="size-4 shrink-0" strokeWidth={1.9} aria-hidden="true" />
+          <input
+            className="field-line-input"
+            placeholder="输入邮箱订阅更新"
+            type="email"
+          />
+        </div>
+      </label>
     ),
   },
   {
     title: "Inline 代码",
-    meta: "neutral-2 / mono",
+    meta: "inline-code · n-1 background · mono",
     preview: (
-      <p className="text-lg leading-8 text-[#4e4640]">
+      <p className="site-body text-n-5">
         执{" "}
-        <code className="rounded-md bg-[#f1eee8] px-2 py-1 font-mono text-base text-[#38322d]">
-          text-neutral-9
+        <code className="inline-code">
+          text-n-6
         </code>{" "}
         为正文默认色。
       </p>
+    ),
+  },
+  {
+    title: "分割线",
+    meta: "divider · n-2 border",
+    preview: (
+      <div className="grid gap-3">
+        <p className="site-meta text-n-5">上方内容</p>
+        <hr className="divider" />
+        <p className="site-meta text-n-5">下方内容</p>
+      </div>
     ),
   },
 ];
@@ -160,30 +179,24 @@ const atoms = [
 export default function DesignSystemPage() {
   return (
     <main className="min-h-screen w-full px-6 py-12 sm:px-10 lg:px-16">
-      <div className="mx-auto max-w-5xl px-0 py-0 text-[#2d2924] dark:text-[#f5efe6]">
+      <div className="mx-auto max-w-5xl px-0 py-0 text-n-6 dark:text-n-6">
         <div className="flex flex-col gap-10 lg:gap-14">
           <header className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
             <div className="grid gap-8">
-              <p className="inline-flex items-center gap-4 text-sm tracking-[0.18em] text-[#7c746d] dark:text-[#b9aea0]">
-                <span className="inline-block h-2.5 w-2.5 rounded-full bg-[#5e81ac]" />
+              <p className="inline-flex items-center gap-4 text-sm tracking-[0.18em] text-n-5 dark:text-n-5">
+                <span className="inline-block h-2.5 w-2.5 rounded-full bg-primary" />
                 设计系统 · v0.1 · 2026.06
               </p>
 
               <div className="grid gap-6">
-                <h1
-                  style={{ fontFamily: editorialSerif }}
-                  className="max-w-5xl text-4xl font-medium leading-[1.1] tracking-[-0.04em] text-[#181512] dark:text-[#fbf5ec]"
-                >
+                <h1 className="site-title-hero max-w-5xl tracking-tight text-n-6 dark:text-n-6">
                   Chihiro Design
                 </h1>
-                <p
-                  style={{ fontFamily: editorialSerif }}
-                  className="max-w-4xl text-lg font-normal leading-[1.55] text-[#5a534c] dark:text-[#cbc1b4]"
-                >
+                <p className="site-lead max-w-4xl text-n-5 dark:text-n-5">
                   一种冷静的蓝，一组安静的中性色，剩下交给留白、呼吸感和时间感。Chihiro 是一套为个人前台而设计的系统，围绕内容、记录、浏览与阅读展开。                </p>
               </div>
 
-              <div className="flex flex-wrap gap-x-8 gap-y-3 pt-6 font-mono text-sm text-[#756b62] dark:text-[#a99d90]">
+              <div className="flex flex-wrap gap-x-8 gap-y-3 pt-6 font-mono text-sm text-n-5 dark:text-n-5">
                 <span>主色调 · 浅色 #5E81AC · 深色 #38BDF8</span>
                 <span>字体 Instrument Sans / JetBrains Mono</span>
               </div>
@@ -254,7 +267,7 @@ export default function DesignSystemPage() {
 
                   <Link
                     href="/posts"
-                    className="inline-flex items-center gap-2 text-base text-[#5e81ac] transition hover:opacity-80"
+                    className="inline-flex items-center gap-2 text-base text-primary transition hover:opacity-80"
                   >
                     <ArrowUpRight className="h-4 w-4" />
                     查看对应页面语境
@@ -274,20 +287,21 @@ export default function DesignSystemPage() {
               index="05"
               eyebrow="原子组件"
               title="原子组件"
-              description="一组数量不多但足够定下气质的组件。按钮、标签、引文、指标、虚列列表和 inline code 都是这套语言的基础发音。"
+              description="一组数量不多但足够定下气质的组件。按钮、标签、徽记、引文和 inline code 都是这套语言的基础发音。"
             />
 
             <div className="mt-10 grid gap-x-8 gap-y-10 lg:grid-cols-3">
               {atoms.map((atom) => (
-                <article key={atom.title} className="grid gap-5">
+                <article key={atom.title} className="surface-shell grid gap-5 rounded-2xl p-5">
+                  <div className="py-2">{atom.preview}</div>
                   <div>
-                    <h3 className="text-[1.8rem] font-medium tracking-tight text-[#191511] dark:text-[#faf2e6]">
+                    <h3 className="site-title-h3 tracking-tight text-n-6 dark:text-n-6">
                       {atom.title}
                     </h3>
-                    <p className="mt-1 font-mono text-sm text-[#897d71] dark:text-[#ac9f92]">{atom.meta}</p>
-                  </div>
-                  <div className="rounded-md border border-[rgba(207,197,184,0.62)] bg-[#fffdfa] p-5 dark:border-white/10 dark:bg-[#1a1714]">
-                    {atom.preview}
+                    <p className="mt-1 font-mono text-sm text-n-5 dark:text-n-5">{atom.meta}</p>
+                    {"note" in atom && atom.note ? (
+                      <p className="mt-2 max-w-xl text-sm leading-6 text-n-5 dark:text-n-5">{atom.note}</p>
+                    ) : null}
                   </div>
                 </article>
               ))}
@@ -314,8 +328,8 @@ function DesignPrinciplesSection() {
       <div className="mt-10 grid gap-x-12 gap-y-6 lg:grid-cols-2">
         {principles.map((item, index) => (
           <div key={item} className="grid grid-cols-[3.25rem_minmax(0,1fr)] gap-4">
-            <p className="font-mono text-base text-[#5e81ac]">{String(index + 1).padStart(2, "0")}</p>
-            <p className="text-base leading-[1.55] text-[#3e3832] dark:text-[#e7ddd1]">{item}</p>
+            <p className="font-mono text-base text-primary">{String(index + 1).padStart(2, "0")}</p>
+            <p className="text-base leading-[1.55] text-n-6 dark:text-n-6">{item}</p>
           </div>
         ))}
       </div>
@@ -330,14 +344,17 @@ function ColorSection() {
         index="02"
         eyebrow="颜色"
         title="克制的色彩"
-        description="一个主色、一组常用中性色、两层页面背景，再加少量辅助状态色。"
+        description="一个主色，一组从浅到深的中性色，两层页面背景，再加少量辅助状态色。"
       />
 
       <div className="mt-12 grid gap-6">
         <div>
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
-            主色
-          </h3>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-2">
+            <h3 className="site-title-h3 text-n-6 dark:text-n-6">
+              主色
+            </h3>
+            <span className="site-meta text-primary">primary</span>
+          </div>
           <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             {primarySwatches.map((swatch) => (
               <SwatchCard key={swatch.name} {...swatch} accent={swatch.accent} />
@@ -346,7 +363,7 @@ function ColorSection() {
         </div>
 
         <div className="pt-6">
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
+          <h3 className="site-title-h3 text-n-6 dark:text-n-6">
             常用中性色
           </h3>
           <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -357,7 +374,7 @@ function ColorSection() {
         </div>
 
         <div className="pt-6">
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
+          <h3 className="site-title-h3 text-n-6 dark:text-n-6">
             背景层
           </h3>
           <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -368,7 +385,7 @@ function ColorSection() {
         </div>
 
         <div className="pt-6">
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
+          <h3 className="site-title-h3 text-n-6 dark:text-n-6">
             辅助状态色
           </h3>
           <div className="mt-5 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
@@ -409,8 +426,8 @@ function TypographySection() {
       </div>
 
       <div className="mt-5 max-w-3xl">
-        <p className="font-mono text-sm text-[#5e81ac]">Serif · 预留方向</p>
-        <p className="mt-3 text-sm leading-[1.5] text-[#5f574f] dark:text-[#cabfb2]">
+        <p className="font-mono text-sm text-primary">Serif · 预留方向</p>
+        <p className="mt-3 text-sm leading-[1.5] text-n-5 dark:text-n-5">
           衬线字体目前只作为少量展示和编辑语气的预留方向存在，还没有进入前台全局字体栈。等站点真的需要更强的编辑感时，再决定是否把它提升为正式角色。
         </p>
       </div>
@@ -421,14 +438,11 @@ function TypographySection() {
             key={row.token}
             className="grid gap-3 border-t border-[rgba(215,206,195,0.66)] py-5 first:border-t-0 md:grid-cols-[14rem_minmax(0,1fr)_15rem] md:items-center dark:border-white/10"
           >
-            <p className="font-mono text-base text-[#5e81ac]">{row.token}</p>
-            <p
-              className={`${row.previewClassName} text-[#1d1915] dark:text-[#f8f2e8]`}
-              style={{ fontFamily: row.token.startsWith("text-xl") || row.token.startsWith("text-2xl") || row.token.startsWith("text-3xl") || row.token.startsWith("text-4xl") ? editorialSerif : undefined }}
-            >
+            <p className="font-mono text-base text-primary">{row.token}</p>
+            <p className={`${row.previewClassName} text-n-6 dark:text-n-6`}>
               {row.label}
             </p>
-            <p className="font-mono text-base text-[#81766a] md:text-right dark:text-[#b4a89a]">{row.meta}</p>
+            <p className="font-mono text-base text-n-5 md:text-right dark:text-n-5">{row.meta}</p>
           </div>
         ))}
       </div>
@@ -443,12 +457,12 @@ function RhythmSection() {
         index="04"
         eyebrow="间距"
         title="节奏与形态"
-        description="前台真实更接近两种状态：正文内容直接落在页面上，只有导航、弹层和重点卡片会使用 translucent surface。不要为了形式额外加一层壳。"
+        description="前台真实更接近两种状态：正文内容直接落在页面上，弹层和重点卡片使用 translucent surface。不要为了形式额外加一层壳。"
       />
 
       <div className="mt-10 grid gap-12">
         <div>
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
+          <h3 className="site-title-h3 text-n-6 dark:text-n-6">
             圆角
           </h3>
           <div className="mt-5 grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -464,9 +478,9 @@ function RhythmSection() {
                   />
                 </div>
                 <div className="grid gap-1">
-                  <p className="text-lg font-medium leading-[1.55] text-[#2a2520] dark:text-[#f4eee4]">{radius.px}</p>
-                  <p className="font-mono text-base text-[#6c6259] dark:text-[#b6a99a]">{radius.token}</p>
-                  <p className="text-sm text-[#8a7e72] dark:text-[#a99d90]">{radius.use}</p>
+                  <p className="text-lg font-medium leading-[1.55] text-n-6 dark:text-n-6">{radius.px}</p>
+                  <p className="font-mono text-base text-n-5 dark:text-n-5">{radius.token}</p>
+                  <p className="text-sm text-n-5 dark:text-n-5">{radius.use}</p>
                 </div>
               </article>
             ))}
@@ -474,8 +488,8 @@ function RhythmSection() {
         </div>
 
         <div>
-          <h3 style={{ fontFamily: editorialSerif }} className="text-xl font-medium leading-[1.3] text-[#231e1a] dark:text-[#f8f2e8]">
-            深度
+          <h3 className="site-title-h3 text-n-6 dark:text-n-6">
+            表面
           </h3>
           <div className="mt-5 grid gap-4 lg:grid-cols-3">
             <DepthCard
@@ -484,13 +498,13 @@ function RhythmSection() {
               bare
             />
             <DepthCard
-              title="translucent"
-              body="border + bg-white/80 + shadow-sm + backdrop-blur-sm。作为主题主要的 shell，用于导航、弹层、搜索和重点卡片。"
+              title="surface-shell"
+              body="浅色使用半透明白底和 shadow-sm，深色使用 rgba(255,255,255,0.06) + 轻描边 + blur。作为主题主要的 shell，用于弹层、搜索和重点卡片；导航参考这套语言，但保留自己的壳。"
               softShadow
             />
             <DepthCard
               title="anti · solid fill"
-              body="避免使用大面积实色填充的卡片壳。导航、弹层和重点列表以轻透明表面为主，不用整块满色建立存在感。"
+              body="避免使用实色填充卡片壳。"
               solid
             />
           </div>
@@ -540,9 +554,9 @@ function PatternSection() {
             <Field label="邮箱（不公开）" placeholder="you@example.com" />
             <Field label="内容" placeholder="写下你的想法" textarea />
             <div className="flex justify-end">
-                <button
+              <button
                 type="button"
-                className="rounded-full border border-[#adc6e3] bg-[#eef5fb] px-6 py-3 text-base font-medium text-[#4f729c]"
+                className="rounded-full border border-primary/30 bg-primary/10 px-6 py-3 text-base font-medium text-primary"
               >
                 发表
               </button>
@@ -557,7 +571,7 @@ function PatternSection() {
           <div className="overflow-hidden rounded-2xl border border-[rgba(207,197,184,0.72)] bg-[#fffdfa] dark:border-white/10 dark:bg-[#171412]">
             <div className="flex items-center justify-between border-b border-[rgba(215,206,195,0.72)] px-5 py-4 dark:border-white/10">
               <div className="flex items-center gap-3">
-                <span className="rounded-full bg-[#edf4fb] px-3 py-1 font-mono text-sm text-[#4f729c]">CSS</span>
+                <span className="rounded-full bg-primary/10 px-3 py-1 font-mono text-sm text-primary">CSS</span>
                 <span className="text-base text-[#39332d] dark:text-[#ece3d7]">tailwind.css</span>
               </div>
               <button
@@ -592,7 +606,7 @@ function PatternSection() {
                 <button className="rounded-full border border-[rgba(207,197,184,0.8)] bg-white/80 px-5 py-2.5 text-base text-[#524b44] dark:border-white/10 dark:bg-white/[0.04] dark:text-[#dfd4c7]">
                   取消
                 </button>
-                <button className="rounded-full border border-[#adc6e3] bg-[#eef5fb] px-5 py-2.5 text-base font-medium text-[#4f729c]">
+                <button className="rounded-full border border-primary/30 bg-primary/10 px-5 py-2.5 text-base font-medium text-primary">
                   删除
                 </button>
               </div>
@@ -617,19 +631,13 @@ function SectionHeading({
 }) {
   return (
     <div className="max-w-4xl">
-      <p className="font-mono text-base tracking-[0.08em] text-[#5e81ac]">
+      <p className="font-mono text-base tracking-[0.08em] text-primary">
         {index} · {eyebrow}
       </p>
-      <h2
-        style={{ fontFamily: editorialSerif }}
-        className="mt-4 text-3xl font-medium leading-[1.15] tracking-[-0.03em] text-[#181512] dark:text-[#fbf5ec]"
-      >
+      <h2 className="site-title-page mt-4 tracking-tight text-n-6 dark:text-n-6">
         {title}
       </h2>
-      <p
-        style={{ fontFamily: editorialSerif }}
-        className="mt-5 text-lg font-normal leading-[1.55] text-[#5f574f] dark:text-[#cabfb2]"
-      >
+      <p className="site-lead mt-5 text-n-5 dark:text-n-5">
         {description}
       </p>
     </div>
@@ -639,28 +647,35 @@ function SectionHeading({
 function SwatchCard({
   name,
   usage,
-  hex,
-  tone,
+  lightHex,
+  darkHex,
+  lightTone,
+  darkTone,
   accent = false,
 }: {
   name: string;
   usage: string;
-  hex: string;
-  tone: string;
+  lightHex: string;
+  darkHex: string;
+  lightTone: string;
+  darkTone: string;
   accent?: boolean;
 }) {
   return (
     <article className="grid gap-3">
-      <div className="h-28 rounded-md" style={{ backgroundColor: tone }} />
+      <div className="relative h-28 overflow-hidden rounded-md">
+        <div className="absolute inset-0 dark:hidden" style={{ backgroundColor: lightTone }} />
+        <div className="absolute inset-0 hidden dark:block" style={{ backgroundColor: darkTone }} />
+      </div>
       <div className="grid gap-2">
-        <p
-          style={{ fontFamily: accent ? editorialSerif : undefined }}
-          className={`text-lg font-medium leading-[1.55] ${accent ? "text-[#4f729c]" : "text-[#241f1a] dark:text-[#f5efe6]"}`}
-        >
+        <p className={`site-lead font-medium ${accent ? "text-primary" : "text-n-6 dark:text-n-6"}`}>
           {name}
         </p>
-        <p className="text-base leading-7 text-[#6d6258] dark:text-[#b5a99b]">{usage}</p>
-        <p className="font-mono text-base text-[#807468] dark:text-[#c0b4a7]">{hex}</p>
+        <p className="text-base leading-7 text-n-5 dark:text-n-5">{usage}</p>
+        <p className="font-mono text-base text-n-5 dark:text-n-5">
+          <span className="dark:hidden">{lightHex}</span>
+          <span className="hidden dark:inline">{darkHex}</span>
+        </p>
       </div>
     </article>
   );
@@ -671,28 +686,26 @@ function FontRoleCard({
   title,
   stack,
   description,
-  serif = false,
   mono = false,
 }: {
   glyph: string;
   title: string;
   stack: string;
   description: string;
-  serif?: boolean;
   mono?: boolean;
 }) {
   return (
     <article className="grid gap-5">
       <p
-        style={{ fontFamily: mono ? "var(--font-mono)" : serif ? editorialSerif : undefined }}
-        className="text-3xl font-medium leading-[1.15] tracking-[-0.03em] text-[#181411] dark:text-[#faf2e8]"
+        style={{ fontFamily: mono ? "var(--font-mono)" : undefined }}
+        className="site-title-page text-n-6 dark:text-n-6"
       >
         {glyph}
       </p>
       <div className="grid gap-2">
-        <h3 className="text-lg font-medium leading-[1.55] text-[#5e81ac]">{title}</h3>
-        <p className="text-sm leading-[1.5] text-[#655c53] dark:text-[#bcae9f]">{stack}</p>
-        <p className="text-base leading-[1.55] text-[#4d453f] dark:text-[#e4d9cb]">{description}</p>
+        <h3 className="text-lg font-medium leading-[1.55] text-primary">{title}</h3>
+        <p className="text-sm leading-[1.5] text-n-5 dark:text-n-5">{stack}</p>
+        <p className="text-base leading-[1.55] text-n-6 dark:text-n-6">{description}</p>
       </div>
     </article>
   );
@@ -720,27 +733,19 @@ function DepthCard({
         danger
           ? "border-[#b14f5c]/20 bg-[#b14f5c] text-white shadow-[0_22px_40px_rgba(177,79,92,0.22)]"
           : solid
-            ? "border-zinc-200/80 bg-white text-zinc-950 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-zinc-800/80 dark:bg-black dark:text-zinc-50 dark:shadow-[0_18px_40px_rgba(0,0,0,0.3)]"
+            ? "border-n-2 bg-white text-n-6 shadow-[0_18px_40px_rgba(15,23,42,0.08)] dark:border-n-2 dark:bg-black dark:text-n-6 dark:shadow-[0_18px_40px_rgba(0,0,0,0.3)]"
           : bare
-            ? "bg-transparent text-[#231e1a] dark:text-[#f7f1e8]"
-            : "border-[rgba(204,194,182,0.72)] bg-white/64 text-[#231e1a] dark:border-white/10 dark:bg-white/[0.03] dark:text-[#f7f1e8]",
+            ? "bg-transparent text-n-6 dark:text-n-6"
+            : "border-[rgba(204,194,182,0.72)] bg-white/64 text-n-6 dark:border-white/10 dark:bg-white/[0.03] dark:text-n-6",
         softShadow ? "shadow-[0_12px_32px_rgba(42,35,28,0.08)]" : "",
       ].join(" ")}
     >
-      <p
-        className={`font-mono text-base ${
-          danger
-            ? "text-white/88"
-            : solid
-              ? "text-[#5e81ac] dark:text-[#7ea4d6]"
-              : "text-[#5e81ac]"
-        }`}
-      >
+      <p className={`font-mono text-base ${danger ? "text-white/88" : "text-primary"}`}>
         {title}
       </p>
       <p
         className={`mt-4 text-base leading-[1.55] ${
-          danger ? "text-white" : solid ? "text-zinc-950 dark:text-zinc-50" : ""
+          danger ? "text-white" : solid ? "text-n-6" : ""
         }`}
       >
         {body}
@@ -760,7 +765,7 @@ function PatternFrame({
 }) {
   return (
     <section className="grid gap-5">
-      <div className="flex flex-col gap-3 border-b border-[rgba(215,206,195,0.72)] pb-4 font-mono text-base text-[#6f6459] sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:text-[#b6a999]">
+      <div className="flex flex-col gap-3 border-b border-[rgba(215,206,195,0.72)] pb-4 font-mono text-base text-n-5 sm:flex-row sm:items-center sm:justify-between dark:border-white/10 dark:text-n-5">
         <span>{name}</span>
         <span>{tokens}</span>
       </div>
@@ -793,7 +798,7 @@ function CommentBubble({
         <div className="flex flex-wrap items-center gap-3">
           <span className="text-xl font-medium leading-[1.3] text-[#26211c] dark:text-[#f7f1e8]">{author}</span>
           {owner ? (
-            <span className="rounded-full bg-[#edf4fb] px-3 py-1 text-sm text-[#4f729c]">站主</span>
+            <span className="badge badge-accent">站主</span>
           ) : null}
           <span className="text-base text-[#8a7f72] dark:text-[#ab9f91]">{time}</span>
         </div>

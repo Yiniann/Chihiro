@@ -44,15 +44,15 @@ export default async function TimelinePage({ searchParams }: TimelinePageProps) 
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
-      <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+      <p className="site-eyebrow uppercase tracking-[0.28em] text-n-5">
         Timeline
       </p>
-      <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
+      <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-n-6">
         <span>拾光</span>
-        <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
+        <span className="site-body tracking-normal text-n-4">
           ·
         </span>
-        <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
+        <span className="site-body tracking-normal text-n-5">
           时光机
         </span>
       </h1>
@@ -93,7 +93,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
   return (
     <>
       <StaggerRevealItem className="mt-6">
-        <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-zinc-400 dark:text-zinc-500">
+        <div className="flex flex-wrap items-end gap-x-3 gap-y-2 text-n-4">
           <span className="text-7xl font-light leading-none tracking-[-0.06em] sm:text-8xl">
             {items.length}
           </span>
@@ -123,7 +123,7 @@ async function TimelinePageContent({ archiveType }: { archiveType: ArchiveType }
                   className={`site-meta px-1 py-1 font-medium transition ${
                     active
                       ? "text-primary"
-                      : "text-zinc-500 hover:text-primary dark:text-zinc-400"
+                      : "text-n-5 hover:text-primary dark:text-n-5"
                   }`}
                 >
                   {item.label}

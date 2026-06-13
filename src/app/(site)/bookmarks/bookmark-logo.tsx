@@ -54,13 +54,13 @@ export function BookmarkLogo({
       <img
         src={resolvedLogoUrl}
         alt={`${title} logo`}
-        className="h-11 w-11 rounded-2xl border border-zinc-200/80 bg-white object-cover p-2 shadow-sm dark:border-white/14 dark:bg-zinc-950/80"
+        className="surface-shell h-11 w-11 rounded-2xl bg-white object-cover p-2 dark:bg-n-1/80"
       />
     );
   }
 
   return (
-    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-zinc-200/80 bg-zinc-100/80 text-sm font-semibold text-zinc-600 shadow-sm dark:border-white/14 dark:bg-white/8 dark:text-zinc-300">
+    <div className="surface-shell flex h-11 w-11 items-center justify-center rounded-2xl bg-n-1/80 text-sm font-semibold text-n-5 dark:bg-white/8 dark:text-n-5">
       {getBookmarkInitial(title, host)}
     </div>
   );

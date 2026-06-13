@@ -38,15 +38,15 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
   return (
     <main className="mx-auto min-h-screen w-full max-w-5xl px-6 py-16 sm:px-10">
       <header>
-        <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+        <p className="site-eyebrow uppercase tracking-[0.28em] text-n-5">
           posts
         </p>
-        <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
+        <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-n-6">
           <span>篇章</span>
-          <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
+          <span className="site-body tracking-normal text-n-4">
             ·
           </span>
-          <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
+          <span className="site-body tracking-normal text-n-5">
             所有文章
           </span>
         </h1>
@@ -185,7 +185,7 @@ async function PostsPageContent({
   return (
     <>
       {activeFilters.length > 0 ? (
-        <StaggerRevealItem className="mt-5 flex items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+        <StaggerRevealItem className="mt-5 flex items-center gap-3 text-sm text-n-5">
           <span>{activeFilters.join(" · ")}</span>
           <Link
             href="/posts"
@@ -198,7 +198,7 @@ async function PostsPageContent({
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start">
         <StaggerReveal className="order-2 grid gap-5 lg:order-1" delayChildren={0.04}>
-          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-3 text-sm text-n-5">
             <p>{postsCountLabel}</p>
             <div className="flex flex-wrap items-center gap-3">
               {SORT_OPTIONS.map((option) => {
@@ -211,7 +211,7 @@ async function PostsPageContent({
                     className={`transition ${
                       isActive
                         ? "text-primary"
-                        : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                        : "text-n-5 hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
                     }`}
                   >
                     {option.label}
@@ -223,17 +223,17 @@ async function PostsPageContent({
           {publishedPosts.length > 0 ? (
             paginatedPosts.map((post) => (
               <StaggerRevealItem key={post.id}>
-                <article className="group relative -mx-3 rounded-md border-b border-zinc-200/80 px-3 pb-6 pt-3 last:border-b-0 dark:border-zinc-800/80">
+                <article className="group relative -mx-3 rounded-md border-b border-n-2 px-3 pb-6 pt-3 last:border-b-0 dark:border-n-2">
                   <Link
                     href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}
                     aria-label={`Open ${post.title}`}
                     className="absolute inset-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   />
                   <div className="pointer-events-none relative">
-                    <h2 className="site-title-h2 tracking-tight text-zinc-950 transition group-hover:text-primary dark:text-zinc-50">
+                    <h2 className="site-title-h2 tracking-tight text-n-6 transition group-hover:text-primary dark:text-n-6">
                       {post.title}
                     </h2>
-                    <p className="reading-copy site-meta mt-3 text-zinc-600 dark:text-zinc-300">
+                    <p className="reading-copy site-meta mt-3 text-n-5">
                       {post.summary ?? "No summary yet."}
                     </p>
                     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -252,13 +252,13 @@ async function PostsPageContent({
                             href={buildPostsHref({
                               nextTags: Array.from(new Set([...selectedTags, item.slug])),
                             })}
-                            className="pointer-events-auto relative text-xs font-medium text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+                            className="tag-inline pointer-events-auto relative"
                           >
                             #{item.name}
                           </Link>
                         ))}
                       </div>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+                      <div className="flex flex-wrap items-center gap-3 text-sm text-n-5">
                         <RelativeDate value={post.publishedAt} timeZone={siteTimeZone} />
                         <span>·</span>
                         <span>{post.authorName ?? "Unknown author"}</span>
@@ -269,18 +269,18 @@ async function PostsPageContent({
               </StaggerRevealItem>
             ))
           ) : (
-            <StaggerRevealItem className="border-b border-dashed border-zinc-200/80 pb-8 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+            <StaggerRevealItem className="border-b border-dashed border-n-2 pb-8 text-sm text-n-5 dark:border-n-2 dark:text-n-5">
               No posts matched this filter yet.
             </StaggerRevealItem>
           )}
-          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-zinc-500 dark:text-zinc-400">
+          <StaggerRevealItem className="flex flex-wrap items-center justify-between gap-4 pt-2 text-sm text-n-5">
             <Link
               href={buildPostsHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
               aria-disabled={safeCurrentPage === 1}
               className={`transition ${
                 safeCurrentPage === 1
                   ? "pointer-events-none opacity-40"
-                  : "hover:text-zinc-900 dark:hover:text-zinc-200"
+                  : "hover:text-n-6 dark:hover:text-n-6"
               }`}
             >
               Previous
@@ -302,7 +302,7 @@ async function PostsPageContent({
                       className={`transition ${
                         item === safeCurrentPage
                           ? "text-primary"
-                          : "hover:text-zinc-900 dark:hover:text-zinc-200"
+                          : "hover:text-n-6 dark:hover:text-n-6"
                       }`}
                     >
                       {item}
@@ -317,7 +317,7 @@ async function PostsPageContent({
               className={`transition ${
                 safeCurrentPage === totalPages
                   ? "pointer-events-none opacity-40"
-                  : "hover:text-zinc-900 dark:hover:text-zinc-200"
+                  : "hover:text-n-6 dark:hover:text-n-6"
               }`}
             >
               Next
@@ -326,9 +326,9 @@ async function PostsPageContent({
         </StaggerReveal>
 
         <StaggerRevealItem className="order-1 lg:order-2 lg:sticky lg:top-28" offset={22}>
-          <div className="border-l border-zinc-200/80 pl-6 dark:border-zinc-800/80">
+          <div className="border-l border-n-2 pl-6 dark:border-n-2">
             <div>
-              <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+              <p className="mb-2 text-xs font-medium uppercase tracking-[0.18em] text-n-4">
                 Search
               </p>
               <SearchDialog

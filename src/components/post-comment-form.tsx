@@ -464,7 +464,7 @@ export function PostCommentForm({
       {showGuestFields ? (
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="grid gap-2">
-            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-n-4">
               邮箱
             </span>
             <input
@@ -472,18 +472,18 @@ export function PostCommentForm({
               name="authorEmail"
               maxLength={254}
               required
-              className="h-10 rounded-md border border-zinc-200/80 bg-white/70 px-3 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-primary/50 focus:bg-white focus:ring-2 focus:ring-primary/10 dark:border-zinc-800/80 dark:bg-zinc-950/55 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:bg-zinc-950/80"
+              className="h-10 rounded-md border border-n-2 bg-white/70 px-3 text-sm text-n-6 outline-none transition placeholder:text-n-4 focus:border-primary/50 focus:bg-white focus:ring-2 focus:ring-primary/10 dark:border-n-2 dark:bg-n-1/55 dark:text-n-6 dark:placeholder:text-n-5 dark:focus:bg-zinc-950/80"
               placeholder="you@example.com"
             />
           </label>
           <label className="grid gap-2">
-            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-n-4">
               昵称
             </span>
             <input
               name="authorName"
               maxLength={40}
-              className="h-10 rounded-md border border-zinc-200/80 bg-white/70 px-3 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-primary/50 focus:bg-white focus:ring-2 focus:ring-primary/10 dark:border-zinc-800/80 dark:bg-zinc-950/55 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:bg-zinc-950/80"
+              className="h-10 rounded-md border border-n-2 bg-white/70 px-3 text-sm text-n-6 outline-none transition placeholder:text-n-4 focus:border-primary/50 focus:bg-white focus:ring-2 focus:ring-primary/10 dark:border-n-2 dark:bg-n-1/55 dark:text-n-6 dark:placeholder:text-n-5 dark:focus:bg-zinc-950/80"
               placeholder="可选"
             />
           </label>
@@ -493,11 +493,11 @@ export function PostCommentForm({
         {user ? <UserAvatar user={user} /> : null}
         <label className="grid gap-2">
           {!user ? (
-            <span className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow uppercase tracking-[0.18em] text-n-4">
               留言
             </span>
           ) : null}
-          <div className="overflow-hidden rounded-md border border-zinc-200/80 bg-transparent transition focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 dark:border-zinc-800/80">
+          <div className="overflow-hidden rounded-md border border-n-2 bg-transparent transition focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/10 dark:border-n-2">
             <textarea
               ref={textareaRef}
               name="body"
@@ -505,13 +505,13 @@ export function PostCommentForm({
               maxLength={commentMaxLength}
               required
               onChange={(event) => setBodyLength(event.currentTarget.value.length)}
-              className={`site-body block w-full resize-none border-0 bg-transparent px-3 py-2 text-zinc-700 outline-none placeholder:text-zinc-400 dark:text-zinc-200 dark:placeholder:text-zinc-600 ${
+              className={`site-body block w-full resize-none border-0 bg-transparent px-3 py-2 text-n-6 outline-none placeholder:text-n-4 dark:text-n-6 dark:placeholder:text-n-5 ${
                 compact ? "min-h-20" : "min-h-28"
               }`}
               placeholder={placeholder}
             />
             <div
-              className={`grid h-9 items-center gap-3 border-t border-zinc-200/70 px-3 dark:border-zinc-800/70 ${
+              className={`grid h-9 items-center gap-3 border-t border-n-2 px-3 dark:border-n-2 ${
                 isMobile ? "grid-cols-[1fr_auto]" : "grid-cols-[1fr_auto_1fr]"
               }`}
             >
@@ -531,7 +531,7 @@ export function PostCommentForm({
                 </span>
               )}
               <div className="flex items-center justify-end gap-3 justify-self-end">
-                <span className="site-eyebrow text-zinc-400 dark:text-zinc-500">
+                <span className="site-eyebrow text-n-4">
                   {bodyLength}/{commentMaxLength}
                 </span>
                 <SubmitButton label={submitLabel} />
@@ -564,7 +564,7 @@ function EmojiInsertPopover({ onSelect }: { onSelect: (value: string) => void })
       <PopoverContent
         align="start"
         sideOffset={8}
-        className="w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/80 p-0 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+        className="surface-shell w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-2xl p-0"
       >
         <EmojiPicker
           onEmojiClick={(emojiData: EmojiClickData) => onSelect(emojiData.emoji)}
@@ -608,7 +608,7 @@ function CommentInsertPopover({
       <PopoverContent
         align="start"
         sideOffset={8}
-        className={`${widthClassName} rounded-2xl border border-zinc-200/80 bg-white/80 p-2 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]`}
+        className={`${widthClassName} surface-shell rounded-2xl p-2`}
       >
         <div className="grid h-[24rem] grid-cols-4 gap-1 overflow-y-auto">
           {items.map((item) => (
@@ -616,7 +616,7 @@ function CommentInsertPopover({
               key={item}
               type="button"
               onClick={() => onSelect(item)}
-              className={`flex min-h-10 min-w-0 items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-zinc-700 transition hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800/80 ${itemClassName}`}
+              className={`flex min-h-10 min-w-0 items-center justify-center whitespace-nowrap rounded-md px-3 py-2 text-n-6 transition hover:bg-n-1 dark:text-n-6 dark:hover:bg-zinc-800/80 ${itemClassName}`}
             >
               {item}
             </button>
@@ -643,7 +643,7 @@ function UserAvatar({
     <span className="relative mt-1 block size-9 shrink-0">
       {user.image ? (
         <span
-          className="block size-9 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-zinc-200/80 dark:ring-zinc-800/80"
+          className="block size-9 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-n-2 dark:ring-n-2"
           style={{ backgroundImage: `url(${user.image})` }}
         />
       ) : (
@@ -663,7 +663,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-7 items-center justify-center gap-1.5 px-1 text-sm font-medium text-primary transition hover:opacity-75 disabled:cursor-not-allowed disabled:opacity-50"
+      className="btn btn-ghost h-10 gap-1.5"
     >
       <Send className="size-3.5" aria-hidden="true" />
       {pending ? "提交中..." : label}

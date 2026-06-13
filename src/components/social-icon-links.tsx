@@ -25,7 +25,7 @@ export function SocialIconLinks({
           rel="noreferrer noopener"
           aria-label={link.label}
           title={link.label}
-          className="inline-flex items-center justify-center text-zinc-700/85 transition hover:-translate-y-0.5 hover:text-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-50"
+          className="inline-flex items-center justify-center text-n-6/85 transition hover:-translate-y-0.5 hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
         >
           <SocialPlatformIcon platform={link.platform} />
         </a>

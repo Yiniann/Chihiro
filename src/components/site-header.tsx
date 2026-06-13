@@ -215,6 +215,7 @@ export function SiteHeader({
   const mobileMenuPanelRef = useRef<HTMLDivElement | null>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shouldRestoreStickyOffsetRef = useRef(false);
+  const suppressMegaNavFocusOpenRef = useRef(false);
   const deferredIsScrolled = useDeferredValue(isScrolled);
   const STICKY_SCROLL_OFFSET = 24;
 
@@ -264,6 +265,34 @@ export function SiteHeader({
       if (closeTimerRef.current) {
         clearTimeout(closeTimerRef.current);
       }
+    };
+  }, []);
+
+  useEffect(() => {
+    const suppressMegaNavFocusOpen = () => {
+      suppressMegaNavFocusOpenRef.current = true;
+    };
+
+    const restoreMegaNavFocusOpen = () => {
+      suppressMegaNavFocusOpenRef.current = false;
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        suppressMegaNavFocusOpen();
+      }
+    };
+
+    window.addEventListener("blur", suppressMegaNavFocusOpen);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("pointerdown", restoreMegaNavFocusOpen);
+    document.addEventListener("keydown", restoreMegaNavFocusOpen);
+
+    return () => {
+      window.removeEventListener("blur", suppressMegaNavFocusOpen);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      document.removeEventListener("pointerdown", restoreMegaNavFocusOpen);
+      document.removeEventListener("keydown", restoreMegaNavFocusOpen);
     };
   }, []);
 
@@ -347,6 +376,14 @@ export function SiteHeader({
     setHighlightedHref(href);
   };
 
+  const handleMegaNavFocusOpen = (href: string) => {
+    if (suppressMegaNavFocusOpenRef.current) {
+      return;
+    }
+
+    openMegaNav(href);
+  };
+
   const closeMegaNav = () => {
     if (closeTimerRef.current) {
       clearTimeout(closeTimerRef.current);
@@ -421,9 +458,9 @@ export function SiteHeader({
             setIsMobileNavOpen(true);
             setExpandedMobileHref(activeItem.href);
           }}
-          className={`pointer-events-auto inline-flex h-10 w-10 shrink-0 items-center justify-center text-zinc-700 transition dark:text-zinc-200 md:hidden ${
+          className={`pointer-events-auto inline-flex h-10 w-10 shrink-0 items-center justify-center text-n-6 transition dark:text-n-6 md:hidden ${
             isScrolled
-              ? "rounded-2xl border border-zinc-200/80 bg-white/80 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+              ? "surface-shell rounded-2xl dark:backdrop-blur-xl dark:bg-n-1/65 dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
               : "bg-transparent"
           }`}
         >
@@ -440,7 +477,7 @@ export function SiteHeader({
               : "pointer-events-none translate-x-[-50%] -translate-y-2 opacity-0"
           } ${
             isScrolled
-              ? "border border-transparent bg-transparent shadow-none md:border-zinc-200/80 md:bg-white/80 md:shadow-sm dark:md:border-zinc-800/70 dark:md:bg-zinc-950/65 dark:md:backdrop-blur-xl dark:md:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+              ? "border border-transparent bg-transparent shadow-none md:border md:border-n-2 md:bg-white/80 md:shadow-sm md:dark:border-n-2 md:dark:bg-n-1/65 md:dark:backdrop-blur-xl md:dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
               : "border border-transparent bg-transparent"
           }`}
         >
@@ -455,7 +492,7 @@ export function SiteHeader({
           style={{ "--site-header-desktop-offset": `${desktopHeaderTranslateY}px` } as CSSProperties}
           onMouseLeave={closeMegaNav}
           onFocusCapture={() => {
-            if (!highlightedHref) {
+            if (!highlightedHref && !suppressMegaNavFocusOpenRef.current) {
               openMegaNav(activeItem.href);
             }
           }}
@@ -474,8 +511,11 @@ export function SiteHeader({
             className="md:flex"
             preserveStickyOnNavigate
             onNavigate={preserveStickyOnNextNavigation}
-            onItemEnter={openMegaNav}
-            onItemFocus={openMegaNav}
+            onItemEnter={(href) => {
+              suppressMegaNavFocusOpenRef.current = false;
+              openMegaNav(href);
+            }}
+            onItemFocus={handleMegaNavFocusOpen}
             isActivePath={(currentPathname, href) =>
               isActivePath(currentPathname, href, homeStandalonePages, moreStandalonePages)
             }
@@ -492,7 +532,7 @@ export function SiteHeader({
                   transition={{ duration: 0.2, ease: "easeOut" }}
                   className="absolute left-1/2 top-[calc(100%+0.75rem)] z-50 w-[min(30rem,calc(100vw-2rem))] -translate-x-1/2"
                 >
-                  <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+                  <div className="surface-shell rounded-[1.75rem] p-3">
                     {renderMegaNavContent(featuredItem.href, {
                       postCategories,
                       recentArchiveItems,
@@ -532,10 +572,10 @@ export function SiteHeader({
                 onClick={() => setIsUserMenuOpen((current) => !current)}
                 onFocus={() => setIsUserMenuOpen(true)}
                 tabIndex={-1}
-                className={`inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-zinc-800 transition ${
+                className={`inline-flex h-10 w-10 items-center justify-center overflow-hidden rounded-full text-n-6 transition ${
                   isScrolled
-                    ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-                    : "border border-transparent bg-transparent dark:text-zinc-200"
+                    ? "surface-shell hover:border-primary/30 dark:bg-n-1/65 dark:text-n-6 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                    : "border border-transparent bg-transparent dark:text-n-6"
                 }`}
               >
                 <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
@@ -555,17 +595,17 @@ export function SiteHeader({
                       aria-hidden="true"
                       className="absolute right-0 top-0 h-2.5 w-64 sm:left-1/2 sm:right-auto sm:-translate-x-1/2"
                     />
-                    <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-2 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+                    <div className="surface-shell rounded-[1.75rem] p-2">
                       <div className="flex items-center gap-3 rounded-md px-3 py-2.5">
                         <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full">
                           <HeaderUserAvatar author={headerUserName} src={headerUserAvatarUrl} />
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          <p className="truncate text-sm font-medium text-n-6">
                             {headerUserName}
                           </p>
                           {headerUserEmail ? (
-                            <p className="mt-1 truncate text-xs text-zinc-500 dark:text-zinc-400">
+                            <p className="mt-1 truncate text-xs text-n-5">
                               {headerUserEmail}
                             </p>
                           ) : null}
@@ -576,7 +616,7 @@ export function SiteHeader({
                           href="/admin"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+                          className="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium text-n-6 transition hover:bg-n-1 hover:text-n-6 dark:hover:bg-white/10 dark:hover:text-n-6"
                         >
                           <LayoutDashboard className="h-4 w-4 shrink-0" />
                           <span>控制面板</span>
@@ -587,7 +627,7 @@ export function SiteHeader({
                           type="submit"
                           onClick={() => setIsUserMenuOpen(false)}
                           tabIndex={-1}
-                          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-100 dark:hover:bg-white/10 dark:hover:text-zinc-50"
+                          className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm font-medium text-n-6 transition hover:bg-n-1 hover:text-n-6 dark:hover:bg-white/10 dark:hover:text-n-6"
                         >
                           <LogOut className="h-4 w-4 shrink-0" />
                           <span>退出登录</span>
@@ -604,10 +644,10 @@ export function SiteHeader({
               aria-label="登录"
               onClick={() => setIsPublicAuthOpen(true)}
               tabIndex={-1}
-              className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-zinc-800 transition md:h-auto md:w-auto md:px-3 md:py-1.5 ${
+              className={`inline-flex h-10 w-10 items-center justify-center rounded-2xl text-n-6 transition md:h-auto md:w-auto md:px-3 md:py-1.5 ${
                 isScrolled
-                  ? "border border-zinc-200/80 bg-white/80 shadow-sm hover:border-primary/30 hover:text-primary dark:border-zinc-800/70 dark:bg-zinc-950/65 dark:text-zinc-200 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
-                  : "border border-transparent bg-transparent hover:text-primary dark:text-zinc-200"
+                  ? "surface-shell hover:border-primary/30 hover:text-primary dark:bg-n-1/65 dark:text-n-6 dark:backdrop-blur-xl dark:shadow-[0_16px_40px_rgba(0,0,0,0.35)]"
+                  : "border border-transparent bg-transparent hover:text-primary dark:text-n-6"
               }`}
             >
               <UserRound className="h-4.5 w-4.5" />
@@ -635,7 +675,7 @@ export function SiteHeader({
             transition={{ duration: 0.18, ease: "easeOut" }}
             className="pointer-events-auto mx-auto mt-2 w-full max-w-6xl px-1 md:hidden"
           >
-            <div className="rounded-[1.75rem] border border-zinc-200/80 bg-white/80 p-3 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+            <div className="surface-shell rounded-[1.75rem] p-3">
               <nav className="grid gap-2">
                 {displayNavItems.map((item) => {
                   const active = isActivePath(
@@ -659,7 +699,7 @@ export function SiteHeader({
                     >
                       <div
                         className={`flex items-center gap-2 px-2 py-2 ${
-                          active ? "text-primary" : "text-zinc-700 dark:text-zinc-200"
+                          active ? "text-primary" : "text-n-6"
                         }`}
                       >
                         <Link
@@ -672,7 +712,7 @@ export function SiteHeader({
                           }}
                           className="flex min-w-0 flex-1 items-center gap-3 rounded-md px-1.5 py-1 transition hover:bg-transparent dark:hover:bg-transparent"
                           >
-                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/70 text-zinc-600 dark:bg-white/8 dark:text-zinc-200">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-white/70 text-n-5 dark:bg-white/8 dark:text-n-6">
                             <Icon className="h-4 w-4" />
                           </div>
                           <p className="text-sm font-medium">{item.label}</p>
@@ -688,8 +728,8 @@ export function SiteHeader({
                             }
                             className={`inline-flex h-9 min-w-11 shrink-0 items-center justify-center rounded-2xl border px-2 transition ${
                               active
-                                ? "border-primary/20 bg-primary/10 text-primary dark:border-white/14 dark:bg-white/8 dark:text-zinc-50"
-                                : "border-zinc-200 bg-white/70 text-zinc-500 hover:border-zinc-300 hover:text-zinc-700 dark:border-white/12 dark:bg-white/6 dark:text-zinc-300 dark:hover:border-white/18 dark:hover:text-zinc-50"
+                                ? "border-primary/20 bg-primary/10 text-primary dark:border-white/14 dark:bg-white/8 dark:text-n-6"
+                                : "border-n-2 bg-white/70 text-n-5 hover:border-n-3 hover:text-n-6 dark:border-white/12 dark:bg-white/6 dark:text-n-5 dark:hover:border-white/18 dark:hover:text-n-6"
                             }`}
                           >
                             <span className="inline-flex">
@@ -732,6 +772,9 @@ export function SiteHeader({
                   );
                 })}
               </nav>
+              <div className="border-t border-n-2 px-3.5 py-3 dark:border-white/12">
+                <ThemeModeToggle inline />
+              </div>
             </div>
           </motion.div>
         ) : null}
@@ -748,7 +791,7 @@ function HeaderUserAvatar({ author, src }: { author: string; src?: string | null
 
   if (showFallback || !src) {
     return (
-      <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 via-zinc-100 to-white text-sm font-semibold text-zinc-500 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-950 dark:text-zinc-300">
+      <span className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 via-zinc-100 to-white text-sm font-semibold text-n-5 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-950 dark:text-n-5">
         <span aria-hidden="true">{initial}</span>
         <span className="sr-only">{author} avatar placeholder</span>
       </span>
@@ -883,7 +926,7 @@ function renderMegaNavContent(
               </div>
             </div>
 
-            <div className="grid gap-2 border-t border-zinc-200/70 pt-3 sm:grid-cols-2 dark:border-zinc-800/80">
+            <div className="grid gap-2 border-t border-n-2 pt-3 sm:grid-cols-2 dark:border-n-2">
               <MegaNavLinkCard
                 href="/timeline?type=posts"
                 title="篇章"
@@ -1037,14 +1080,14 @@ function MegaNavLinkCard({
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+          <p className="text-[0.68rem] font-medium uppercase tracking-[0.22em] text-n-4">
             {eyebrow}
           </p>
-          <span className="site-meta mt-2 block font-medium text-zinc-900 dark:text-zinc-100">
+          <span className="site-meta mt-2 block font-medium text-n-6">
             {title}
           </span>
         </div>
-        <span className="inline-flex h-8 w-8 items-center justify-center text-zinc-400 transition group-hover:text-primary dark:text-zinc-500">
+        <span className="inline-flex h-8 w-8 items-center justify-center text-n-4 transition group-hover:text-primary dark:text-n-5">
           <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
         </span>
       </div>
@@ -1088,13 +1131,13 @@ function PostMegaNavContent({
               className={`site-eyebrow flex items-center justify-between rounded-md px-2 py-1.5 text-left transition-colors ${
                 active
                   ? "text-primary"
-                  : "text-zinc-500 hover:bg-transparent hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-transparent dark:hover:text-zinc-50"
+                  : "text-n-5 hover:bg-transparent hover:text-n-6 dark:text-n-5 dark:hover:bg-transparent dark:hover:text-n-6"
               }`}
             >
               <span className="font-medium">{category.label}</span>
               <span
                 className={`text-[0.64rem] tracking-[0.14em] ${
-                  active ? "text-primary/70" : "text-zinc-400 dark:text-zinc-500"
+                  active ? "text-primary/70" : "text-n-4"
                 }`}
               >
                 {category.contentCount}
@@ -1104,15 +1147,15 @@ function PostMegaNavContent({
         })}
       </div>
 
-      <motion.div layout className="min-w-0 self-start border-l border-zinc-200/60 pl-4 dark:border-white/10">
+      <motion.div layout className="min-w-0 self-start border-l border-n-2/60 pl-4 dark:border-white/10">
         <div className="mb-2 flex items-center justify-between gap-3">
-          <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+          <p className="site-eyebrow uppercase tracking-[0.24em] text-n-4">
             {activeCategory.label}
           </p>
           <Link
             href={activeCategory.href}
             onClick={onNavigate}
-            className="site-eyebrow text-zinc-500 transition hover:text-primary dark:text-zinc-400"
+            className="site-eyebrow text-n-5 transition hover:text-primary dark:text-n-5"
           >
             View all
           </Link>
@@ -1187,7 +1230,7 @@ function MegaNavSection({
 }) {
   return (
     <section className="px-1 py-1">
-      <p className="site-eyebrow mb-2.5 uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+      <p className="site-eyebrow mb-2.5 uppercase tracking-[0.24em] text-n-4">
         {eyebrow}
       </p>
       {children}
@@ -1210,7 +1253,7 @@ function MegaNavArticleLink({
       onClick={onNavigate}
       className="group block rounded-md px-2 py-2 transition-colors duration-200 hover:bg-transparent dark:hover:bg-transparent"
     >
-      <p className="site-meta font-medium text-zinc-900 transition-colors group-hover:text-primary dark:text-zinc-100">
+      <p className="site-meta font-medium text-n-6 transition-colors group-hover:text-primary dark:text-n-6">
         {title}
       </p>
     </Link>
@@ -1219,7 +1262,7 @@ function MegaNavArticleLink({
 
 function MegaNavEmptyState({ text }: { text: string }) {
   return (
-    <div className="site-meta px-1 py-1 text-zinc-400 dark:text-zinc-500">
+    <div className="site-meta px-1 py-1 text-n-4">
       {text}
     </div>
   );
@@ -1227,7 +1270,7 @@ function MegaNavEmptyState({ text }: { text: string }) {
 
 function MobileNavEmptyState({ text }: { text: string }) {
   return (
-    <div className="site-meta px-1 py-1 text-zinc-400 dark:text-zinc-500">
+    <div className="site-meta px-1 py-1 text-n-4">
       {text}
     </div>
   );
@@ -1261,20 +1304,20 @@ function MegaNavRecentEntry({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {!compact && kind ? (
-            <span className="site-eyebrow tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+            <span className="site-eyebrow tracking-[0.14em] text-n-4">
               {kind}
             </span>
           ) : null}
-          <p className={`${compact ? "site-meta" : "site-meta mt-1"} font-medium text-zinc-900 transition group-hover:text-primary dark:text-zinc-100`}>
+          <p className={`${compact ? "site-meta" : "site-meta mt-1"} font-medium text-n-6 transition group-hover:text-primary dark:text-n-6`}>
             {title}
           </p>
         </div>
-        <span className="site-eyebrow shrink-0 text-zinc-400 dark:text-zinc-500">
+        <span className="site-eyebrow shrink-0 text-n-4">
           <RelativeDate value={dateValue} timeZone={timeZone} />
         </span>
       </div>
       {!compact && categoryLabel && kind !== "足迹" ? (
-        <p className="site-eyebrow mt-1 text-zinc-500 dark:text-zinc-400">{categoryLabel}</p>
+        <p className="site-eyebrow mt-1 text-n-5">{categoryLabel}</p>
       ) : null}
     </Link>
   );
@@ -1293,10 +1336,10 @@ function MobileNavSubLink({
     <Link
       href={href}
       onClick={onNavigate}
-      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200"
+      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-n-6 transition hover:text-primary dark:text-n-6"
     >
       <span>{label}</span>
-      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+      <ArrowRight className="h-3.5 w-3.5 text-n-4" />
     </Link>
   );
 }
@@ -1314,10 +1357,10 @@ function MobileNavChip({
     <Link
       href={href}
       onClick={onNavigate}
-      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-zinc-700 transition hover:text-primary dark:text-zinc-200"
+      className="inline-flex items-center gap-1.5 px-1 py-1 text-sm font-medium text-n-6 transition hover:text-primary dark:text-n-6"
     >
       <span>{label}</span>
-      <ArrowRight className="h-3.5 w-3.5 text-zinc-400 dark:text-zinc-500" />
+      <ArrowRight className="h-3.5 w-3.5 text-n-4" />
     </Link>
   );
 }

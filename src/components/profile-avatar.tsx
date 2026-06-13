@@ -25,7 +25,7 @@ export function ProfileAvatar({ author, src }: ProfileAvatarProps) {
 
   if (showFallback || !src) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 via-zinc-100 to-white text-6xl font-semibold text-zinc-500 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-950 dark:text-zinc-300">
+      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-200 via-zinc-100 to-white text-6xl font-semibold text-n-5 dark:from-zinc-800 dark:via-zinc-900 dark:to-zinc-950 dark:text-n-5">
         <span aria-hidden="true">{getInitial(author)}</span>
         <span className="sr-only">{author} avatar placeholder</span>
       </div>

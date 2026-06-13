@@ -99,11 +99,11 @@ export default async function HomePage() {
           </StaggerRevealItem>
 
           <StaggerRevealItem className="hero-copy max-w-3xl" offset={20}>
-            <h1 className="hero-copy-title site-title-hero tracking-tight text-zinc-950 dark:text-zinc-100">
+            <h1 className="hero-copy-title site-title-hero tracking-tight text-n-6">
               {authorName}
             </h1>
             <HeroIntro intro={heroIntro} authorName={authorName} />
-            <p className="hero-copy-summary reading-copy site-body mt-5 max-w-2xl text-zinc-500 dark:text-zinc-400">
+            <p className="hero-copy-summary reading-copy site-body mt-5 max-w-2xl text-n-5">
               {summary}
             </p>
             {heroSocialLinks.length > 0 ? (
@@ -138,17 +138,17 @@ export default async function HomePage() {
                 <StaggerReveal className="grid gap-1" staggerChildren={0.06}>
                   {recentPosts.map((post) => (
                     <StaggerRevealItem key={post.id} offset={12}>
-                      <article className="group relative -mx-3 rounded-md border-b border-zinc-200/80 px-3 py-4 last:border-b-0 dark:border-zinc-800/80">
+                      <article className="group relative -mx-3 rounded-md border-b border-n-2 px-3 py-4 last:border-b-0 dark:border-n-2">
                         <Link
                           href={getPostPath({ slug: post.slug, categorySlug: post.category?.slug })}
                           aria-label={`Open ${post.title}`}
                           className="absolute inset-0 rounded-md focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                         />
                         <div className="pointer-events-none relative flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-                          <p className="home-feed-item-title min-w-0 flex-1 truncate whitespace-nowrap text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
+                          <p className="home-feed-item-title min-w-0 flex-1 truncate whitespace-nowrap text-n-6 transition group-hover:text-primary dark:text-n-6">
                             {post.title}
                           </p>
-                          <p className="home-feed-date text-zinc-500 dark:text-zinc-400">
+                          <p className="home-feed-date text-n-5">
                             <RelativeDate value={post.publishedAt} timeZone={siteTimeZone} />
                           </p>
                         </div>
@@ -168,7 +168,7 @@ export default async function HomePage() {
               title="最近动态"
             >
               {latestUpdate ? (
-                <article className="group relative border-b border-zinc-200/80 py-4 dark:border-zinc-800/80">
+                <article className="group relative border-b border-n-2 py-4 dark:border-n-2">
                   <Link
                     href={getUpdateAnchorPath({ updateId: latestUpdate.id, page: 1 })}
                     aria-label={`Open latest update ${latestUpdate.title}`}
@@ -184,29 +184,29 @@ export default async function HomePage() {
                         }
                       >
                         <div
-                          className="pointer-events-none home-feed-update-content text-zinc-900 dark:text-zinc-100"
+                          className="pointer-events-none home-feed-update-content text-n-6"
                           dangerouslySetInnerHTML={{ __html: latestUpdateDisplayHtml }}
                         />
                       </div>
                       {shouldClampLatestUpdate ? (
-                        <span className="pointer-events-none w-fit text-sm font-medium text-zinc-500 transition group-hover:text-primary dark:text-zinc-400">
+                        <span className="pointer-events-none w-fit text-sm font-medium text-n-5 transition group-hover:text-primary dark:text-n-5">
                           查看更多动态
                         </span>
                       ) : null}
                     </div>
                   ) : (
                     <div className="pointer-events-none grid gap-2">
-                      <p className="home-feed-item-title text-zinc-900 transition group-hover:text-primary dark:text-zinc-100">
+                      <p className="home-feed-item-title text-n-6 transition group-hover:text-primary dark:text-n-6">
                         {latestUpdate.title}
                       </p>
                       {latestUpdateSummary ? (
-                        <p className="site-body text-zinc-500 dark:text-zinc-400">
+                        <p className="site-body text-n-5">
                           {latestUpdateSummary}
                         </p>
                       ) : null}
                     </div>
                   )}
-                  <p className="home-feed-date mt-3 text-zinc-500 dark:text-zinc-400">
+                  <p className="home-feed-date mt-3 text-n-5">
                     <RelativeDate value={latestUpdate.publishedAt} timeZone={siteTimeZone} />
                   </p>
                 </article>
@@ -256,10 +256,10 @@ function HomeFeedSection({
   return (
     <section>
       <div className="mb-3">
-        <p className="home-feed-eyebrow font-normal uppercase text-zinc-500 dark:text-zinc-400">
+        <p className="home-feed-eyebrow font-normal uppercase text-n-5">
           {eyebrow}
         </p>
-        <p className="home-feed-title mt-1 font-bold text-zinc-900 dark:text-zinc-100">
+        <p className="home-feed-title mt-1 font-bold text-n-6">
           {title}
         </p>
       </div>
@@ -270,7 +270,7 @@ function HomeFeedSection({
 
 function EmptyHomeFeed({ copy }: { copy: string }) {
   return (
-    <p className="border-b border-dashed border-zinc-200/80 py-5 text-sm text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+    <p className="border-b border-dashed border-n-2 py-5 text-sm text-n-5 dark:border-n-2 dark:text-n-5">
       {copy}
     </p>
   );

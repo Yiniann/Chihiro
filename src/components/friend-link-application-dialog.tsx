@@ -31,7 +31,7 @@ export function FriendLinkApplicationDialog({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition hover:opacity-90"
+        className="btn btn-primary h-10"
       >
         {triggerLabel}
       </button>
@@ -89,7 +89,7 @@ function FriendLinkApplicationModal({
             role="dialog"
             aria-modal="true"
             aria-labelledby="friend-link-application-dialog-title"
-            className="relative w-full max-w-2xl overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
+            className="surface-shell relative w-full max-w-2xl overflow-hidden rounded-[1.75rem]"
             onClick={(event) => event.stopPropagation()}
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -98,12 +98,12 @@ function FriendLinkApplicationModal({
             <div className="px-6 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                <p className="text-[0.68rem] font-medium uppercase tracking-[0.24em] text-n-4">
                   Apply
                 </p>
                 <h2
                   id="friend-link-application-dialog-title"
-                  className="mt-2 text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50"
+                  className="mt-2 text-xl font-semibold tracking-tight text-n-6"
                 >
                   申请友链
                 </h2>
@@ -113,7 +113,7 @@ function FriendLinkApplicationModal({
                 type="button"
                 aria-label="关闭"
                 onClick={onClose}
-                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl text-n-4 transition hover:bg-n-1 hover:text-n-6 dark:text-n-5 dark:hover:bg-zinc-900 dark:hover:text-n-6"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -204,12 +204,12 @@ function FriendLinkApplicationForm({ onSuccess }: { onSuccess: () => void }) {
       />
 
       <div className="flex items-center justify-end gap-3">
-        <p className="text-xs leading-6 text-zinc-500 dark:text-zinc-400">
+        <p className="text-xs leading-6 text-n-5">
           提交后会进入后台待审核队列。
         </p>
         <button
           type="submit"
-          className="inline-flex h-10 items-center justify-center px-1 text-sm font-medium text-primary underline underline-offset-4 transition hover:opacity-80 dark:text-primary"
+          className="btn btn-primary h-10"
         >
           提交申请
         </button>
@@ -237,7 +237,7 @@ function Field({
 }) {
   return (
     <label className="grid gap-2">
-      <span className="text-xs font-medium uppercase tracking-[0.22em] text-zinc-400 dark:text-zinc-500">
+      <span className="text-xs font-medium uppercase tracking-[0.22em] text-n-4">
         {label}
         {required ? <span className="ml-1 text-primary">*</span> : null}
       </span>
@@ -247,7 +247,7 @@ function Field({
           rows={rows}
           required={required}
           placeholder={placeholder}
-          className="min-h-24 border-b border-zinc-200/80 bg-transparent px-0 py-2 text-sm leading-7 text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
+          className="min-h-24 border-b border-n-2 bg-transparent px-0 py-2 text-sm leading-7 text-n-6 outline-none transition placeholder:text-n-4 focus:border-n-4 dark:border-n-2 dark:text-n-6 dark:placeholder:text-n-5 dark:focus:border-n-4"
         />
       ) : (
         <input
@@ -255,7 +255,7 @@ function Field({
           type={type}
           required={required}
           placeholder={placeholder}
-          className="h-11 border-b border-zinc-200/80 bg-transparent px-0 text-sm text-zinc-700 outline-none transition placeholder:text-zinc-400 focus:border-zinc-400 dark:border-zinc-800/80 dark:text-zinc-200 dark:placeholder:text-zinc-600 dark:focus:border-zinc-600"
+          className="h-11 border-b border-n-2 bg-transparent px-0 text-sm text-n-6 outline-none transition placeholder:text-n-4 focus:border-n-4 dark:border-n-2 dark:text-n-6 dark:placeholder:text-n-5 dark:focus:border-n-4"
         />
       )}
     </label>

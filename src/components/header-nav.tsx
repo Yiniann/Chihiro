@@ -56,7 +56,7 @@ export function HeaderNav({
   return (
     <nav
       className={[
-        "items-center justify-center overflow-hidden rounded-full text-sm font-medium text-zinc-600 transition-all duration-300 dark:text-zinc-300 md:flex",
+        "items-center justify-center overflow-hidden rounded-full text-sm font-medium text-n-5 transition-all duration-300 dark:text-n-5 md:flex",
         isScrolled
           ? "bg-white/80 shadow-sm dark:border dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-xl dark:backdrop-brightness-125 dark:backdrop-contrast-125 dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]"
           : "bg-transparent",
@@ -81,7 +81,7 @@ export function HeaderNav({
             className={`relative flex items-center gap-2 overflow-hidden rounded-none px-4 py-2 transition-colors first:rounded-l-full last:rounded-r-full ${
               active
                 ? "font-semibold text-primary"
-                : "text-zinc-600 hover:text-primary dark:text-zinc-300"
+                : "text-n-5 hover:text-primary dark:text-n-5"
             }`}
           >
             {active && deferredIsScrolled ? (

@@ -129,7 +129,7 @@ export function DialogShell({
                 aria-labelledby={titleId}
                 aria-describedby={description ? descriptionId : undefined}
                 className={[
-                  "relative overflow-hidden rounded-[1.75rem] border border-zinc-200/80 bg-white/80 shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:backdrop-blur-sm dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]",
+                  "surface-shell relative overflow-hidden rounded-[1.75rem]",
                   panelClassName ?? "",
                 ].join(" ")}
                 onClick={(event) => event.stopPropagation()}
@@ -141,20 +141,20 @@ export function DialogShell({
                 <div className="flex items-start justify-between gap-4 px-5 py-5">
                   <div className="min-w-0 pr-6">
                     {eyebrow ? (
-                      <p className="site-eyebrow uppercase tracking-[0.24em] text-zinc-400 dark:text-zinc-500">
+                      <p className="site-eyebrow uppercase tracking-[0.24em] text-n-4">
                         {eyebrow}
                       </p>
                     ) : null}
                     <h2
                       id={titleId}
-                      className="site-title-h3 mt-2 tracking-tight text-zinc-950 dark:text-zinc-50"
+                      className="site-title-h3 mt-2 tracking-tight text-n-6"
                     >
                       {title}
                     </h2>
                     {description ? (
                       <div
                         id={descriptionId}
-                        className="site-meta mt-3 text-zinc-500 dark:text-zinc-400"
+                        className="site-meta mt-3 text-n-5"
                       >
                         {description}
                       </div>
@@ -167,7 +167,7 @@ export function DialogShell({
                       type="button"
                       aria-label={closeLabel}
                       onClick={() => onOpenChange(false)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-500 dark:hover:bg-zinc-900 dark:hover:text-zinc-200"
+                      className="inline-flex h-8 w-8 items-center justify-center rounded-full text-n-4 transition hover:bg-n-1 hover:text-n-6 dark:text-n-5 dark:hover:bg-zinc-900 dark:hover:text-n-6"
                     >
                       <X className="h-4 w-4" />
                     </button>

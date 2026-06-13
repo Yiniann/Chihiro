@@ -44,7 +44,7 @@ export function PublicAuthStatus({
       <span className="relative block size-7 shrink-0">
         {user.image ? (
           <span
-            className="block size-7 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-zinc-200/80 dark:ring-zinc-800/80"
+            className="block size-7 rounded-full bg-cover bg-center bg-no-repeat ring-1 ring-n-2 dark:ring-n-2"
             style={{ backgroundImage: `url(${user.image})` }}
           />
         ) : (
@@ -54,13 +54,13 @@ export function PublicAuthStatus({
         )}
         <AuthProviderBadge provider={user.provider ?? null} className="size-3.5" />
       </span>
-      <span className="min-w-0 truncate text-sm font-medium text-zinc-700 dark:text-zinc-200">
+      <span className="min-w-0 truncate text-sm font-medium text-n-6">
         {user.name ?? user.email ?? "已登录"}
       </span>
       <form action={signOutSiteUserAction}>
         <button
           type="submit"
-          className="inline-flex size-8 items-center justify-center rounded-md text-zinc-500 transition hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          className="inline-flex size-8 items-center justify-center rounded-md text-n-5 transition hover:bg-n-1 hover:text-n-6 dark:text-n-5 dark:hover:bg-zinc-800 dark:hover:text-n-6"
         >
           <LogOut className="size-4" aria-hidden="true" />
           <span className="sr-only">退出登录</span>
@@ -99,7 +99,7 @@ function PublicSignInForm({
             <button
               type="button"
               onClick={() => void handleProviderSignIn("google")}
-              className="inline-flex size-9 items-center justify-center rounded-full border border-zinc-200/80 text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-n-2 text-n-6 transition hover:border-n-3 hover:bg-n-1 hover:text-n-6 dark:border-n-2 dark:text-n-6 dark:hover:border-n-3 dark:hover:bg-zinc-900 dark:hover:text-n-6"
               title="Google 登录"
               aria-label="Google 登录"
             >
@@ -110,7 +110,7 @@ function PublicSignInForm({
             <button
               type="button"
               onClick={() => void handleProviderSignIn("github")}
-              className="inline-flex size-9 items-center justify-center rounded-full border border-zinc-200/80 text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-950 dark:border-zinc-800/80 dark:text-zinc-200 dark:hover:border-zinc-700 dark:hover:bg-zinc-900 dark:hover:text-zinc-50"
+              className="inline-flex size-9 items-center justify-center rounded-full border border-n-2 text-n-6 transition hover:border-n-3 hover:bg-n-1 hover:text-n-6 dark:border-n-2 dark:text-n-6 dark:hover:border-n-3 dark:hover:bg-zinc-900 dark:hover:text-n-6"
               title="GitHub 登录"
               aria-label="GitHub 登录"
             >
@@ -118,7 +118,7 @@ function PublicSignInForm({
             </button>
           ) : null}
           {!googleEnabled && !githubEnabled ? (
-            <span className="text-sm text-zinc-400 dark:text-zinc-500">登录方式尚未配置</span>
+            <span className="text-sm text-n-4">登录方式尚未配置</span>
           ) : null}
         </div>
       </div>

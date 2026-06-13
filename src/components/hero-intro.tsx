@@ -28,7 +28,7 @@ export function HeroIntro({ intro, authorName }: HeroIntroProps) {
         return (
           <p
             key={index}
-            className={`hero-copy-body reading-copy site-lead ${marginClass} text-zinc-600 dark:text-zinc-300`}
+            className={`hero-copy-body reading-copy site-lead ${marginClass} text-n-5`}
           >
             {tokens.map((token, tokenIndex) => (
               <HeroIntroTokenNode key={tokenIndex} token={token} authorName={authorName} />
@@ -61,7 +61,7 @@ function HeroIntroTokenNode({
 
   if (token.type === "emphasis") {
     return (
-      <span className="hero-copy-emphasis font-medium italic text-zinc-900 dark:text-zinc-100">
+      <span className="hero-copy-emphasis font-medium italic text-n-6">
         {token.value}
       </span>
     );

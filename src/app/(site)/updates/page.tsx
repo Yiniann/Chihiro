@@ -39,15 +39,15 @@ export default async function UpdatesPage({ searchParams }: UpdatesPageProps) {
     <main className="mx-auto min-h-screen w-full max-w-4xl px-6 py-16 sm:px-10">
       <header>
         <div>
-          <p className="site-eyebrow uppercase tracking-[0.28em] text-zinc-500 dark:text-zinc-400">
+          <p className="site-eyebrow uppercase tracking-[0.28em] text-n-5">
             Updates
           </p>
-          <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-zinc-950 dark:text-zinc-50">
+          <h1 className="site-title-page mt-4 flex flex-wrap items-baseline gap-3 tracking-tight text-n-6">
             <span>足迹</span>
-            <span className="site-body tracking-normal text-zinc-400 dark:text-zinc-500">
+            <span className="site-body tracking-normal text-n-4">
               ·
             </span>
-            <span className="site-body tracking-normal text-zinc-500 dark:text-zinc-400">
+            <span className="site-body tracking-normal text-n-5">
               最近动态
             </span>
           </h1>
@@ -154,7 +154,7 @@ async function UpdatesPageContent({
         </div>
       </StaggerRevealItem>
 
-      <StaggerRevealItem className="site-meta mt-8 flex flex-wrap items-center justify-between gap-3 text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="site-meta mt-8 flex flex-wrap items-center justify-between gap-3 text-n-5">
         <p>{updatesCountLabel}</p>
         <div className="flex flex-wrap items-center gap-3">
           {SORT_OPTIONS.map((option) => {
@@ -167,7 +167,7 @@ async function UpdatesPageContent({
                 className={`transition ${
                   isActive
                     ? "text-primary"
-                    : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200"
+                    : "text-n-5 hover:text-n-6 dark:text-n-5 dark:hover:text-n-6"
                 }`}
               >
                 {option.label}
@@ -182,10 +182,10 @@ async function UpdatesPageContent({
           groups.map((group) => (
             <StaggerRevealItem key={group.year} className="space-y-6" offset={20}>
               <div className="flex items-center gap-4">
-                <h2 className="site-title-h3 tracking-[0.14em] text-zinc-400 dark:text-zinc-500">
+                <h2 className="site-title-h3 tracking-[0.14em] text-n-4">
                   {group.year}
                 </h2>
-                <div className="h-px flex-1 bg-zinc-200/80 dark:bg-zinc-800/80" />
+                <div className="h-px flex-1 bg-zinc-200/80 dark:bg-n-1/80" />
               </div>
 
               <StaggerReveal className="grid gap-6" delayChildren={0.02} staggerChildren={0.065}>
@@ -210,15 +210,15 @@ async function UpdatesPageContent({
                     <StaggerRevealItem key={item.id}>
                       <article
                         id={`update-${item.id}`}
-                        className="grid gap-4 border-b border-zinc-200/80 py-6 last:border-b-0 dark:border-zinc-800/80 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
+                        className="grid gap-4 border-b border-n-2 py-6 last:border-b-0 dark:border-n-2 sm:grid-cols-[5.5rem_minmax(0,1fr)] sm:gap-6 scroll-mt-24"
                       >
                         <div className="min-w-[4.5rem]">
                           {showDateMarker ? (
                             <>
-                              <p className="site-eyebrow uppercase tracking-[0.18em] text-zinc-400 dark:text-zinc-500">
+                              <p className="site-eyebrow uppercase tracking-[0.18em] text-n-4">
                                 {formatFeedMonth(item.publishedAt, siteTimeZone)}
                               </p>
-                              <p className="site-title-h1 mt-1 tracking-tight text-zinc-900 dark:text-zinc-100">
+                              <p className="site-title-h1 mt-1 tracking-tight text-n-6">
                                 {formatFeedDay(item.publishedAt, siteTimeZone)}
                               </p>
                             </>
@@ -234,7 +234,7 @@ async function UpdatesPageContent({
                           ) : null}
                           {hasBodyContent && renderedContentHtml ? (
                             <div
-                              className="reading-copy updates-copy site-body mt-3 max-w-3xl text-zinc-600 dark:text-zinc-300"
+                              className="reading-copy updates-copy site-body mt-3 max-w-3xl text-n-5"
                               dangerouslySetInnerHTML={{ __html: updateContentHtml }}
                             />
                           ) : null}
@@ -246,7 +246,7 @@ async function UpdatesPageContent({
                             />
                           ) : null}
                           <div
-                            className={`site-meta flex items-center justify-between gap-4 text-zinc-500 dark:text-zinc-400 ${
+                            className={`site-meta flex items-center justify-between gap-4 text-n-5 ${
                               hasBodyContent || item.kind === "NOTE" ? "mt-3" : "mt-2"
                             }`}
                           >
@@ -262,20 +262,20 @@ async function UpdatesPageContent({
             </StaggerRevealItem>
           ))
         ) : (
-          <StaggerRevealItem className="site-meta border-b border-dashed border-zinc-200/80 pb-8 text-zinc-500 dark:border-zinc-800/80 dark:text-zinc-400">
+          <StaggerRevealItem className="site-meta border-b border-dashed border-n-2 pb-8 text-n-5 dark:border-n-2 dark:text-n-5">
             No updates matched this filter yet.
           </StaggerRevealItem>
         )}
       </StaggerReveal>
 
-      <StaggerRevealItem className="site-meta mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-zinc-500 dark:text-zinc-400">
+      <StaggerRevealItem className="site-meta mt-10 flex flex-wrap items-center justify-between gap-4 pt-2 text-n-5">
         <Link
           href={buildUpdatesHref({ nextPage: Math.max(1, safeCurrentPage - 1) })}
           aria-disabled={safeCurrentPage === 1}
           className={`transition ${
             safeCurrentPage === 1
               ? "pointer-events-none opacity-40"
-              : "hover:text-zinc-900 dark:hover:text-zinc-200"
+              : "hover:text-n-6 dark:hover:text-n-6"
           }`}
         >
           Previous
@@ -297,7 +297,7 @@ async function UpdatesPageContent({
                   className={`transition ${
                     item === safeCurrentPage
                       ? "text-primary"
-                      : "hover:text-zinc-900 dark:hover:text-zinc-200"
+                      : "hover:text-n-6 dark:hover:text-n-6"
                   }`}
                 >
                   {item}
@@ -312,7 +312,7 @@ async function UpdatesPageContent({
           className={`transition ${
             safeCurrentPage === totalPages
               ? "pointer-events-none opacity-40"
-              : "hover:text-zinc-900 dark:hover:text-zinc-200"
+              : "hover:text-n-6 dark:hover:text-n-6"
           }`}
         >
           Next

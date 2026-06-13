@@ -125,10 +125,10 @@ export function HomeTimelineRail({
         transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
       >
         <div className="text-center">
-          <p className="text-sm font-normal uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm font-normal uppercase tracking-[0.14em] text-n-5">
             {eyebrow}
           </p>
-          <p className="mt-1 text-sm font-bold text-zinc-900 dark:text-zinc-100">
+          <p className="mt-1 text-sm font-bold text-n-6">
             {label}
           </p>
         </div>
@@ -228,7 +228,7 @@ export function HomeTimelineRail({
                     className={`mt-0.5 block text-[10px] tracking-[0.16em] ${
                       marker.current
                         ? "text-primary"
-                        : "text-zinc-400 dark:text-zinc-500"
+                        : "text-n-4"
                     }`}
                   >
                     {marker.year}
@@ -252,12 +252,12 @@ export function HomeTimelineRail({
               onMouseEnter={clearCloseTimeout}
               onMouseLeave={scheduleClose}
             >
-              <div className="w-max max-w-[24rem] rounded-md border border-zinc-200/80 bg-white/80 px-3 py-2.5 text-left shadow-sm backdrop-blur-sm dark:border-white/14 dark:bg-[rgba(255,255,255,0.06)] dark:shadow-[0_18px_45px_rgba(2,6,23,0.06)]">
+              <div className="surface-shell w-max max-w-[24rem] rounded-md px-3 py-2.5 text-left">
                 <div className="grid gap-1">
                   {clusters[activeIndex].items.map((item) => (
                     <h3
                       key={`${item.kindLabel}-${item.id}`}
-                      className="max-w-full text-sm font-semibold leading-6 text-zinc-950 dark:text-zinc-50"
+                      className="max-w-full text-sm font-semibold leading-6 text-n-6"
                     >
                       {item.href ? (
                         <Link
